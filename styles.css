@@ -417,16 +417,16 @@ body.sidebar-collapsed .sidebar-toggle::after {
 
 .sidebar-tools {
   margin-top: auto;
-  padding: 16px;
-  border-top: 1px solid var(--line);
+  padding: 0 10px 12px;
+  border-top: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .sidebar-action {
   width: 100%;
-  padding: 11px 14px;
+  padding: 10px 12px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: var(--panel);
@@ -445,7 +445,8 @@ body.sidebar-collapsed .sidebar-toggle::after {
 }
 
 body.sidebar-collapsed .sidebar-tools {
-  padding: 12px 8px;
+  padding: 0 8px 12px;
+  gap: 8px;
 }
 
 body.sidebar-collapsed .sidebar-action {
@@ -463,8 +464,4 @@ body.sidebar-collapsed .sidebar-action-text {
 body.sidebar-collapsed .sidebar-action-icon {
   font-size: 19px;
   line-height: 1;
-}
-
-body.sidebar-collapsed #importAllBtn::before {
-  content: "📥";
 }
