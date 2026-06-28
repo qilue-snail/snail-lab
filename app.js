@@ -61,4 +61,83 @@ function loadSharedSidebar() {
       setupSidebarToggle();
     });
 }
-document.addEventListener("DOMContentLoaded", loadSharedSidebar);
+function setupGlobalBackupButtons() {
+  const exportBtn = document.getElementById("exportAllBtn");
+  const importBtn = document.getElementById("importAllBtn");
+
+  if (exportBtn) {
+    exportBtn.addEventListener("click", () => {
+      const backup = {
+        version: 1,
+        createdAt: new Date().toISOString(),
+        localStorage: {}
+      };
+
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        backup.localStorage[key] = localStorage.getItem(key);
+      }
+
+      const blob = new Blob([JSON.stringify(backup, null, 2)], {
+        type: "application/json"
+      });
+
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "snail-lab-backup.json";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+  }
+
+  if (importBtn) {
+    importBtn.addEventListener("click", () => {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = ".json,application/json";
+
+      input.addEventListener("change", () => {
+        const file = input.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+
+        reader.onload = () => {
+          try {
+            const backup = JSON.parse(reader.result);
+
+            if (!backup.localStorage) {
+              alert("This does not look like a Snail Lab backup file.");
+              return;
+            }
+
+            if (!confirm("Import this backup? This will replace saved Snail Lab data.")) {
+              return;
+            }
+
+            Object.entries(backup.localStorage).forEach(([key, value]) => {
+              localStorage.setItem(key, value);
+            });
+
+            alert("Backup imported. The page will reload.");
+            location.reload();
+          } catch {
+            alert("Could not import backup file.");
+          }
+        };
+
+        reader.readAsText(file);
+      });
+
+      input.click();
+    });
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadSharedSidebar();
+
+  setTimeout(() => {
+    setupGlobalBackupButtons();
+  }, 150);
+});
