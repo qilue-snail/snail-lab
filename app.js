@@ -22,7 +22,7 @@ function loadSharedSidebar() {
     return;
   }
 
-  fetch(`${SNAIL_LAB_BASE}sidebar.html`)
+  fetch(`${SNAIL_LAB_BASE}sidebar.html`, { cache: "no-cache" })
     .then((response) => {
       if (!response.ok) throw new Error("Sidebar failed to load");
       return response.text();
@@ -34,11 +34,11 @@ function loadSharedSidebar() {
     .catch(() => {
       target.innerHTML = `
         <aside class="sidebar">
-          <a class="brand" href="${SNAIL_LAB_BASE}">
+          <a class="brand" href="${SNAIL_LAB_BASE}" aria-label="Snail Lab Home">
             <div class="brand-icon">🧪🐌</div>
             <div><h1>Snail Lab</h1><p>Super Snail Companion Suite</p></div>
           </a>
-          <nav class="nav">
+          <nav class="nav" aria-label="Snail Lab tools">
             <a class="nav-link" data-page="home" href="${SNAIL_LAB_BASE}">🏠 Home</a>
             <a class="nav-link" data-page="biozilla" href="${SNAIL_LAB_BASE}tools/biozilla/">🦖 Biozilla</a>
             <a class="nav-link" data-page="apostle-analytics" href="${SNAIL_LAB_BASE}tools/apostle-analytics/">📊 Apostle Analytics</a>
