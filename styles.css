@@ -147,7 +147,6 @@ a { color: inherit; text-decoration: none; }
   gap: 22px;
   margin-top: 24px;
 }
-
 .tool-card {
   padding: 26px;
   transition: transform .15s ease, box-shadow .15s ease;
@@ -201,7 +200,7 @@ a { color: inherit; text-decoration: none; }
   color: var(--muted);
 }
 @media (max-width: 900px) {
-  .app-shell { grid-template-columns: 1fr; }
+  .app-shell { grid-template-columns: 280px 1fr; }
   .sidebar {
     height: auto;
     position: static;
@@ -263,9 +262,6 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 900px) {
   #shared-sidebar .sidebar { height: auto; }
 }
-
-
-/* === Real shared shell: one sidebar for every page === */
 #shared-sidebar { min-width: 0; }
 #shared-sidebar .sidebar { width: 100%; }
 .sidebar, .sidebar * { font-family: inherit; }
@@ -289,8 +285,6 @@ a { color: inherit; text-decoration: none; }
   #shared-sidebar .sidebar { height: auto; position: static; }
   .tool-title-card h1 { font-size: 28px; }
 }
-
-/* === v4 polish: force the shared sidebar + Snail Lab tool styling === */
 #shared-sidebar .sidebar {
   width: 280px;
   min-width: 280px;
@@ -372,8 +366,6 @@ button.primary,
   border-color: var(--accent) !important;
   color: white !important;
 }
-
-/* Biozilla: restore the cream card style instead of plain spreadsheet white */
 .tool-main .wrap { max-width: none; margin: 0; padding: 0; }
 .tool-main .tabs { margin-bottom: 0; }
 .tool-main .tab {
@@ -415,18 +407,18 @@ button.primary,
 .tool-main .owned-table th {
   border-color: #dac8aa !important;
 }
-
 @media (max-width: 900px) {
   #shared-sidebar .sidebar {
-    width: 100%;
-    min-width: 0;
-    height: auto;
-    position: static;
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
+    width: 280px;
+    min-width: 280px;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    border-right: 1px solid var(--line);
+    border-bottom: 0;
   }
   #shared-sidebar .nav {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: flex;
+    flex-direction: column;
   }
 }
