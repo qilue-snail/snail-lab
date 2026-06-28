@@ -15,6 +15,44 @@
   body{font-size:16px;background:#fff}.wrap{margin:0;padding:0 10px 32px}h1{font-size:18px;padding-top:10px}.note{font-size:13px}.tabs{position:sticky;top:0;z-index:5;background:#fff;padding-top:6px}.tab{flex:1;padding:11px 8px}.sheet{border:0;box-shadow:none;padding:10px 0}.grid{display:block}.controls{display:block}.control{min-width:0;margin-bottom:10px}input[type="number"],input[type="text"],select,button{height:42px;font-size:16px}button{padding:9px 12px}.toolbar{display:grid;grid-template-columns:1fr;gap:8px}.syncbox{max-width:none}.owned-table-wrap{max-height:70vh}.owned-table th,.owned-table td{padding:6px 5px}.right{overflow:visible}.wide-table{display:none}.mobile-loadout{display:block}.recommend{grid-template-columns:1fr}.card{border-radius:12px;margin-bottom:8px}.card li{margin:10px 0}.section-title{font-size:18px}.small{font-size:13px}.snapshot{display:block}.snapshot button{margin-top:6px}.mobile-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.biozilla-note{display:none}
 }
 
+/* Biozilla title actions */
+.biozilla-title-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.biozilla-title-copy {
+  min-width: 0;
+}
+
+.reset-tool-btn {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  color: #a31b1b;
+  padding: 10px 18px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.reset-tool-btn:hover {
+  background: var(--panel-2);
+}
+
+@media (max-width: 760px) {
+  .biozilla-title-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .reset-tool-btn {
+    width: 100%;
+  }
+}
+
 </style>
 <link rel="stylesheet" href="/snail-lab/styles.css?v=4">
 </head>
@@ -22,9 +60,12 @@
   <div class="app-shell">
     <div id="shared-sidebar"></div>
     <main class="main tool-main">
-      <div class="tool-title-card">
-        <h1>Biozilla Relic Helper</h1>
-        <p>Optimize relic combinations and maximize Biozilla damage.</p>
+      <div class="tool-title-card biozilla-title-card">
+        <div class="biozilla-title-copy">
+          <h1>Biozilla Relic Helper</h1>
+          <p>Optimize relic combinations and maximize Biozilla damage.</p>
+        </div>
+        <button class="reset-tool-btn" id="resetBtn" type="button">Reset Tool</button>
       </div>
 
       <div class="wrap">
@@ -44,7 +85,7 @@
           <tr><td>Enemy:</td><td></td></tr>
           <tr><td>DEF</td><td class="input"><input id="enemyDef" type="number"></td></tr>
         </table>
-        <div class="toolbar"><button class="primary" id="saveBtn">Save locally</button><button id="exportBtn">Export save JSON</button><button id="importBtn">Import save JSON</button><input type="file" id="importFile" accept=".json" class="hide"><span id="saveStatus" class="status"></span></div>
+
         <div class="syncbox">
           <h3>Relic data sync</h3>
           <div class="small">Refreshes the relic database from the maintained online data source.</div>
@@ -367,10 +408,13 @@ function init(){
     state.loadout=work; renderBio(); save();
   };
   $('clearLoadout').onclick=()=>{slots.forEach(s=>state.loadout[s]=''); renderBio(); save();};
-  $('saveBtn').onclick=save;
   $('snapBtn').onclick=()=>{const t=totals(); state.snapshots=state.snapshots||[]; state.snapshots.unshift({date:new Date().toLocaleString(), note:$('snapshotNote').value, inputs:JSON.parse(JSON.stringify(state.inputs)), owned:JSON.parse(JSON.stringify(state.owned)), biozilla:state.biozilla, loadout:JSON.parse(JSON.stringify(state.loadout)), damage:calcDamage(t)}); $('snapshotNote').value=''; renderSnapshots(); save();};
-  $('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='super-snail-biozilla-save.json'; a.click();};
-  $('importBtn').onclick=()=>$('importFile').click(); $('importFile').onchange=e=>{const f=e.target.files[0]; if(!f)return; const rd=new FileReader(); rd.onload=()=>{state=JSON.parse(rd.result); bindInputs(); renderOwned(); renderBio(); renderSnapshots(); save();}; rd.readAsText(f);};
+  $('resetBtn').onclick=()=>{
+    if(!confirm('Reset Biozilla data? This cannot be undone.')) return;
+    localStorage.removeItem('snailBiozillaCalcV7');
+    localStorage.removeItem('snailBiozillaRelicRowsV1');
+    location.reload();
+  };
 }
 init();
 </script>
