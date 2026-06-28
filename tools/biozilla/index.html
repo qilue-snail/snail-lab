@@ -14,7 +14,6 @@
 @media (max-width: 760px){
   body{font-size:16px;background:#fff}.wrap{margin:0;padding:0 10px 32px}h1{font-size:18px;padding-top:10px}.note{font-size:13px}.tabs{position:sticky;top:0;z-index:5;background:#fff;padding-top:6px}.tab{flex:1;padding:11px 8px}.sheet{border:0;box-shadow:none;padding:10px 0}.grid{display:block}.controls{display:block}.control{min-width:0;margin-bottom:10px}input[type="number"],input[type="text"],select,button{height:42px;font-size:16px}button{padding:9px 12px}.toolbar{display:grid;grid-template-columns:1fr;gap:8px}.syncbox{max-width:none}.owned-table-wrap{max-height:70vh}.owned-table th,.owned-table td{padding:6px 5px}.right{overflow:visible}.wide-table{display:none}.mobile-loadout{display:block}.recommend{grid-template-columns:1fr}.card{border-radius:12px;margin-bottom:8px}.card li{margin:10px 0}.section-title{font-size:18px}.small{font-size:13px}.snapshot{display:block}.snapshot button{margin-top:6px}.mobile-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.biozilla-note{display:none}
 }
-
 /* Biozilla title actions */
 .biozilla-title-card {
   display: flex;
@@ -22,11 +21,9 @@
   justify-content: space-between;
   gap: 16px;
 }
-
 .biozilla-title-copy {
   min-width: 0;
 }
-
 .reset-tool-btn {
   border: 1px solid var(--line);
   border-radius: 14px;
@@ -37,22 +34,18 @@
   cursor: pointer;
   white-space: nowrap;
 }
-
 .reset-tool-btn:hover {
   background: var(--panel-2);
 }
-
 @media (max-width: 760px) {
   .biozilla-title-card {
     align-items: flex-start;
     flex-direction: column;
   }
-
   .reset-tool-btn {
     width: 100%;
   }
 }
-
 </style>
 <link rel="stylesheet" href="/snail-lab/styles.css?v=4">
 </head>
@@ -67,7 +60,6 @@
         </div>
         <button class="reset-tool-btn" id="resetBtn" type="button">Reset Tool</button>
       </div>
-
       <div class="wrap">
   <div class="note"></div>
   <div class="tabs"><button class="tab active" data-tab="input">Input</button><button class="tab" data-tab="biozilla">Biozilla</button></div>
@@ -85,7 +77,6 @@
           <tr><td>Enemy:</td><td></td></tr>
           <tr><td>DEF</td><td class="input"><input id="enemyDef" type="number"></td></tr>
         </table>
-
         <div class="syncbox">
           <h3>Relic data sync</h3>
           <div class="small">Refreshes the relic database from the maintained online data source.</div>
@@ -258,7 +249,6 @@ function useBuiltInRelicData(){
   setSyncStatus(`Using built-in v8 data: ${seed.relicRows.length.toLocaleString()} Relic rows.`, 'warn');
   $('ownedBiozilla').innerHTML='<option value="">All</option>'+seed.biozillas.map(b=>`<option>${b}</option>`).join(''); renderOwned(); renderBio(); save();
 }
-
 function bioMatch(row){return row.biozilla === state.biozilla || row.biozilla === 'Any'}
 function relicHasBiozilla(name, bio){ if(!bio) return true; return seed.relicRows.some(r=>r.name===name && (r.biozilla===bio || r.biozilla==='Any')); }
 function normalizeLevel(x){ if(x===undefined||x===null) return 'Unowned'; return String(x).replace(/\.0$/,''); }
@@ -332,7 +322,6 @@ function renderOwned(){
   }
   tbody.querySelectorAll('select').forEach(sel=>sel.onchange=()=>{state.owned[sel.dataset.name]=sel.value; renderBio(); save();});
 }
-
 function renderMobileLoadout(){
   const root=$('mobileLoadout'); if(!root) return;
   const currentDmg=damageForLoadout(state.loadout);
@@ -384,7 +373,6 @@ function init(){
   document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab,.sheet').forEach(x=>x.classList.remove('active')); t.classList.add('active'); $(t.dataset.tab).classList.add('active');});
   $('autoSyncRelics').checked=state.autoSyncRelics!==false;
   $('syncRelics').onclick=()=>loadRelicTabFromSheet(true).catch(e=>setSyncStatus(e.message,'err'));
-  
   if(localStorage.getItem('snailBiozillaRelicRowsV1')){ const names=new Set(seed.relicRows.map(r=>r.name)); setSyncStatus(`Using last synced Relic data: ${seed.relicRows.length.toLocaleString()} rows / ${names.size.toLocaleString()} relics. Click Sync Relic Data to refresh.`, 'ok'); }
   bindInputs(); $('ownedBiozilla').innerHTML='<option value="">All</option>'+seed.biozillas.map(b=>`<option>${b}</option>`).join(''); renderOwned(); renderBio(); renderSnapshots();
   if(state.autoSyncRelics && !localStorage.getItem('snailBiozillaRelicRowsV1')) loadRelicTabFromSheet(false).catch(e=>setSyncStatus('Auto-sync failed: '+e.message+' Built-in data is still available.','err'));
