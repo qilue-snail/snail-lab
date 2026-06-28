@@ -9,7 +9,28 @@
 .site-link{display:block;text-decoration:none;color:#17110a;padding:14px 16px;border-radius:14px;font-weight:800}
 .site-link:hover,.site-link.active{background:#8a5a2e;color:white}
 .page-area{min-width:0;background:#fbf6ea;min-height:100vh}
-.session-row button{align-self:end}.school-head{background:#f1dfbf!important;color:#17110a}.magic-head{border-bottom:1px solid #9fc5e8}.life-head{border-bottom:1px solid #ea9999}.ravg,.rout,.rexc,.rgen,.rsuper{background:#fffaf0}th{background:#f2e5ce}.log-table input{background:#fffef9}.note{display:none}@media(max-width:1100px){.app-shell{grid-template-columns:1fr}.site-sidebar{position:static;height:auto}.layout{grid-template-columns:1fr}.tool-nav{position:static}.g4{grid-template-columns:repeat(2,1fr)}.log-grid,.g2{grid-template-columns:1fr}}@media(max-width:650px){.top,.layout{padding:14px}.g4{grid-template-columns:1fr}.bar-chart{gap:7px}.bars span{width:10px}h1{font-size:21px}}
+.session-row button{align-self:end}.school-head{background:#f1dfbf!important;color:#17110a}.magic-head{border-bottom:1px solid #9fc5e8}.life-head{border-bottom:1px solid #ea9999}.ravg,.rout,.rexc,.rgen,.rsuper{background:#fffaf0}th{background:#f2e5ce}.log-table input{background:#fffef9}.note{display:none}
+/* Keep Apostle rarity colors without making the whole dashboard row loud */
+.card table tr.ravg td,
+.card table tr.rout td,
+.card table tr.rexc td,
+.card table tr.rgen td,
+.card table tr.rsuper td { background: transparent; }
+.card table tr.ravg td:first-child, .log-table td.ravg, input.addInput[data-r="avg"] { background: var(--avg); }
+.card table tr.rout td:first-child, .log-table td.rout, input.addInput[data-r="out"] { background: var(--out); }
+.card table tr.rexc td:first-child, .log-table td.rexc, input.addInput[data-r="exc"] { background: var(--exc); }
+.card table tr.rgen td:first-child, .log-table td.rgen, input.addInput[data-r="gen"] { background: var(--gen); }
+.card table tr.rsuper td:first-child, .log-table td.rsuper, input.addInput[data-r="super"] { background: var(--sup); }
+.card table tr.ravg td:first-child,
+.card table tr.rout td:first-child,
+.card table tr.rexc td:first-child,
+.card table tr.rgen td:first-child,
+.card table tr.rsuper td:first-child {
+  font-weight: 900;
+  border-right: 1px solid var(--line);
+}
+.log-table input { background: rgba(255,255,255,.82); }
+@media(max-width:1100px){.app-shell{grid-template-columns:1fr}.site-sidebar{position:static;height:auto}.layout{grid-template-columns:1fr}.tool-nav{position:static}.g4{grid-template-columns:repeat(2,1fr)}.log-grid,.g2{grid-template-columns:1fr}}@media(max-width:650px){.top,.layout{padding:14px}.g4{grid-template-columns:1fr}.bar-chart{gap:7px}.bars span{width:10px}h1{font-size:21px}}
 </style><link rel="stylesheet" href="/snail-lab/styles.css"></head><body>
 <div class="app-shell">
   <div id="shared-sidebar"></div>
