@@ -1,27 +1,23 @@
 // Snail Lab shared app behavior
 const SNAIL_LAB_BASE = "/snail-lab/";
-
 function snailLabPageKey() {
   const path = window.location.pathname;
   if (path.includes("/tools/biozilla/")) return "biozilla";
   if (path.includes("/tools/apostle-analytics/")) return "apostle-analytics";
   return "home";
 }
-
 function markActiveSidebarLink() {
   const activePage = snailLabPageKey();
   document.querySelectorAll(".nav-link[data-page]").forEach((link) => {
     link.classList.toggle("active", link.dataset.page === activePage);
   });
 }
-
 function loadSharedSidebar() {
   const target = document.getElementById("shared-sidebar");
   if (!target) {
     markActiveSidebarLink();
     return;
   }
-
   fetch(`${SNAIL_LAB_BASE}sidebar.html`, { cache: "no-cache" })
     .then((response) => {
       if (!response.ok) throw new Error("Sidebar failed to load");
@@ -45,7 +41,19 @@ function loadSharedSidebar() {
           </nav>
         </aside>`;
       markActiveSidebarLink();
+      const saved = localStorage.getItem("snailSidebarCollapsed") === "true";
+document.body.classList.toggle("sidebar-collapsed", saved);
+
+const toggle = document.getElementById("sidebar-toggle");
+if (toggle) {
+  toggle.textContent = saved ? "›" : "‹";
+
+  toggle.addEventListener("click", () => {
+    const collapsed = document.body.classList.toggle("sidebar-collapsed");
+    localStorage.setItem("snailSidebarCollapsed", collapsed);
+    toggle.textContent = collapsed ? "›" : "‹";
+  });
+}
     });
 }
-
 document.addEventListener("DOMContentLoaded", loadSharedSidebar);
