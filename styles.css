@@ -35,6 +35,7 @@ a { color: inherit; text-decoration: none; }
 }
 .brand {
   display: flex;
+  text-decoration: none;
   align-items: center;
   gap: 12px;
   margin-bottom: 30px;
@@ -254,4 +255,15 @@ a { color: inherit; text-decoration: none; }
   margin: 30px 0 0;
   color: #9c9184;
   font-size: 15px;
+}
+
+
+/* Shared Sidebar Loader Support */
+#shared-sidebar { min-width: 0; }
+#shared-sidebar .sidebar { width: 100%; }
+.tool-main { max-width: 1600px; }
+.sidebar .brand h1 { font-family: inherit; }
+.sidebar .nav-link { font-family: inherit; }
+@media (max-width: 900px) {
+  #shared-sidebar .sidebar { height: auto; }
 }

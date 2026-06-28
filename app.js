@@ -1,20 +1,51 @@
 // Snail Lab shared app behavior
+const SNAIL_LAB_BASE = "/snail-lab/";
 
-document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll(".nav-link[href]").forEach((link) => {
-    const href = link.getAttribute("href");
-    if (!href || href === "#") return;
+function snailLabPageKey() {
+  const path = window.location.pathname;
+  if (path.includes("/tools/biozilla/")) return "biozilla";
+  if (path.includes("/tools/apostle-analytics/")) return "apostle-analytics";
+  return "home";
+}
 
-    const path = location.pathname;
-
-    if (path.includes("/tools/biozilla/") && href.includes("biozilla")) {
-      link.classList.add("active");
-    } else if (path.includes("/tools/apostle-analytics/") && href.includes("apostle-analytics")) {
-      link.classList.add("active");
-    } else if ((path.endsWith("/") || path.endsWith("/index.html")) && href === "index.html") {
-      link.classList.add("active");
-    } else {
-      link.classList.remove("active");
-    }
+function markActiveSidebarLink() {
+  const activePage = snailLabPageKey();
+  document.querySelectorAll(".nav-link[data-page]").forEach((link) => {
+    link.classList.toggle("active", link.dataset.page === activePage);
   });
-});
+}
+
+function loadSharedSidebar() {
+  const target = document.getElementById("shared-sidebar");
+  if (!target) {
+    markActiveSidebarLink();
+    return;
+  }
+
+  fetch(`${SNAIL_LAB_BASE}sidebar.html`)
+    .then((response) => {
+      if (!response.ok) throw new Error("Sidebar failed to load");
+      return response.text();
+    })
+    .then((html) => {
+      target.innerHTML = html;
+      markActiveSidebarLink();
+    })
+    .catch(() => {
+      target.innerHTML = `
+        <aside class="sidebar">
+          <a class="brand" href="${SNAIL_LAB_BASE}">
+            <div class="brand-icon">🧪🐌</div>
+            <div><h1>Snail Lab</h1><p>Super Snail Companion Suite</p></div>
+          </a>
+          <nav class="nav">
+            <a class="nav-link" data-page="home" href="${SNAIL_LAB_BASE}">🏠 Home</a>
+            <a class="nav-link" data-page="biozilla" href="${SNAIL_LAB_BASE}tools/biozilla/">🦖 Biozilla</a>
+            <a class="nav-link" data-page="apostle-analytics" href="${SNAIL_LAB_BASE}tools/apostle-analytics/">📊 Apostle Analytics</a>
+          </nav>
+        </aside>`;
+      markActiveSidebarLink();
+    });
+}
+
+document.addEventListener("DOMContentLoaded", loadSharedSidebar);

@@ -4,25 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Snail Lab</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="/snail-lab/styles.css" />
 </head>
 <body>
   <div class="app-shell">
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="brand-icon">🧪🐌</div>
-        <div>
-          <h1>Snail Lab</h1>
-          <p>Super Snail Companion Suite</p>
-        </div>
-      </div>
-      <nav class="nav">
-        <a class="nav-link active" href="index.html">🏠 Home</a>
-        <a class="nav-link" href="tools/biozilla/index.html">🦖 Biozilla</a>
-        <a class="nav-link" href="tools/apostle-analytics/index.html">🧬 Apostle Analytics</a>
-      </nav>
-    </aside>
-    <main class="main">
+    <div id="shared-sidebar"></div>
+<main class="main">
       <section class="hero card">
         <div>
           <p class="eyebrow">Welcome to</p>
@@ -32,13 +19,13 @@
         <div class="mascot">🐌</div>
       </section>
       <section class="tool-grid">
-        <a class="tool-card card" href="tools/biozilla/index.html">
+        <a class="tool-card card" href="/snail-lab/tools/biozilla/">
           <div class="tool-icon">🦖</div>
           <h3>Biozilla Optimizer</h3>
           <p>Optimize relic combinations and maximize Biozilla damage.</p>
           <span class="open-link">Open Tool →</span>
         </a>
-        <a class="tool-card card" href="tools/apostle-analytics/index.html">
+        <a class="tool-card card" href="/snail-lab/tools/apostle-analytics/">
           <div class="tool-icon">🧬</div>
           <h3>Apostle Analytics</h3>
           <p>Track summons, sessions, rates, luck, streaks, and expected results.</p>
@@ -61,6 +48,6 @@
       </section>
     </main>
   </div>
-  <script src="app.js"></script>
+  <script src="/snail-lab/app.js"></script>
 </body>
 </html>
