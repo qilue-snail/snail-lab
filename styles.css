@@ -329,15 +329,56 @@ padding: 18px;
 align-items: flex-start;
 }
 .mascot {
-opacity: .35;
-position: absolute;
-right: 18px;
-bottom: 10px;
+  opacity: .35;
+  position: absolute;
+  right: 18px;
+  bottom: 10px;
+  }
+  .tool-grid {
+  grid-template-columns: 1fr;
+  }
+  .tool-title-card h1 {
+  font-size: 28px;
+  }
 }
-.tool-grid {
-grid-template-columns: 1fr;
+/* ---------- Collapsible Sidebar ---------- */
+.sidebar-toggle {
+  position: absolute;
+  top: 50%;
+  right: -15px;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 58px;
+  border-radius: 0 14px 14px 0;
+  border: 1px solid var(--line);
+  border-left: 0;
+  background: var(--accent);
+  color: white;
+  font-size: 24px;
+  font-weight: 900;
+  cursor: pointer;
+  z-index: 50;
 }
-.tool-title-card h1 {
-font-size: 28px;
+body.sidebar-collapsed .app-shell {
+  grid-template-columns: 48px minmax(0, 1fr);
 }
+body.sidebar-collapsed #shared-sidebar {
+  min-width: 48px;
+}
+body.sidebar-collapsed #shared-sidebar .sidebar {
+  width: 48px;
+  min-width: 48px;
+  padding: 22px 8px;
+}
+body.sidebar-collapsed #shared-sidebar .brand div:last-child,
+body.sidebar-collapsed #shared-sidebar .nav-link {
+  opacity: 0;
+  pointer-events: none;
+}
+body.sidebar-collapsed #shared-sidebar .brand-icon {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  font-size: 16px;
+  border-radius: 10px;
 }
