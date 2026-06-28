@@ -432,34 +432,37 @@ body.sidebar-collapsed .sidebar-toggle::after {
   background: var(--panel);
   color: var(--ink);
   font: inherit;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
-  transition: background .2s ease, transform .15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
 .sidebar-action:hover {
   background: var(--panel-2);
 }
 
-.sidebar-action:active {
-  transform: scale(0.98);
-}
-
 body.sidebar-collapsed .sidebar-tools {
-  padding: 10px 8px;
+  padding: 12px 8px;
 }
 
 body.sidebar-collapsed .sidebar-action {
-  padding: 10px;
-  font-size: 0;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  margin: 0 auto;
+  border-radius: 14px;
 }
 
-body.sidebar-collapsed .sidebar-action::before {
-  font-size: 18px;
+body.sidebar-collapsed .sidebar-action-text {
+  display: none;
 }
 
-body.sidebar-collapsed #exportAllBtn::before {
-  content: "📤";
+body.sidebar-collapsed .sidebar-action-icon {
+  font-size: 19px;
+  line-height: 1;
 }
 
 body.sidebar-collapsed #importAllBtn::before {
