@@ -480,9 +480,88 @@ body.sidebar-collapsed .sidebar-toggle::after {
 }
 /* ---------- Phone Layout ---------- */
 @media (max-width: 700px) {
-  .sidebar-toggle,
-  body.sidebar-collapsed .sidebar-toggle {
+  body {
+    overflow-x: hidden !important;
+  }
+
+  .app-shell,
+  body.sidebar-collapsed .app-shell {
+    display: block !important;
+    min-height: 100vh !important;
+  }
+
+  #shared-sidebar,
+  body.sidebar-collapsed #shared-sidebar {
+    width: 100% !important;
+    min-width: 0 !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 50 !important;
+  }
+
+  #shared-sidebar .sidebar,
+  body.sidebar-collapsed #shared-sidebar .sidebar {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    position: relative !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid var(--line) !important;
+    padding: 10px 12px !important;
+    display: block !important;
+  }
+
+  #shared-sidebar .brand,
+  body.sidebar-collapsed #shared-sidebar .brand {
+    margin-bottom: 10px !important;
+    justify-content: flex-start !important;
+  }
+
+  #shared-sidebar .brand-icon,
+  body.sidebar-collapsed #shared-sidebar .brand-icon {
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 40px !important;
+    font-size: 17px !important;
+  }
+
+  body.sidebar-collapsed #shared-sidebar .brand div:last-child {
+    display: block !important;
+  }
+
+  #shared-sidebar .brand h1 {
+    font-size: 20px !important;
+    letter-spacing: 0 !important;
+  }
+
+  #shared-sidebar .brand p {
     display: none !important;
+  }
+
+  #shared-sidebar .nav,
+  body.sidebar-collapsed #shared-sidebar .nav {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1.45fr !important;
+    gap: 8px !important;
+    margin-bottom: 8px !important;
+  }
+
+  #shared-sidebar .nav-link,
+  body.sidebar-collapsed #shared-sidebar .nav-link {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 42px !important;
+    padding: 0 8px !important;
+    border-radius: 999px !important;
+    justify-content: center !important;
+    font-size: 13px !important;
+    white-space: nowrap !important;
+  }
+
+  body.sidebar-collapsed #shared-sidebar .nav-link span,
+  body.sidebar-collapsed .sidebar-action-text {
+    display: inline !important;
   }
 
   .sidebar-tools,
@@ -492,41 +571,31 @@ body.sidebar-collapsed .sidebar-toggle::after {
     grid-template-columns: 1fr !important;
     gap: 8px !important;
     padding: 0 !important;
-    margin: 6px 0 0 !important;
-    overflow: visible !important;
+    margin: 0 !important;
   }
 
   .sidebar-action,
   body.sidebar-collapsed .sidebar-action {
     width: 100% !important;
     min-width: 0 !important;
-    height: 46px !important;
+    height: 42px !important;
     margin: 0 !important;
+    border-radius: 14px !important;
     justify-content: center !important;
-    border-radius: 18px !important;
-    font-size: 15px !important;
-  }
-
-  .sidebar-action-text,
-  body.sidebar-collapsed .sidebar-action-text {
-    display: inline !important;
-  }
-
-  #shared-sidebar .nav,
-  body.sidebar-collapsed #shared-sidebar .nav {
-    width: 100% !important;
-    display: grid !important;
-    grid-template-columns: 1fr 1fr 1.45fr !important;
-    gap: 8px !important;
-    overflow: visible !important;
-  }
-
-  #shared-sidebar .nav-link,
-  body.sidebar-collapsed #shared-sidebar .nav-link {
-    width: 100% !important;
-    min-width: 0 !important;
-    padding: 0 10px !important;
     font-size: 14px !important;
-    white-space: nowrap !important;
+  }
+
+  .sidebar-toggle,
+  body.sidebar-collapsed .sidebar-toggle {
+    display: none !important;
+  }
+
+  .main,
+  .tool-main,
+  .apostle-main {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 12px !important;
+    overflow: hidden !important;
   }
 }
