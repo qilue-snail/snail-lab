@@ -478,3 +478,159 @@ body.sidebar-collapsed .sidebar-toggle::after {
   content: "☰";
   font-size: 20px;
 }
+    right: 12px;
+    bottom: 8px;
+  }
+
+  .tool-grid {
+    gap: 14px;
+    margin-top: 14px;
+  }
+
+  .tool-card {
+    min-height: auto;
+    padding: 20px;
+  }
+
+  .tool-card h3 {
+    font-size: 22px;
+  }
+
+  .future-card {
+    padding: 26px 18px;
+  }
+
+  .tool-title-card {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .tool-title-card h1 {
+    font-size: 26px;
+  }
+
+  .tool-main .tabs {
+    display: flex;
+    overflow-x: auto;
+  }
+
+  .tool-main .tab {
+    flex: 1 0 auto;
+    min-height: 42px;
+    padding: 10px 12px !important;
+  }
+
+  .tool-main .sheet {
+    border-radius: 0 0 18px 18px !important;
+    padding: 12px !important;
+  }
+
+  .tool-main .grid,
+  .tool-main .recommend,
+  .log-grid,
+  .analytics-grid,
+  .g2,
+  .g4 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .tool-main .excel[style] {
+    width: 100% !important;
+  }
+
+  .syncrow .wide,
+  .control,
+  .row > * {
+    min-width: 0 !important;
+  }
+
+  .right,
+  .owned-table-wrap,
+  .log-table-wrap,
+  .card,
+  .metric,
+  .chartbox {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .apostle-main header {
+    margin: 0 0 12px;
+    border-radius: 18px;
+  }
+
+  .apostle-main .top {
+    padding: 16px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .apostle-main h1 {
+    font-size: 26px;
+    letter-spacing: 0;
+  }
+
+  .apostle-main .layout {
+    padding: 0;
+  }
+
+  .apostle-main .tool-nav {
+    margin-bottom: 0;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .apostle-main .navbtn {
+    flex: 0 0 auto;
+    padding: 10px 12px;
+  }
+
+  .apostle-main .card,
+  .apostle-main .metric {
+    border-radius: 14px;
+    padding: 14px;
+  }
+
+  .apostle-main .row {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .apostle-main .new-session-btn {
+    flex: 1 1 auto !important;
+    width: 100%;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
+  .apostle-main table {
+    min-width: 520px;
+  }
+
+  .bar-chart {
+    min-width: 420px;
+  }
+}
+
+@media (max-width: 420px) {
+  .main,
+  .tool-main,
+  .apostle-main {
+    padding: 10px;
+  }
+
+  .hero,
+  .tool-card,
+  .tool-title-card,
+  .apostle-main .card,
+  .apostle-main .metric {
+    border-radius: 14px;
+  }
+
+  #shared-sidebar .nav-link,
+  body.sidebar-collapsed #shared-sidebar .nav-link {
+    font-size: 13px;
+    padding: 0 10px;
+  }
+}
