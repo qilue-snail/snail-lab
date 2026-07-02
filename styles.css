@@ -524,11 +524,6 @@ body.sidebar-collapsed .sidebar-toggle::after {
     height: 40px !important;
     font-size: 17px !important;
   }
-
-  body.sidebar-collapsed #shared-sidebar .brand div:last-child {
-    display: block !important;
-  }
-
   #shared-sidebar .brand h1 {
     font-size: 20px !important;
     letter-spacing: 0 !important;
@@ -585,10 +580,37 @@ body.sidebar-collapsed .sidebar-toggle::after {
     font-size: 14px !important;
   }
 
-  .sidebar-toggle,
-  body.sidebar-collapsed .sidebar-toggle {
-    display: none !important;
-  }
+ .sidebar-toggle,
+body.sidebar-collapsed .sidebar-toggle {
+  display: flex !important;
+  position: absolute !important;
+  top: 10px !important;
+  right: 12px !important;
+  left: auto !important;
+  bottom: auto !important;
+  width: 42px !important;
+  height: 40px !important;
+  padding: 0 !important;
+  border-radius: 12px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 0 !important;
+}
+
+.sidebar-toggle::after,
+body.sidebar-collapsed .sidebar-toggle::after {
+  content: "☰" !important;
+  font-size: 22px !important;
+}
+
+body.sidebar-collapsed #shared-sidebar .nav,
+body.sidebar-collapsed .sidebar-tools {
+  display: none !important;
+}
+
+body.sidebar-collapsed #shared-sidebar .sidebar {
+  padding-bottom: 10px !important;
+}
 
   .main,
   .tool-main,
