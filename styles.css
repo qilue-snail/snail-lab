@@ -480,101 +480,53 @@ body.sidebar-collapsed .sidebar-toggle::after {
 }
 /* ---------- Phone Layout ---------- */
 @media (max-width: 700px) {
-  body {
-    min-width: 0;
-    overflow-x: hidden;
+  .sidebar-toggle,
+  body.sidebar-collapsed .sidebar-toggle {
+    display: none !important;
   }
 
-  .app-shell,
-  body.sidebar-collapsed .app-shell {
-    display: block;
-    min-height: 100vh;
+  .sidebar-tools,
+  body.sidebar-collapsed .sidebar-tools {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    padding: 0 !important;
+    margin: 6px 0 0 !important;
+    overflow: visible !important;
   }
 
-  #shared-sidebar,
-  body.sidebar-collapsed #shared-sidebar {
-    min-width: 0;
-    width: 100%;
-    position: sticky;
-    top: 0;
-    z-index: 50;
+  .sidebar-action,
+  body.sidebar-collapsed .sidebar-action {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 46px !important;
+    margin: 0 !important;
+    justify-content: center !important;
+    border-radius: 18px !important;
+    font-size: 15px !important;
   }
 
-  #shared-sidebar .sidebar,
-  body.sidebar-collapsed #shared-sidebar .sidebar {
-    width: 100%;
-    min-width: 0;
-    height: auto;
-    position: relative;
-    top: auto;
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-    padding: 10px 12px;
-    background: rgba(255, 250, 240, 0.94);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  #shared-sidebar .brand,
-  body.sidebar-collapsed #shared-sidebar .brand {
-    gap: 10px;
-    justify-content: flex-start;
-    margin-bottom: 0;
-  }
-
-  #shared-sidebar .brand-icon,
-  body.sidebar-collapsed #shared-sidebar .brand-icon {
-    width: 44px;
-    min-width: 44px;
-    height: 40px;
-    border-radius: 12px;
-    font-size: 17px;
-  }
-
-  body.sidebar-collapsed #shared-sidebar .brand div:last-child {
-    display: block;
-  }
-
-  #shared-sidebar .brand h1 {
-    font-size: 20px;
-    letter-spacing: 0;
-  }
-
-  #shared-sidebar .brand p {
-    display: none;
+  .sidebar-action-text,
+  body.sidebar-collapsed .sidebar-action-text {
+    display: inline !important;
   }
 
   #shared-sidebar .nav,
   body.sidebar-collapsed #shared-sidebar .nav {
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    gap: 8px;
-    overflow-x: auto;
-    padding-bottom: 2px;
-    scrollbar-width: none;
-  }
-
-  #shared-sidebar .nav::-webkit-scrollbar {
-    display: none;
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1.45fr !important;
+    gap: 8px !important;
+    overflow: visible !important;
   }
 
   #shared-sidebar .nav-link,
   body.sidebar-collapsed #shared-sidebar .nav-link {
-    flex: 0 0 auto;
-    width: auto;
-    height: 42px;
-    padding: 0 12px;
-    border-radius: 999px;
-    justify-content: center;
-    font-size: 14px;
-    line-height: 1;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 0 10px !important;
+    font-size: 14px !important;
+    white-space: nowrap !important;
   }
-
-  body.sidebar-collapsed #shared-sidebar .nav-link span,
-  body.sidebar-collapsed .sidebar-action-text {
-    display: inline;
-  }
-
-  .sidebar-tools,
+}
