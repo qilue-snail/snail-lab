@@ -478,159 +478,103 @@ body.sidebar-collapsed .sidebar-toggle::after {
   content: "☰";
   font-size: 20px;
 }
-    right: 12px;
-    bottom: 8px;
+/* ---------- Phone Layout ---------- */
+@media (max-width: 700px) {
+  body {
+    min-width: 0;
+    overflow-x: hidden;
   }
 
-  .tool-grid {
-    gap: 14px;
-    margin-top: 14px;
+  .app-shell,
+  body.sidebar-collapsed .app-shell {
+    display: block;
+    min-height: 100vh;
   }
 
-  .tool-card {
-    min-height: auto;
-    padding: 20px;
+  #shared-sidebar,
+  body.sidebar-collapsed #shared-sidebar {
+    min-width: 0;
+    width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 50;
   }
 
-  .tool-card h3 {
-    font-size: 22px;
-  }
-
-  .future-card {
-    padding: 26px 18px;
-  }
-
-  .tool-title-card {
-    padding: 18px;
-    border-radius: 18px;
-  }
-
-  .tool-title-card h1 {
-    font-size: 26px;
-  }
-
-  .tool-main .tabs {
+  #shared-sidebar .sidebar,
+  body.sidebar-collapsed #shared-sidebar .sidebar {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    position: relative;
+    top: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 10px 12px;
+    background: rgba(255, 250, 240, 0.94);
     display: flex;
-    overflow-x: auto;
-  }
-
-  .tool-main .tab {
-    flex: 1 0 auto;
-    min-height: 42px;
-    padding: 10px 12px !important;
-  }
-
-  .tool-main .sheet {
-    border-radius: 0 0 18px 18px !important;
-    padding: 12px !important;
-  }
-
-  .tool-main .grid,
-  .tool-main .recommend,
-  .log-grid,
-  .analytics-grid,
-  .g2,
-  .g4 {
-    grid-template-columns: 1fr !important;
-  }
-
-  .tool-main .excel[style] {
-    width: 100% !important;
-  }
-
-  .syncrow .wide,
-  .control,
-  .row > * {
-    min-width: 0 !important;
-  }
-
-  .right,
-  .owned-table-wrap,
-  .log-table-wrap,
-  .card,
-  .metric,
-  .chartbox {
-    max-width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .apostle-main header {
-    margin: 0 0 12px;
-    border-radius: 18px;
-  }
-
-  .apostle-main .top {
-    padding: 16px;
     flex-direction: column;
-    align-items: stretch;
+    gap: 8px;
   }
 
-  .apostle-main h1 {
-    font-size: 26px;
+  #shared-sidebar .brand,
+  body.sidebar-collapsed #shared-sidebar .brand {
+    gap: 10px;
+    justify-content: flex-start;
+    margin-bottom: 0;
+  }
+
+  #shared-sidebar .brand-icon,
+  body.sidebar-collapsed #shared-sidebar .brand-icon {
+    width: 44px;
+    min-width: 44px;
+    height: 40px;
+    border-radius: 12px;
+    font-size: 17px;
+  }
+
+  body.sidebar-collapsed #shared-sidebar .brand div:last-child {
+    display: block;
+  }
+
+  #shared-sidebar .brand h1 {
+    font-size: 20px;
     letter-spacing: 0;
   }
 
-  .apostle-main .layout {
-    padding: 0;
+  #shared-sidebar .brand p {
+    display: none;
   }
 
-  .apostle-main .tool-nav {
-    margin-bottom: 0;
+  #shared-sidebar .nav,
+  body.sidebar-collapsed #shared-sidebar .nav {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 8px;
     overflow-x: auto;
-    white-space: nowrap;
+    padding-bottom: 2px;
+    scrollbar-width: none;
   }
 
-  .apostle-main .navbtn {
-    flex: 0 0 auto;
-    padding: 10px 12px;
-  }
-
-  .apostle-main .card,
-  .apostle-main .metric {
-    border-radius: 14px;
-    padding: 14px;
-  }
-
-  .apostle-main .row {
-    display: grid;
-    grid-template-columns: 1fr;
-  }
-
-  .apostle-main .new-session-btn {
-    flex: 1 1 auto !important;
-    width: 100%;
-    min-width: 0 !important;
-    max-width: none !important;
-  }
-
-  .apostle-main table {
-    min-width: 520px;
-  }
-
-  .bar-chart {
-    min-width: 420px;
-  }
-}
-
-@media (max-width: 420px) {
-  .main,
-  .tool-main,
-  .apostle-main {
-    padding: 10px;
-  }
-
-  .hero,
-  .tool-card,
-  .tool-title-card,
-  .apostle-main .card,
-  .apostle-main .metric {
-    border-radius: 14px;
+  #shared-sidebar .nav::-webkit-scrollbar {
+    display: none;
   }
 
   #shared-sidebar .nav-link,
   body.sidebar-collapsed #shared-sidebar .nav-link {
-    font-size: 13px;
-    padding: 0 10px;
+    flex: 0 0 auto;
+    width: auto;
+    height: 42px;
+    padding: 0 12px;
+    border-radius: 999px;
+    justify-content: center;
+    font-size: 14px;
+    line-height: 1;
   }
-}
+
+  body.sidebar-collapsed #shared-sidebar .nav-link span,
+  body.sidebar-collapsed .sidebar-action-text {
+    display: inline;
+  }
+
+  .sidebar-tools,
