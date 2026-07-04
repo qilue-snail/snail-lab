@@ -4,6 +4,7 @@ function snailLabPageKey() {
   const path = window.location.pathname;
   if (path.includes("/tools/biozilla/")) return "biozilla";
   if (path.includes("/tools/apostle-analytics/")) return "apostle-analytics";
+  if (path.includes("/tools/time-rift-museum/")) return "time-rift-museum";
   return "home";
 }
 function markActiveSidebarLink() {
