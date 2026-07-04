@@ -1,7 +1,5 @@
 /* =========================================================
    Time Rift Museum Tool
-   Reads only the published "Time Rift Museum Relics" CSV tab.
-   Does not touch Biozilla logic or storage.
 ========================================================= */
 
 const TIME_RIFT_TAB_NAME = "Time Rift Museum Relics";
@@ -166,44 +164,68 @@ function parseStampEffect(text) {
 }
 
 function parseTimeRiftRelics(rows) {
-  return rowsToObjects(rows).map(({ row, headers, headerMap }, index) => {
-    const name = String(getCell(row, headerMap, ["Relic Name", "Name", "Relic"])).trim();
-    if (!name) return null;
+  if (!rows || rows.length < 2) return [];
 
-    const level = String(getCell(row, headerMap, ["Level", "Star", "Stars"])).trim();
-    const type = String(getCell(row, headerMap, ["Type"])).trim().toUpperCase();
-    const mainAfft = toNumber(getCell(row, headerMap, ["Main AFFT", "Main AFFCT", "Main Stat"]));
-    const rank = String(getCell(row, headerMap, ["Rank", "Rarity"])).trim();
-    const stampTexts = [
-      getCell(row, headerMap, ["Stamp 1"]),
-      getCell(row, headerMap, ["Stamp 2"]),
-      getCell(row, headerMap, ["Stamp 3"])
-    ].map((value) => String(value || "").trim()).filter(Boolean);
+  const headers = rows[0].map(h =>
+    String(h || "").trim().replace(/^\uFEFF/, "")
+  );
 
-    const effectText = headers.map((header, i) => `${header}: ${row[i] || ""}`).join(" | ");
-    const stampEffects = stampTexts.map(parseStampEffect).filter(Boolean);
+  return rows.slice(1)
+    .map((row, index) => {
+      const obj = {};
+      headers.forEach((header, i) => {
+        obj[header] = row[i] || "";
+      });
 
-    return {
-      id: `${normalizeId(name)}-${normalizeId(level || "row")}-${index + 2}`,
-      familyId: normalizeId(name),
-      name,
-      level,
-      type,
-      mainAfft,
-      rank,
-      fame: toNumber(getCell(row, headerMap, ["FAME"])),
-      art: toNumber(getCell(row, headerMap, ["ART"])),
-      fth: toNumber(getCell(row, headerMap, ["FTH"])),
-      civ: toNumber(getCell(row, headerMap, ["CIV"])),
-      tech: toNumber(getCell(row, headerMap, ["TECH"])),
-      stampTexts,
-      stampEffects,
-      effectText,
-      rowIndex: index + 2
-    };
-  }).filter(Boolean);
+      const name = obj["Relic Name"];
+      if (!name) return null;
+
+      const stamps = [
+        obj["Stamp 1"] || "",
+        obj["Stamp 2"] || "",
+        obj["Stamp 3"] || ""
+      ].filter(Boolean);
+
+      return {
+        id: `${name}-${obj["Level"] || index}`.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+        name: name.trim(),
+        level: obj["Level"] || "",
+        type: obj["Type"] || "",
+        mainAfft: toNumber(obj["Main AFFT"]),
+        rank: obj["Rank"] || "",
+
+        fame: toNumber(obj["FAME"]),
+        art: toNumber(obj["ART"]),
+        fth: toNumber(obj["FTH"]),
+        civ: toNumber(obj["CIV"]),
+        tech: toNumber(obj["TECH"]),
+
+        stamps,
+        stampBonuses: stamps.map(parseStampBonus).filter(Boolean),
+        effectText: stamps.join(" | ")
+      };
+    })
+    .filter(Boolean);
 }
+function parseStampBonus(text) {
+  const value = String(text || "").trim();
+  if (!value) return null;
 
+  const match = value.match(/\+([\d.]+)/);
+  if (!match) return null;
+
+  const amount = Number(match[1]);
+  const upper = value.toUpperCase();
+
+  if (upper.includes("FAME")) return { target: "FAME", value: amount };
+  if (upper.includes("ART")) return { target: "ART", value: amount };
+  if (upper.includes("FTH")) return { target: "FTH", value: amount };
+  if (upper.includes("CIV")) return { target: "CIV", value: amount };
+  if (upper.includes("TECH")) return { target: "TECH", value: amount };
+  if (upper.includes("ALL") || upper.includes("TOTAL")) return { target: "ALL", value: amount };
+
+  return null;
+}
 async function loadTimeRiftRelics() {
   setStatus("Loading Time Rift Museum relics…");
   try {
