@@ -5,7 +5,7 @@
 const TIME_RIFT_TAB_NAME = "Time Rift Museum Relics";
 const TIME_RIFT_STORAGE_KEY = "timeRiftMuseumAssignmentsV2";
 const TIME_RIFT_SLOT_STORAGE_KEY = "timeRiftMuseumSlotTypesV2";
-const TIME_RIFT_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQt9dkXKEDeiQYyGmYaSZpcq7CY1eM9ALn-kxxmm8qASUHznh0avCAz7hp3ojGNOXxIZncAKcpEMJ5J/pub?gid=538475015&single=true&output=csv";
+const TIME_RIFT_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQt9dkXKEDeiQYyGmYaSZpcq7CY1eM9ALn-kxxmm8qASUHznh0avCAz7hp3ojGNOXxIZncAKcpEMJ5J/pubhtml";
 
 const AFFCT_TYPES = ["FAME", "ART", "FTH", "CIV", "TECH"];
 const PEDESTAL_TYPES = ["ALL", ...AFFCT_TYPES];
