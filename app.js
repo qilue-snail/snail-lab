@@ -53,6 +53,7 @@ function loadSharedSidebar() {
 <a class="nav-link" data-page="home" href="${SNAIL_LAB_BASE}" title="Home">🏠 <span>Home</span></a>
 <a class="nav-link" data-page="biozilla" href="${SNAIL_LAB_BASE}tools/biozilla/" title="Biozilla">🦖 <span>Biozilla</span></a>
 <a class="nav-link" data-page="apostle-analytics" href="${SNAIL_LAB_BASE}tools/apostle-analytics/" title="Apostle Analytics">📊 <span>Apostle Analytics</span></a>
+<a class="nav-link" data-page="time-rift-museum" href="${SNAIL_LAB_BASE}tools/time-rift-museum/" title="Time Rift Museum">🏛️ <span>Time Rift Museum</span></a>
           </nav>
           <button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-label="Toggle sidebar">
             Collapse
