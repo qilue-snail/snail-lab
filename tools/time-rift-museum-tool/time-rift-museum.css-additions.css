@@ -1,0 +1,252 @@
+/* =========================================================
+   Time Rift Museum additions
+   Add this to the bottom of shared styles.css.
+========================================================= */
+.compact-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.hero-actions,
+.optimizer-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: end;
+}
+
+.btn.danger {
+  border-color: rgba(130, 40, 24, 0.35);
+  color: #7a2418;
+}
+
+.summary-grid,
+.optimizer-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin: 18px 0;
+}
+
+.optimizer-summary-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.stat-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
+.stat-card strong {
+  display: block;
+  font-size: clamp(1.7rem, 4vw, 2.4rem);
+  line-height: 1;
+}
+
+.status-card {
+  margin-bottom: 18px;
+  color: var(--muted);
+}
+
+.status-card.error {
+  color: #7a2418;
+  border-color: rgba(130, 40, 24, 0.35);
+}
+
+.tool-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.tool-tab {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  padding: 10px 14px;
+}
+
+.tool-tab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fffaf0;
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+.slot-filter-label,
+.optimizer-controls label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.compact-select,
+.optimizer-controls select,
+.museum-table select {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--ink);
+  font: inherit;
+  padding: 9px 10px;
+}
+
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.museum-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.museum-table th,
+.museum-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.museum-table th {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.museum-table select {
+  width: 100%;
+  min-width: 240px;
+}
+
+.type-pill,
+.buff-pill,
+.goal-pill {
+  display: inline-flex;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.85rem;
+  background: var(--panel);
+  white-space: nowrap;
+}
+
+.goal-pill {
+  background: rgba(123, 79, 44, 0.12);
+  border-color: rgba(123, 79, 44, 0.22);
+}
+
+.recommendation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.recommendation-card,
+.buff-row,
+.optimized-row {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel-2);
+  padding: 14px;
+}
+
+.recommendation-card h4 {
+  margin: 0 0 10px;
+}
+
+.recommendation-card ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.recommendation-card li {
+  margin: 6px 0;
+}
+
+.buff-list,
+.optimized-list {
+  display: grid;
+  gap: 10px;
+}
+
+.buff-row {
+  display: grid;
+  grid-template-columns: 90px 70px 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.buff-row.locked {
+  opacity: 0.62;
+}
+
+.optimized-row {
+  display: grid;
+  grid-template-columns: 80px 90px minmax(0, 1fr) 80px auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.optimized-row small,
+.museum-table small {
+  color: var(--muted);
+}
+
+.score-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(123, 79, 44, 0.14);
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.score-bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+@media (max-width: 900px) {
+  .compact-hero {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .summary-grid,
+  .optimizer-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .buff-row,
+  .optimized-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 560px) {
+  .summary-grid,
+  .optimizer-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
