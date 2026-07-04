@@ -537,21 +537,35 @@ function renderOptimizer() {
       </article>`;
   }).join("");
 }
-
 function renderBuffs() {
   const total = calculateTotalMuseumPoints();
   const list = document.getElementById("buff-list");
-  if (!list) return;
-  list.innerHTML = TIME_RIFT_THRESHOLDS.map((threshold) => {
-    const unlocked = total >= threshold.points;
-    return `
-      <div class="buff-row ${unlocked ? "unlocked" : "locked"}">
-        <span class="buff-pill">${threshold.points.toLocaleString()} pts</span>
-        <strong>${threshold.rating}</strong>
-        <span>${escapeHtml(threshold.buff)}</span>
-        <span class="buff-pill">${unlocked ? "Unlocked" : "Locked"}</span>
-      </div>`;
-  }).join("");
+
+  list.innerHTML = `
+    <table class="buff-table">
+      <thead>
+        <tr>
+          <th>Points</th>
+          <th>Rating</th>
+          <th>Buff</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${TIME_RIFT_THRESHOLDS.map((threshold) => {
+          const unlocked = total >= threshold.points;
+          return `
+            <tr class="${unlocked ? "unlocked" : "locked"}">
+              <td>${threshold.points.toLocaleString()}</td>
+              <td>${threshold.rating}</td>
+              <td>${escapeHtml(threshold.buff)}</td>
+              <td>${unlocked ? "Unlocked" : "Locked"}</td>
+            </tr>
+          `;
+        }).join("")}
+      </tbody>
+    </table>
+  `;
 }
 
 function renderTabs() {
