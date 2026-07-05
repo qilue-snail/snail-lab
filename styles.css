@@ -302,6 +302,13 @@ background: #efe6d3 !important;
 .tool-main .owned-table th {
 border-color: #dac8aa !important;
 }
+.tool-main .excel tr.total-row th,
+.tool-main .excel tr.total-row td,
+.tool-main .excel tr.damage-row th,
+.tool-main .excel tr.damage-row td {
+  background: #f8edd7 !important;
+  font-weight: 800 !important;
+}
 /* ---------- Mobile / Narrow Screens ---------- */
 @media (max-width: 900px) {
 .app-shell {
