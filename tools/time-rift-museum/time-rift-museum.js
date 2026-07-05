@@ -1,8 +1,9 @@
 /* =========================================================
-   Time Rift Museum Tool — stable Biozilla-style base
-   Two tabs: Input Relics -> Optimize.
+   Time Rift Museum
+   Data sync, owned relic input, optimizer, and buff progress.
 ========================================================= */
 
+/* ---------- Config ---------- */
 const TIME_RIFT_TAB_NAME = "Time Rift Museum Relics";
 const TIME_RIFT_CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vQt9dkXKEDeiQYyGmYaSZpcq7CY1eM9ALn-kxxmm8qASUHznh0avCAz7hp3ojGNOXxIZncAKcpEMJ5J/pub?gid=1578260911&single=true&output=csv";
@@ -11,7 +12,7 @@ const TIME_RIFT_ASSIGNMENTS_KEY = "timeRiftMuseumAssignmentsBaseV1";
 
 const AFFCT_TYPES = ["FAME", "ART", "FTH", "CIV", "TECH"];
 
-/* Baseline slot pattern from the previous working draft: slots 1-3 are ALL, then FAME/ART/FTH/CIV/TECH repeats. */
+/* Slots 1-3 are ALL, then FAME/ART/FTH/CIV/TECH repeats. */
 const TIME_RIFT_PEDESTALS = Array.from({ length: 83 }, (_, index) => {
   const slot = index + 1;
   const type = slot <= 3 ? "ALL" : AFFCT_TYPES[(slot - 4) % AFFCT_TYPES.length];
@@ -58,12 +59,14 @@ const TIME_RIFT_THRESHOLDS = [
   { points: 9500, rating: "SS", buff: "Rift Museum B-tad Output +20000" },
 ];
 
+/* ---------- State ---------- */
 let relicRows = [];
 let ownedRelics = {};
 let appliedAssignments = {};
 let activeTab = "input";
 let latestOptimizedSetup = [];
 
+/* ---------- Utility Helpers ---------- */
 function normalizeId(value) {
   return String(value || "")
     .trim()
@@ -92,6 +95,7 @@ function escapeHtml(value) {
     .replace(/'/g, "&#039;");
 }
 
+/* ---------- CSV Parsing ---------- */
 function parseCsv(text) {
   const rows = [];
   let row = [];
@@ -126,6 +130,7 @@ function parseCsv(text) {
   return rows;
 }
 
+/* ---------- Relic Parsing ---------- */
 function displayRelicBaseName(name) {
   return String(name || "")
     .replace(/\s[-–—]\s*(Awaken|6|5|4|3)$/i, "")
@@ -228,6 +233,7 @@ async function loadRelics() {
   }
 }
 
+/* ---------- Relic Accessors ---------- */
 function getFamilies() {
   const map = new Map();
   relicRows.forEach((relic) => {
@@ -262,6 +268,7 @@ function getOwnedRelics() {
   return Object.values(ownedRelics).map(findRelicById).filter(Boolean);
 }
 
+/* ---------- Museum Scoring ---------- */
 function getBaseStat(relic, pedestalType) {
   if (!relic) return 0;
   if (pedestalType === "ALL")
@@ -302,6 +309,7 @@ function assignmentPoints(assignments) {
   }, 0);
 }
 
+/* ---------- Optimizer ---------- */
 function buildOptimizedSetup() {
   const priority =
     document.getElementById("optimizer-priority")?.value || "points";
@@ -335,6 +343,7 @@ function buildOptimizedSetup() {
   return setup;
 }
 
+/* ---------- Rendering ---------- */
 function renderTabs() {
   document.querySelectorAll(".rift-tab").forEach((button) => {
     const active = button.dataset.tab === activeTab;
@@ -546,6 +555,7 @@ function renderBuffs() {
     </table>`;
 }
 
+/* ---------- Actions ---------- */
 function applyOptimizedSetup() {
   const setup = latestOptimizedSetup.length
     ? latestOptimizedSetup
@@ -571,6 +581,7 @@ function resetSetup() {
   renderAll();
 }
 
+/* ---------- State Cleanup ---------- */
 function cleanAssignmentsAgainstOwned() {
   const ownedIds = new Set(Object.values(ownedRelics));
   Object.keys(appliedAssignments).forEach((slot) => {
@@ -592,6 +603,7 @@ function cleanSavedState() {
   saveState();
 }
 
+/* ---------- Persistence ---------- */
 function loadState() {
   try {
     ownedRelics = JSON.parse(localStorage.getItem(TIME_RIFT_OWNED_KEY)) || {};
@@ -614,6 +626,7 @@ function saveState() {
   );
 }
 
+/* ---------- DOM Helpers ---------- */
 function setText(id, value) {
   const element = document.getElementById(id);
   if (element) element.textContent = value;
@@ -626,6 +639,7 @@ function setStatus(message, isError = false) {
   element.classList.toggle("error", isError);
 }
 
+/* ---------- App Lifecycle ---------- */
 function renderAll() {
   renderTabs();
   renderSummary();

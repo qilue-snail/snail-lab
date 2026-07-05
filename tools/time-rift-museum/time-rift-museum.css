@@ -1,9 +1,12 @@
 /* =========================================================
-   Time Rift Museum — stable Biozilla-style base
+   Time Rift Museum
+   Tool-specific styles only. Shared shell/sidebar styles live in styles.css.
 ========================================================= */
+
+/* ---------- Tool Theme ---------- */
 :root {
   --rift-card: #fffaf0;
-  --rift-card-2: #f8edd7;
+  --rift-card-soft: #f8edd7;
   --rift-ink: #2a2118;
   --rift-muted: #746653;
   --rift-line: #d8c4a4;
@@ -14,6 +17,7 @@
   --rift-radius: 18px;
 }
 
+/* ---------- Shell / Header ---------- */
 .time-rift-main {
   color: var(--rift-ink);
 }
@@ -24,12 +28,31 @@
   padding: 18px;
 }
 
-.rift-header {
+.rift-header,
+.card-head,
+.header-actions,
+.optimizer-controls {
   display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.rift-header {
   align-items: end;
   justify-content: space-between;
   gap: 18px;
   margin-bottom: 16px;
+}
+
+.card-head {
+  align-items: start;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.header-actions,
+.optimizer-controls {
+  align-items: center;
 }
 
 .eyebrow {
@@ -55,16 +78,66 @@
   line-height: 1.4;
 }
 
-.header-actions,
-.card-head,
-.toolbar,
-.optimizer-controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+/* ---------- Buttons / Forms ---------- */
+.primary-btn,
+.light-btn {
+  border: 1px solid var(--rift-accent);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
 }
 
+.primary-btn {
+  background: linear-gradient(180deg, #926039, #6f421f);
+  color: #fff;
+}
+
+.light-btn {
+  background: linear-gradient(180deg, #fff9ed, #ead7ba);
+  color: var(--rift-accent-dark);
+}
+
+.toolbar {
+  display: grid;
+  grid-template-columns: 1fr 170px 170px;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.toolbar input,
+.toolbar select,
+.optimizer-controls select,
+.level-label select {
+  width: 100%;
+  border: 1px solid var(--rift-line);
+  background: #fffdf7;
+  color: var(--rift-ink);
+  font: inherit;
+}
+
+.toolbar input,
+.toolbar select,
+.optimizer-controls select {
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.level-label select {
+  border-radius: 9px;
+  padding: 8px;
+}
+
+.optimizer-controls label {
+  display: grid;
+  gap: 5px;
+  min-width: 260px;
+  color: var(--rift-muted);
+  font-weight: 900;
+}
+
+/* ---------- Tabs ---------- */
 .rift-tabs {
   display: flex;
   gap: 8px;
@@ -77,7 +150,7 @@
   border-bottom: 0;
   border-radius: 14px 14px 0 0;
   padding: 12px 20px;
-  background: var(--rift-card-2);
+  background: var(--rift-card-soft);
   color: var(--rift-muted);
   font: inherit;
   font-weight: 900;
@@ -98,6 +171,7 @@
   display: none !important;
 }
 
+/* ---------- Cards / Summary ---------- */
 .tool-card,
 .summary-card {
   border: 1px solid var(--rift-line);
@@ -122,12 +196,6 @@
   margin: 0;
   color: var(--rift-muted);
   line-height: 1.35;
-}
-
-.card-head {
-  justify-content: space-between;
-  align-items: start;
-  margin-bottom: 14px;
 }
 
 .summary-grid {
@@ -169,7 +237,7 @@
   display: block;
   width: 0;
   height: 100%;
-  background: linear-gradient(90deg, #7b4f2c, #c59a64);
+  background: linear-gradient(90deg, var(--rift-accent), #c59a64);
 }
 
 .sync-status {
@@ -183,44 +251,7 @@
   color: var(--rift-bad);
 }
 
-.primary-btn,
-.light-btn {
-  border: 1px solid var(--rift-accent);
-  border-radius: 10px;
-  padding: 10px 14px;
-  font: inherit;
-  font-weight: 900;
-  cursor: pointer;
-}
-
-.primary-btn {
-  background: linear-gradient(180deg, #926039, #6f421f);
-  color: #fff;
-}
-
-.light-btn {
-  background: linear-gradient(180deg, #fff9ed, #ead7ba);
-  color: var(--rift-accent-dark);
-}
-
-.toolbar {
-  display: grid;
-  grid-template-columns: 1fr 170px 170px;
-  margin-bottom: 14px;
-}
-
-.toolbar input,
-.toolbar select,
-.optimizer-controls select {
-  width: 100%;
-  border: 1px solid var(--rift-line);
-  border-radius: 10px;
-  padding: 10px 12px;
-  background: #fffdf7;
-  color: var(--rift-ink);
-  font: inherit;
-}
-
+/* ---------- Input Relics ---------- */
 .owned-pill {
   min-width: 90px;
   padding: 9px 12px;
@@ -300,31 +331,14 @@
   font-weight: 900;
 }
 
-.level-label select {
-  width: 100%;
-  border: 1px solid var(--rift-line);
-  border-radius: 9px;
-  padding: 8px;
-  background: #fffdf7;
-  color: var(--rift-ink);
-  font: inherit;
-}
-
-.optimizer-card {
+/* ---------- Optimizer ---------- */
+.optimizer-card,
+.optimize-summary {
   margin-bottom: 12px;
-}
-
-.optimizer-controls label {
-  display: grid;
-  gap: 5px;
-  min-width: 260px;
-  color: var(--rift-muted);
-  font-weight: 900;
 }
 
 .optimize-summary {
   grid-template-columns: repeat(3, 1fr);
-  margin: 0 0 12px;
 }
 
 .results-grid {
@@ -351,10 +365,6 @@
   background: rgba(255, 250, 240, 0.78);
 }
 
-.optimized-list.compact .optimized-row {
-  grid-template-columns: 72px 58px 1fr 82px;
-}
-
 .optimized-row small {
   color: var(--rift-muted);
 }
@@ -370,6 +380,7 @@
   text-align: center;
 }
 
+/* ---------- Buff Table ---------- */
 .buff-card {
   margin-top: 12px;
 }
@@ -410,6 +421,7 @@
   font-weight: 800;
 }
 
+/* ---------- Responsive ---------- */
 @media (max-width: 900px) {
   .rift-header,
   .card-head {
@@ -449,8 +461,7 @@
     grid-column: 1 / -1;
   }
 
-  .optimized-row,
-  .optimized-list.compact .optimized-row {
+  .optimized-row {
     grid-template-columns: 1fr;
     align-items: start;
   }
