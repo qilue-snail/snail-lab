@@ -446,7 +446,7 @@ function renderMuseumStage() {
   stage.innerHTML = `
     <header class="museum-stage-header">
       <div class="stage-title">
-        <span class="group-icon ${viewMode === "slot" ? "all" : groupIconClass(activeGroup)}"></span>
+        ${groupIconMarkup(viewMode === "slot" ? "ALL" : activeGroup)}
         <h2>${title}</h2>
         <span>${assigned} / ${pedestals.length}</span>
       </div>
@@ -669,7 +669,7 @@ function renderOptimizerInsights(setup, goals, pointTarget, total) {
   const goalCounts = rewardGoals.map((goalKey) => `<span class="insight-pill">${escapeHtml(formatGoalName(goalKey))}: ${setup.filter((item) => item.matchedGoals.includes(goalKey)).length}</span>`).join("");
   const stampList = stampHighlights.length
     ? stampHighlights.map((item) => `<li><span class="optimizer-art">${relicArtworkMarkup(item.relic, item.pedestalType, "tiny")}</span><strong>Slot ${item.pedestal.slot}</strong><span>${escapeHtml(item.relic.baseName)} · ${escapeHtml(item.relic.level || "?")}</span><em>${item.base.toLocaleString()} + ${item.stampBonus.toLocaleString()} = ${item.points.toLocaleString()}</em></li>`).join("")
-    : `<li><span>No matching stamp bonuses in this preview.</span></li>`;
+    : `<li class="optimizer-empty-stamp"><span>No matching stamp bonuses in this preview.</span></li>`;
 
   container.innerHTML = `
     <div class="optimizer-preview-pills">${targetLine}${goalCounts || `<span class="insight-pill">Reward goals: none selected</span>`}</div>
@@ -836,6 +836,16 @@ function attachRelicArtworkFallbacks() {
   });
 }
 
+function attachGroupIconFallbacks() {
+  document.querySelectorAll(".group-icon-art img").forEach((img) => {
+    img.onerror = function () {
+      this.hidden = true;
+      const fallback = this.parentElement?.querySelector(".group-icon-fallback");
+      if (fallback) fallback.hidden = false;
+    };
+  });
+}
+
 function setStatus(message, isError = false) {
   const status = document.getElementById("sync-status");
   if (!status) return;
@@ -861,6 +871,8 @@ function renderAll() {
   renderMuseumStage();
   renderBuffs();
   renderOptimizer();
+  attachRelicArtworkFallbacks();
+  attachGroupIconFallbacks();
 }
 
 function bindStaticEvents() {
