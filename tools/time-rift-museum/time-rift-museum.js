@@ -790,16 +790,14 @@ function renderAll() {
   renderRecommendations();
   renderBuffs();
   renderOptimizer();
+ attachRelicImageFallbacks();
 }
-
 function saveAssignments() {
   localStorage.setItem(TIME_RIFT_STORAGE_KEY, JSON.stringify(timeRiftAssignments));
 }
-
 function loadSavedState() {
   try { timeRiftAssignments = JSON.parse(localStorage.getItem(TIME_RIFT_STORAGE_KEY)) || {}; } catch { timeRiftAssignments = {}; }
   try { timeRiftSlotTypes = JSON.parse(localStorage.getItem(TIME_RIFT_SLOT_STORAGE_KEY)) || {}; } catch { timeRiftSlotTypes = {}; }
-
   const autoSync = localStorage.getItem(TIME_RIFT_AUTO_SYNC_KEY);
   const autoSyncInput = document.getElementById("auto-sync-relics");
   if (autoSyncInput && autoSync !== null) autoSyncInput.checked = autoSync === "true";
@@ -842,7 +840,33 @@ function setText(id, value) {
   const element = document.getElementById(id);
   if (element) element.textContent = value;
 }
+/* =========================================================
+   Relic Artwork Helpers
+========================================================= */
 
+function relicImagePath(relicName) {
+  if (!relicName) return "";
+
+  return (
+    "assets/relics/" +
+    relicName
+      .toLowerCase()
+      .replace(/['’]/g, "")
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "") +
+    ".png"
+  );
+}
+
+function attachRelicImageFallbacks() {
+  document.querySelectorAll(".relic-art").forEach((img) => {
+    img.addEventListener("error", () => {
+      img.style.display = "none";
+      const placeholder = img.parentElement.querySelector(".relic-placeholder");
+      if (placeholder) placeholder.style.display = "";
+    });
+  });
+}
 function escapeHtml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
