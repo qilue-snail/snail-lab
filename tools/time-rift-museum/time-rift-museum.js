@@ -261,13 +261,21 @@ function getBaseStat(relic, pedestalType) {
 
 function getValidStampBonus(relic, pedestalType) {
   if (!relic) return 0;
-  return relic.stampEffects.reduce((total, effect) => {
-    if (effect.kind !== "affct") return total;
-    if (pedestalType === "ALL") return effect.target === "ALL" ? total + effect.value : total;
-    return effect.target === pedestalType ? total + effect.value : total;
+
+  const bonuses = Array.isArray(relic.stampBonuses)
+    ? relic.stampBonuses
+    : [];
+
+  return bonuses.reduce((total, bonus) => {
+    if (!bonus) return total;
+
+    if (pedestalType === "ALL") {
+      return bonus.target === "ALL" ? total + bonus.value : total;
+    }
+
+    return bonus.target === pedestalType ? total + bonus.value : total;
   }, 0);
 }
-
 function calculateRelicScoreForPedestal(relic, pedestalType) {
   if (!relic) return 0;
   return getBaseStat(relic, pedestalType) + getValidStampBonus(relic, pedestalType);
