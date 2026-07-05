@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Time Rift Museum | Snail Lab</title>
   <link rel="stylesheet" href="/snail-lab/styles.css?v=5" />
-  <link rel="stylesheet" href="time-rift-museum.css?v=2" />
+  <link rel="stylesheet" href="time-rift-museum.css?v=3" />
 </head>
 <body>
   <div class="app-shell">
@@ -109,26 +109,29 @@
           <section class="optimizer-layout">
             <article class="rift-card optimizer-card">
               <div>
-                <h2>Optimization Goal</h2>
-                <p>Choose what matters most. Goal matches are favored first, then pedestal points decide the layout.</p>
+                <h2>Optimization Goals</h2>
+                <p>Select one or more goals. Museum Points can be maximized, or used as a minimum target while the optimizer favors your selected rewards.</p>
               </div>
+
               <div class="optimizer-controls">
-                <label for="optimizer-goal">Goal</label>
-                <select id="optimizer-goal">
-                  <option value="points">Highest Museum Points</option>
-                  <option value="intel">More INTEL</option>
-                  <option value="dragon-orbs">Dragon Orbs</option>
-                  <option value="btads">B-tads</option>
-                  <option value="cells">Cells</option>
-                  <option value="medals">Museum Medals</option>
-                  <option value="speed">Travel Speed</option>
-                  <option value="damage">Rift Damage / Combat</option>
-                </select>
+                <fieldset class="goal-fieldset">
+                  <legend>Goals</legend>
+                  <label class="goal-check"><input type="checkbox" name="optimizer-goal" value="points" checked /> Museum Points</label>
+                  <label class="goal-check"><input type="checkbox" name="optimizer-goal" value="dragon-orbs" /> Dragon Orbs</label>
+                  <label class="goal-check"><input type="checkbox" name="optimizer-goal" value="intel" /> INTEL</label>
+                  <label class="goal-check"><input type="checkbox" name="optimizer-goal" value="cells" /> Cells</label>
+                  <label class="goal-check"><input type="checkbox" name="optimizer-goal" value="speed" /> Travel Speed</label>
+                  <label class="goal-check"><input type="checkbox" name="optimizer-goal" value="btads" /> B-tads</label>
+                </fieldset>
+
+                <label for="optimizer-point-target">Museum Points target</label>
+                <input id="optimizer-point-target" type="number" min="0" step="10" placeholder="Optional, ex. 950" />
+                <small class="optimizer-hint">Leave blank to maximize points. Enter a number to treat points as a minimum goal.</small>
 
                 <label for="optimizer-priority">Priority</label>
                 <select id="optimizer-priority">
                   <option value="balanced">Balanced</option>
-                  <option value="hard">Hard-focus goal</option>
+                  <option value="hard">Hard-focus selected rewards</option>
                 </select>
 
                 <button id="apply-optimized" class="rift-primary" type="button">Apply Optimized Setup</button>
@@ -164,13 +167,33 @@
             <button id="clear-relic" class="rift-light" type="button">Clear Slot</button>
           </div>
 
-          <div class="picker-filter-row" role="group" aria-label="Relic picker filters">
-            <button class="picker-filter active" data-picker-filter="all" type="button">All</button>
-            <button class="picker-filter" data-picker-filter="available" type="button">Available</button>
-            <button class="picker-filter" data-picker-filter="best" type="button">Best Score</button>
-            <button class="picker-filter" data-picker-filter="stamp" type="button">Stamp Match</button>
+          <div class="picker-tools">
+            <div class="picker-filter-row" role="group" aria-label="Relic picker filters">
+              <button class="picker-filter active" data-picker-filter="all" type="button">All</button>
+              <button class="picker-filter" data-picker-filter="available" type="button">Available</button>
+              <button class="picker-filter" data-picker-filter="best" type="button">Best Score</button>
+              <button class="picker-filter" data-picker-filter="stamp" type="button">Stamp Match</button>
+            </div>
+
+            <div class="picker-type-row" role="group" aria-label="Filter relic type">
+              <button class="picker-type active" data-picker-type="all" type="button">All Types</button>
+              <button class="picker-type" data-picker-type="FAME" type="button">FAME</button>
+              <button class="picker-type" data-picker-type="ART" type="button">ART</button>
+              <button class="picker-type" data-picker-type="FTH" type="button">FTH</button>
+              <button class="picker-type" data-picker-type="CIV" type="button">CIV</button>
+              <button class="picker-type" data-picker-type="TECH" type="button">TECH</button>
+            </div>
+
+            <label class="picker-sort-label" for="relic-sort">Sort</label>
+            <select id="relic-sort">
+              <option value="score">Best for this pedestal</option>
+              <option value="name">Relic name</option>
+              <option value="level">Level</option>
+              <option value="stamp">Stamp bonus first</option>
+            </select>
           </div>
 
+          <p id="picker-result-count" class="picker-result-count">0 relics</p>
           <div id="relic-results" class="relic-results"></div>
         </div>
       </section>
@@ -178,6 +201,6 @@
   </div>
 
   <script src="/snail-lab/app.js?v=5"></script>
-  <script src="time-rift-museum.js?v=2"></script>
+  <script src="time-rift-museum.js?v=3"></script>
 </body>
 </html>

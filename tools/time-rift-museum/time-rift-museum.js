@@ -79,6 +79,7 @@ let activeGroup = "ALL";
 let viewMode = "group";
 let pickerSlot = null;
 let pickerFilter = "all";
+let pickerTypeFilter = "all";
 
 function normalizeHeader(value) {
   return String(value || "").trim().replace(/^\uFEFF/, "").toLowerCase().replace(/[^a-z0-9]+/g, "");
@@ -378,11 +379,17 @@ function renderPedestalCard(pedestal) {
 
 function openRelicPicker(slot) {
   pickerSlot = slot;
-  pickerFilter = "all";
+  pickerFilter = "available";
+  pickerTypeFilter = "all";
   setText("picker-slot-label", `Slot ${slot} · ${getPedestalType(slot)} pedestal`);
   document.getElementById("relic-search").value = "";
+  const sort = document.getElementById("relic-sort");
+  if (sort) sort.value = "score";
   document.querySelectorAll(".picker-filter").forEach((button) => {
     button.classList.toggle("active", button.dataset.pickerFilter === pickerFilter);
+  });
+  document.querySelectorAll(".picker-type").forEach((button) => {
+    button.classList.toggle("active", button.dataset.pickerType === pickerTypeFilter);
   });
   document.getElementById("relic-picker").hidden = false;
   renderRelicResults();
@@ -400,38 +407,50 @@ function renderRelicResults() {
 
   const type = getPedestalType(pickerSlot);
   const query = normalizeText(document.getElementById("relic-search")?.value || "");
+  const sortMode = document.getElementById("relic-sort")?.value || "score";
   const unavailableFamilies = getAssignedFamilies(pickerSlot);
+  const queryParts = query.split(/\s+/).filter(Boolean);
 
   let items = timeRiftRelics.map((relic) => {
     const score = calculateRelicScoreForPedestal(relic, type);
     const bonus = getValidStampBonus(relic, type);
     const unavailable = unavailableFamilies.has(relic.familyId);
-    const haystack = normalizeText([relic.name, relic.level, relic.rank, relic.type, relic.effectText].join(" "));
+    const haystack = normalizeText([relic.name, relic.level, relic.rank, relic.type, relic.effectText, relic.fame, relic.art, relic.fth, relic.civ, relic.tech].join(" "));
     return { relic, score, bonus, unavailable, haystack };
   });
 
-  if (query) items = items.filter((item) => item.haystack.includes(query));
+  if (queryParts.length) items = items.filter((item) => queryParts.every((part) => item.haystack.includes(part)));
+  if (pickerTypeFilter !== "all") items = items.filter((item) => normalizeText(item.relic.type) === normalizeText(pickerTypeFilter));
   if (pickerFilter === "available") items = items.filter((item) => !item.unavailable);
   if (pickerFilter === "stamp") items = items.filter((item) => item.bonus > 0);
+  if (pickerFilter === "best") items = items.filter((item) => item.score > 0);
 
-  items = items
-    .sort((a, b) => b.score - a.score || a.relic.name.localeCompare(b.relic.name))
-    .slice(0, pickerFilter === "best" ? 40 : 120);
+  const totalMatches = items.length;
+  items = items.sort((a, b) => {
+    if (sortMode === "name") return a.relic.name.localeCompare(b.relic.name) || String(b.relic.level).localeCompare(String(a.relic.level));
+    if (sortMode === "level") return toNumber(b.relic.level) - toNumber(a.relic.level) || b.score - a.score || a.relic.name.localeCompare(b.relic.name);
+    if (sortMode === "stamp") return b.bonus - a.bonus || b.score - a.score || a.relic.name.localeCompare(b.relic.name);
+    return b.score - a.score || b.bonus - a.bonus || a.relic.name.localeCompare(b.relic.name);
+  }).slice(0, pickerFilter === "best" ? 50 : 160);
+
+  setText("picker-result-count", `${totalMatches.toLocaleString()} relic${totalMatches === 1 ? "" : "s"} found${items.length < totalMatches ? ` · showing top ${items.length}` : ""}`);
 
   if (!items.length) {
-    results.innerHTML = `<p>No relics match that search.</p>`;
+    results.innerHTML = `<p class="empty-results">No relics match that search.</p>`;
     return;
   }
 
-  results.innerHTML = items.map((item) => {
-    const disabledText = item.unavailable ? "Already used by another slot" : "Available";
-    const bonusText = item.bonus ? ` · +${item.bonus} stamp match` : "";
+  results.innerHTML = items.map((item, index) => {
+    const disabledText = item.unavailable ? "Already used" : "Available";
+    const bonusText = item.bonus ? `+${item.bonus} stamp` : "No matching stamp";
+    const statText = `FAME ${item.relic.fame} · ART ${item.relic.art} · FTH ${item.relic.fth} · CIV ${item.relic.civ} · TECH ${item.relic.tech}`;
     return `
       <button class="relic-option ${item.unavailable ? "unavailable" : ""}" type="button" data-relic-id="${escapeHtml(item.relic.id)}" ${item.unavailable ? "disabled" : ""}>
         <span class="relic-mini-icon"><span class="relic-glyph ${type.toLowerCase()}"></span></span>
-        <span>
-          <b>${escapeHtml(item.relic.name)}${item.relic.level ? ` · ${escapeHtml(item.relic.level)}` : ""}</b>
-          <small>${type === "ALL" ? "Total AFFCT" : type} score · ${disabledText}${bonusText}</small>
+        <span class="relic-option-body">
+          <b>${index + 1}. ${escapeHtml(item.relic.name)}${item.relic.level ? ` · ${escapeHtml(item.relic.level)}` : ""}</b>
+          <small>${type === "ALL" ? "Total AFFCT" : type} score · ${disabledText} · ${bonusText}</small>
+          <em>${escapeHtml(statText)}</em>
         </span>
         <span class="relic-score">${item.score.toLocaleString()}</span>
       </button>`;
@@ -499,58 +518,102 @@ function renderBuffs() {
     </table>`;
 }
 
+function getSelectedOptimizerGoals() {
+  const selected = [...document.querySelectorAll('input[name="optimizer-goal"]:checked')].map((input) => input.value);
+  return selected.length ? selected : ["points"];
+}
+
+function getOptimizerPointTarget() {
+  const value = toNumber(document.getElementById("optimizer-point-target")?.value || "");
+  return value > 0 ? value : 0;
+}
+
 function matchesGoal(relic, goalKey) {
   if (!relic || goalKey === "points") return false;
   const goal = OPTIMIZER_GOALS[goalKey];
+  if (!goal) return false;
   const text = normalizeText([relic.effectText, ...relic.stampTexts].join(" | "));
   return goal.keywords.some((keyword) => text.includes(keyword));
 }
 
-function optimizerScore(relic, pedestalType, goalKey, priority) {
-  const points = calculateRelicScoreForPedestal(relic, pedestalType);
-  if (goalKey === "points") return points;
-  const goalBonus = matchesGoal(relic, goalKey) ? OPTIMIZER_GOALS[goalKey].weight : 0;
-  return points + goalBonus * (priority === "hard" ? 2.5 : 1);
+function getGoalMatches(relic, goals) {
+  return goals.filter((goalKey) => matchesGoal(relic, goalKey));
 }
 
-function buildOptimizedSetup(goalKey, priority) {
+function optimizerScore(relic, pedestalType, goals, priority, currentTotal, pointTarget) {
+  const points = calculateRelicScoreForPedestal(relic, pedestalType);
+  const rewardGoals = goals.filter((goal) => goal !== "points");
+  const pointGoalSelected = goals.includes("points") || pointTarget > 0;
+  const stillNeedsPoints = pointTarget > 0 && currentTotal < pointTarget;
+  const pointWeight = stillNeedsPoints ? 4 : pointGoalSelected ? 1 : 0.25;
+  const rewardMultiplier = priority === "hard" ? 2.5 : 1;
+  const rewardBonus = rewardGoals.reduce((sum, goalKey) => {
+    if (!matchesGoal(relic, goalKey)) return sum;
+    return sum + (OPTIMIZER_GOALS[goalKey]?.weight || 0);
+  }, 0);
+  return points * pointWeight + rewardBonus * rewardMultiplier;
+}
+
+function buildOptimizedSetup(goals, priority, pointTarget = 0) {
   const usedFamilies = new Set();
   const setup = [];
+  let runningTotal = 0;
 
   TIME_RIFT_PEDESTALS.forEach((pedestal) => {
     const type = getPedestalType(pedestal.slot);
     const best = timeRiftRelics
       .filter((relic) => !usedFamilies.has(relic.familyId))
-      .map((relic) => ({
-        relic,
-        pedestal,
-        pedestalType: type,
-        points: calculateRelicScoreForPedestal(relic, type),
-        goalMatch: matchesGoal(relic, goalKey),
-        optimizerScore: optimizerScore(relic, type, goalKey, priority)
-      }))
+      .map((relic) => {
+        const points = calculateRelicScoreForPedestal(relic, type);
+        const matchedGoals = getGoalMatches(relic, goals);
+        return {
+          relic,
+          pedestal,
+          pedestalType: type,
+          points,
+          matchedGoals,
+          goalMatch: matchedGoals.length > 0,
+          optimizerScore: optimizerScore(relic, type, goals, priority, runningTotal, pointTarget)
+        };
+      })
       .sort((a, b) => b.optimizerScore - a.optimizerScore || b.points - a.points || a.relic.name.localeCompare(b.relic.name))[0];
 
     if (best) {
       usedFamilies.add(best.relic.familyId);
       setup.push(best);
+      runningTotal += best.points;
     }
   });
 
   return setup;
 }
 
+function formatGoalName(goalKey) {
+  const names = {
+    points: "Museum Points",
+    intel: "INTEL",
+    "dragon-orbs": "Dragon Orbs",
+    btads: "B-tads",
+    cells: "Cells",
+    speed: "Travel Speed",
+    medals: "Museum Medals",
+    damage: "Rift Combat"
+  };
+  return names[goalKey] || goalKey;
+}
+
 function renderOptimizer() {
-  const goalKey = document.getElementById("optimizer-goal")?.value || "points";
+  const goals = getSelectedOptimizerGoals();
   const priority = document.getElementById("optimizer-priority")?.value || "balanced";
-  const setup = buildOptimizedSetup(goalKey, priority);
+  const pointTarget = getOptimizerPointTarget();
+  const setup = buildOptimizedSetup(goals, priority, pointTarget);
   const total = setup.reduce((sum, item) => sum + item.points, 0);
-  const matches = setup.filter((item) => item.goalMatch).length;
+  const matches = setup.reduce((sum, item) => sum + item.matchedGoals.length, 0);
   const max = Math.max(...setup.map((item) => item.points), 1);
 
   setText("optimized-points", total.toLocaleString());
   setText("optimized-rating", getCurrentRating(total));
-  setText("optimized-matches", goalKey === "points" ? "—" : matches.toLocaleString());
+  setText("optimized-matches", goals.filter((goal) => goal !== "points").length ? matches.toLocaleString() : "—");
 
   const list = document.getElementById("optimized-list");
   if (!list) return;
@@ -559,8 +622,13 @@ function renderOptimizer() {
     return;
   }
 
-  list.innerHTML = setup.map((item) => {
+  const targetMessage = pointTarget
+    ? `<p class="optimizer-result-note ${total >= pointTarget ? "met" : "missed"}">${total >= pointTarget ? "Target met" : "Target not met"}: ${total.toLocaleString()} / ${pointTarget.toLocaleString()} Museum Points</p>`
+    : "";
+
+  list.innerHTML = targetMessage + setup.map((item) => {
     const width = Math.max(5, Math.round((item.points / max) * 100));
+    const label = item.matchedGoals.length ? item.matchedGoals.map(formatGoalName).join(", ") : "Points pick";
     return `
       <article class="optimized-row">
         <strong>Slot ${item.pedestal.slot}</strong>
@@ -571,15 +639,16 @@ function renderOptimizer() {
           <div class="score-bar"><span style="width:${width}%"></span></div>
         </div>
         <strong>${item.points.toLocaleString()}</strong>
-        <span class="goal-pill">${item.goalMatch ? "Goal match" : "Points pick"}</span>
+        <span class="goal-pill">${escapeHtml(label)}</span>
       </article>`;
   }).join("");
 }
 
 function applyOptimizedSetup() {
-  const goalKey = document.getElementById("optimizer-goal")?.value || "points";
+  const goals = getSelectedOptimizerGoals();
   const priority = document.getElementById("optimizer-priority")?.value || "balanced";
-  const setup = buildOptimizedSetup(goalKey, priority);
+  const pointTarget = getOptimizerPointTarget();
+  const setup = buildOptimizedSetup(goals, priority, pointTarget);
 
   timeRiftAssignments = {};
   setup.forEach((item) => { timeRiftAssignments[String(item.pedestal.slot)] = item.relic.id; });
@@ -677,12 +746,14 @@ function bindStaticEvents() {
   document.getElementById("reset-museum")?.addEventListener("click", resetAssignments);
   document.getElementById("refresh-relics")?.addEventListener("click", loadTimeRiftRelics);
   document.getElementById("save-snapshot")?.addEventListener("click", saveSnapshot);
-  document.getElementById("optimizer-goal")?.addEventListener("change", renderOptimizer);
+  document.querySelectorAll('input[name="optimizer-goal"]').forEach((input) => input.addEventListener("change", renderOptimizer));
+  document.getElementById("optimizer-point-target")?.addEventListener("input", renderOptimizer);
   document.getElementById("optimizer-priority")?.addEventListener("change", renderOptimizer);
   document.getElementById("apply-optimized")?.addEventListener("click", applyOptimizedSetup);
   document.getElementById("close-picker")?.addEventListener("click", closeRelicPicker);
   document.getElementById("clear-relic")?.addEventListener("click", () => assignRelicToSlot(pickerSlot, ""));
   document.getElementById("relic-search")?.addEventListener("input", renderRelicResults);
+  document.getElementById("relic-sort")?.addEventListener("change", renderRelicResults);
   document.getElementById("relic-picker")?.addEventListener("click", (event) => {
     if (event.target.id === "relic-picker") closeRelicPicker();
   });
@@ -701,6 +772,14 @@ function bindStaticEvents() {
     button.addEventListener("click", () => {
       pickerFilter = button.dataset.pickerFilter;
       document.querySelectorAll(".picker-filter").forEach((item) => item.classList.toggle("active", item === button));
+      renderRelicResults();
+    });
+  });
+
+  document.querySelectorAll(".picker-type").forEach((button) => {
+    button.addEventListener("click", () => {
+      pickerTypeFilter = button.dataset.pickerType;
+      document.querySelectorAll(".picker-type").forEach((item) => item.classList.toggle("active", item === button));
       renderRelicResults();
     });
   });
