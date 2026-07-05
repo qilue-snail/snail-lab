@@ -1,11 +1,11 @@
 /* =========================================================
-   Time Rift Museum Tool
-   Version 6: owned relic input + museum/optimizer workflow.
+   Time Rift Museum Tool — Version 7
+   Clean Input + Museum workflow. Owned relics drive picker and optimizer.
 ========================================================= */
 
 const TIME_RIFT_TAB_NAME = "Time Rift Museum Relics";
 const TIME_RIFT_STORAGE_KEY = "timeRiftMuseumAssignmentsV2";
-const TIME_RIFT_OWNED_KEY = "timeRiftMuseumOwnedRelicsV6";
+const TIME_RIFT_OWNED_KEY = "timeRiftMuseumOwnedRelicsV7";
 const TIME_RIFT_SLOT_STORAGE_KEY = "timeRiftMuseumSlotTypesV2";
 const TIME_RIFT_AUTO_SYNC_KEY = "timeRiftMuseumAutoSyncV2";
 const TIME_RIFT_SNAPSHOT_KEY = "timeRiftMuseumSnapshotsV2";
@@ -14,7 +14,6 @@ const TIME_RIFT_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQt9d
 const AFFCT_TYPES = ["FAME", "ART", "FTH", "CIV", "TECH"];
 const PEDESTAL_TYPES = ["ALL", ...AFFCT_TYPES];
 const GROUP_ORDER = ["ALL", "FAME", "ART", "FTH", "CIV", "TECH"];
-const OWNED_LEVEL_ORDER = ["", "3", "4", "5", "6", "Awaken"];
 
 const TIME_RIFT_PEDESTALS = Array.from({ length: 83 }, (_, index) => {
   const slot = index + 1;
@@ -68,7 +67,6 @@ const OPTIMIZER_GOALS = {
   "dragon-orbs": { keywords: ["dragon orb", "dragon orbs", "orb drops"], weight: 1300 },
   btads: { keywords: ["b-tad", "btad", "b-tads", "btads", "black tad"], weight: 1000 },
   cells: { keywords: ["cell", "cells"], weight: 1000 },
-  medals: { keywords: ["medal", "medals"], weight: 1000 },
   speed: { keywords: ["travel speed", "travel spd", "speed"], weight: 1000 }
 };
 
@@ -130,21 +128,6 @@ function parseCsv(text) {
   return rows;
 }
 
-function parseStampBonus(text) {
-  const raw = String(text || "").trim();
-  if (!raw) return null;
-  const match = raw.match(/\+\s*([\d.]+)/);
-  if (!match) return null;
-
-  const value = Number(match[1]);
-  const upper = raw.toUpperCase();
-  const target = AFFCT_TYPES.find((type) => upper.includes(type));
-
-  if (target) return { target, value, raw };
-  if (upper.includes("ALL") || upper.includes("TOTAL")) return { target: "ALL", value, raw };
-  return null;
-}
-
 function displayRelicBaseName(name) {
   return String(name || "").replace(/\s[-–—]\s*(Awaken|6|5|4|3)$/i, "").trim();
 }
@@ -156,8 +139,23 @@ function relicFamilyId(name) {
 function levelSortValue(level) {
   const raw = String(level || "").trim().toLowerCase();
   if (raw.includes("awaken")) return 7;
-  const num = toNumber(raw);
-  return num || 0;
+  return toNumber(raw) || 0;
+}
+
+function parseStampBonus(text) {
+  const raw = String(text || "").trim();
+  if (!raw) return null;
+
+  const match = raw.match(/\+\s*([\d.]+)/);
+  if (!match) return null;
+
+  const value = Number(match[1]);
+  const upper = raw.toUpperCase();
+  const target = AFFCT_TYPES.find((type) => upper.includes(type));
+
+  if (target) return { target, value, raw };
+  if (upper.includes("ALL") || upper.includes("TOTAL")) return { target: "ALL", value, raw };
+  return null;
 }
 
 function parseTimeRiftRelics(rows) {
@@ -173,7 +171,9 @@ function parseTimeRiftRelics(rows) {
 
     const level = String(obj.Level || "").trim();
     const rank = String(obj.Rank || "").trim();
-    const stamps = [obj["Stamp 1"], obj["Stamp 2"], obj["Stamp 3"]].map((stamp) => String(stamp || "").trim()).filter(Boolean);
+    const stamps = [obj["Stamp 1"], obj["Stamp 2"], obj["Stamp 3"]]
+      .map((stamp) => String(stamp || "").trim())
+      .filter(Boolean);
 
     return {
       id: normalizeId(`${name}-${level || rank || index}`),
@@ -210,6 +210,7 @@ async function loadTimeRiftRelics() {
   } catch (error) {
     console.error("CSV load failed:", error);
     setStatus("Could not load relics. Check that the Google Sheet tab is published to CSV.", true);
+    renderAll();
   }
 }
 
@@ -220,26 +221,23 @@ function getRelicFamilies() {
     groups.get(relic.familyId).push(relic);
   });
 
-  return [...groups.entries()].map(([familyId, levels]) => {
-    const sortedLevels = levels.sort((a, b) => levelSortValue(b.level) - levelSortValue(a.level));
-    return { familyId, name: sortedLevels[0].baseName, type: sortedLevels[0].type, levels: sortedLevels };
-  }).sort((a, b) => a.name.localeCompare(b.name));
+  return [...groups.entries()]
+    .map(([familyId, levels]) => {
+      const sortedLevels = levels.sort((a, b) => levelSortValue(b.level) - levelSortValue(a.level));
+      return { familyId, name: sortedLevels[0].baseName, type: sortedLevels[0].type, levels: sortedLevels };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 function findOwnedRelic(familyId) {
   const relicId = timeRiftOwned[familyId];
-  if (!relicId) return null;
-  return timeRiftRelics.find((relic) => relic.id === relicId) || null;
+  return relicId ? timeRiftRelics.find((relic) => relic.id === relicId) || null : null;
 }
 
 function getOwnedRelics() {
   return Object.values(timeRiftOwned)
     .map((id) => timeRiftRelics.find((relic) => relic.id === id))
     .filter(Boolean);
-}
-
-function isRelicOwned(relic) {
-  return Boolean(relic && timeRiftOwned[relic.familyId] === relic.id);
 }
 
 function getPedestalType(slot) {
@@ -317,6 +315,7 @@ function renderMuseumSummary() {
   setText("current-rating", getCurrentRating(total));
   setText("next-threshold", next ? `${next.points.toLocaleString()} (${next.rating})` : "Maxed");
   setText("points-needed", next ? (next.points - total).toLocaleString() : "0");
+
   const bar = document.getElementById("rank-progress-bar");
   if (bar) bar.style.width = `${progress}%`;
 }
@@ -325,14 +324,17 @@ function renderOwnedInput() {
   const container = document.getElementById("owned-relic-list");
   if (!container) return;
 
+  if (!timeRiftRelics.length) {
+    container.innerHTML = `<p class="empty-state">Sync relic data to load the owned relic input list.</p>`;
+    setText("owned-count", "0");
+    return;
+  }
+
   const queryParts = normalizeText(document.getElementById("owned-search")?.value || "").split(/\s+/).filter(Boolean);
   const typeFilter = document.getElementById("owned-type-filter")?.value || "all";
   const viewFilter = document.getElementById("owned-view-filter")?.value || "all";
-  const families = getRelicFamilies();
 
-  setText("owned-count", getOwnedRelics().length.toLocaleString());
-
-  let visible = families.map((family) => {
+  let visible = getRelicFamilies().map((family) => {
     const owned = findOwnedRelic(family.familyId);
     const best = family.levels[0];
     const haystack = normalizeText([family.name, family.type, best.effectText, best.fame, best.art, best.fth, best.civ, best.tech].join(" "));
@@ -344,16 +346,19 @@ function renderOwnedInput() {
   if (viewFilter === "missing") visible = visible.filter((item) => !item.owned);
   if (queryParts.length) visible = visible.filter((item) => queryParts.every((part) => item.haystack.includes(part)));
 
+  setText("owned-count", getOwnedRelics().length.toLocaleString());
+
   if (!visible.length) {
-    container.innerHTML = `<p class="empty-results">No relics match that filter.</p>`;
+    container.innerHTML = `<p class="empty-state">No relics match that filter.</p>`;
     return;
   }
 
-  container.innerHTML = visible.slice(0, 220).map(({ family, owned, best }) => {
+  container.innerHTML = visible.slice(0, 240).map(({ family, owned, best }) => {
     const levelOptions = [`<option value="">Not Owned</option>`, ...family.levels.map((relic) => {
       const label = relic.level || relic.rank || "?";
       return `<option value="${escapeHtml(relic.id)}" ${owned?.id === relic.id ? "selected" : ""}>${escapeHtml(label)}</option>`;
     })].join("");
+
     return `
       <article class="owned-row ${owned ? "owned" : "missing"}">
         <span class="owned-art">${relicArtworkMarkup(owned || best, best.type || "ALL", "small")}</span>
@@ -373,9 +378,9 @@ function renderOwnedInput() {
 
   container.querySelectorAll("[data-owned-family]").forEach((select) => {
     select.addEventListener("change", () => {
-      const familyId = select.dataset.ownedFamily;
-      if (select.value) timeRiftOwned[familyId] = select.value;
-      else delete timeRiftOwned[familyId];
+      if (select.value) timeRiftOwned[select.dataset.ownedFamily] = select.value;
+      else delete timeRiftOwned[select.dataset.ownedFamily];
+
       cleanAssignmentsAgainstOwned();
       saveOwnedRelics();
       saveAssignments();
@@ -393,8 +398,13 @@ function groupLabel(group) {
   return group === "ALL" ? "ALL Slots" : `${group} Slots`;
 }
 
-function groupIconClass(group) {
-  return group.toLowerCase();
+function groupIconMarkup(group) {
+  const type = String(group || "ALL").toLowerCase();
+  return `
+    <span class="group-icon group-icon-art">
+      <img src="assets/placeholders/${type}.png" alt="" loading="lazy" />
+      <span class="group-icon-fallback ${type}" aria-hidden="true"></span>
+    </span>`;
 }
 
 function assignedCountForGroup(group) {
@@ -411,10 +421,12 @@ function renderGroupNav() {
 
   nav.innerHTML = GROUP_ORDER.map((group) => `
     <button class="group-button ${viewMode === "group" && activeGroup === group ? "active" : ""}" type="button" data-group="${group}">
-      <span class="group-icon ${groupIconClass(group)}"></span>
+      ${groupIconMarkup(group)}
       <b>${groupLabel(group)}</b>
       <span>${assignedCountForGroup(group)} / ${totalCountForGroup(group)}</span>
     </button>`).join("");
+
+  attachGroupIconFallbacks();
 
   nav.querySelectorAll("[data-group]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -428,10 +440,6 @@ function renderGroupNav() {
 function renderViewButtons() {
   document.querySelectorAll("[data-view-mode]").forEach((button) => {
     button.classList.toggle("active", button.dataset.viewMode === viewMode);
-    button.addEventListener("click", () => {
-      viewMode = button.dataset.viewMode;
-      renderAll();
-    }, { once: true });
   });
 }
 
@@ -451,11 +459,15 @@ function renderMuseumStage() {
         <span>${assigned} / ${pedestals.length}</span>
       </div>
     </header>
-    <div class="museum-hall">
-      ${pedestals.map(renderPedestalCard).join("")}
+    <div class="museum-scroll">
+      <div class="museum-hall">
+        ${pedestals.map(renderPedestalCard).join("")}
+      </div>
     </div>`;
 
   attachRelicArtworkFallbacks();
+  attachGroupIconFallbacks();
+
   stage.querySelectorAll("[data-open-picker]").forEach((button) => {
     button.addEventListener("click", () => openRelicPicker(Number(button.dataset.openPicker)));
   });
@@ -483,14 +495,19 @@ function openRelicPicker(slot) {
   pickerFilter = "all";
   pickerTypeFilter = "all";
   setText("picker-slot-label", `Slot ${slot} · ${getPedestalType(slot)} pedestal`);
-  document.getElementById("relic-search").value = "";
+
+  const search = document.getElementById("relic-search");
+  if (search) search.value = "";
+
   const sort = document.getElementById("relic-sort");
   if (sort) sort.value = "score";
+
   document.querySelectorAll(".picker-filter").forEach((button) => button.classList.toggle("active", button.dataset.pickerFilter === pickerFilter));
   document.querySelectorAll(".picker-type").forEach((button) => button.classList.toggle("active", button.dataset.pickerType === pickerTypeFilter));
+
   document.getElementById("relic-picker").hidden = false;
   renderRelicResults();
-  setTimeout(() => document.getElementById("relic-search")?.focus(), 0);
+  setTimeout(() => search?.focus(), 0);
 }
 
 function closeRelicPicker() {
@@ -526,7 +543,7 @@ function renderRelicResults() {
   if (pickerFilter === "stamp") items = items.filter((item) => item.bonus > 0);
   if (pickerFilter === "best") items = items.filter((item) => item.score > 0);
 
-  items = items.sort((a, b) => {
+  items.sort((a, b) => {
     if (sortMode === "name") return a.relic.baseName.localeCompare(b.relic.baseName);
     if (sortMode === "level") return levelSortValue(b.relic.level) - levelSortValue(a.relic.level) || b.score - a.score;
     if (sortMode === "stamp") return b.bonus - a.bonus || b.score - a.score || a.relic.baseName.localeCompare(b.relic.baseName);
@@ -536,7 +553,7 @@ function renderRelicResults() {
   setText("picker-result-count", `${items.length.toLocaleString()} owned relic${items.length === 1 ? "" : "s"}`);
 
   if (!items.length) {
-    results.innerHTML = `<p class="empty-results">No owned relics match that search. Add relics on the Input tab first.</p>`;
+    results.innerHTML = `<p class="empty-state">No owned relics match that search. Add relics on the Input tab first.</p>`;
     return;
   }
 
@@ -552,6 +569,7 @@ function renderRelicResults() {
     </button>`).join("");
 
   attachRelicArtworkFallbacks();
+
   results.querySelectorAll("[data-relic-id]").forEach((button) => {
     button.addEventListener("click", () => assignRelicToSlot(pickerSlot, button.dataset.relicId));
   });
@@ -560,6 +578,7 @@ function renderRelicResults() {
 function assignRelicToSlot(slot, relicId) {
   if (relicId) timeRiftAssignments[String(slot)] = relicId;
   else delete timeRiftAssignments[String(slot)];
+
   saveAssignments();
   closeRelicPicker();
   activeTab = "museum";
@@ -628,7 +647,14 @@ function buildOptimizedSetup(goals, priority, pointTarget = 0) {
       .map((relic) => {
         const points = calculateRelicScoreForPedestal(relic, type);
         const matchedGoals = getGoalMatches(relic, goals);
-        return { relic, pedestal, pedestalType: type, points, matchedGoals, optimizerScore: optimizerScore(relic, type, goals, priority, runningTotal, pointTarget) };
+        return {
+          relic,
+          pedestal,
+          pedestalType: type,
+          points,
+          matchedGoals,
+          optimizerScore: optimizerScore(relic, type, goals, priority, runningTotal, pointTarget)
+        };
       })
       .sort((a, b) => b.optimizerScore - a.optimizerScore || b.points - a.points || a.relic.baseName.localeCompare(b.relic.baseName))[0];
 
@@ -657,16 +683,17 @@ function renderOptimizerInsights(setup, goals, pointTarget, total) {
   }
 
   const rewardGoals = goals.filter((goal) => goal !== "points");
+  const targetLine = pointTarget
+    ? `<span class="insight-pill ${total >= pointTarget ? "met" : "missed"}">${total >= pointTarget ? "Target met" : "Target short"}: ${total.toLocaleString()} / ${pointTarget.toLocaleString()}</span>`
+    : `<span class="insight-pill met">Maximizing Museum Points</span>`;
+  const goalCounts = rewardGoals.map((goalKey) => `<span class="insight-pill">${escapeHtml(formatGoalName(goalKey))}: ${setup.filter((item) => item.matchedGoals.includes(goalKey)).length}</span>`).join("");
+
   const stampHighlights = setup
     .map((item) => ({ ...item, stampBonus: getValidStampBonus(item.relic, item.pedestalType), base: getBaseStat(item.relic, item.pedestalType) }))
     .filter((item) => item.stampBonus > 0)
     .sort((a, b) => b.stampBonus - a.stampBonus || b.points - a.points)
     .slice(0, 5);
 
-  const targetLine = pointTarget
-    ? `<span class="insight-pill ${total >= pointTarget ? "met" : "missed"}">${total >= pointTarget ? "Target met" : "Target short"}: ${total.toLocaleString()} / ${pointTarget.toLocaleString()}</span>`
-    : `<span class="insight-pill met">Maximizing Museum Points</span>`;
-  const goalCounts = rewardGoals.map((goalKey) => `<span class="insight-pill">${escapeHtml(formatGoalName(goalKey))}: ${setup.filter((item) => item.matchedGoals.includes(goalKey)).length}</span>`).join("");
   const stampList = stampHighlights.length
     ? stampHighlights.map((item) => `<li><span class="optimizer-art">${relicArtworkMarkup(item.relic, item.pedestalType, "tiny")}</span><strong>Slot ${item.pedestal.slot}</strong><span>${escapeHtml(item.relic.baseName)} · ${escapeHtml(item.relic.level || "?")}</span><em>${item.base.toLocaleString()} + ${item.stampBonus.toLocaleString()} = ${item.points.toLocaleString()}</em></li>`).join("")
     : `<li class="optimizer-empty-stamp"><span>No matching stamp bonuses in this preview.</span></li>`;
@@ -694,12 +721,15 @@ function renderOptimizer() {
 
   const list = document.getElementById("optimized-list");
   if (!list) return;
+
   if (!getOwnedRelics().length) {
-    list.innerHTML = `<p>Add owned relics on the Input tab first.</p>`;
+    list.innerHTML = `<p class="empty-state">Add owned relics on the Input tab first.</p>`;
     return;
   }
 
-  const targetMessage = pointTarget ? `<p class="optimizer-result-note ${total >= pointTarget ? "met" : "missed"}">${total >= pointTarget ? "Target met" : "Target not met"}: ${total.toLocaleString()} / ${pointTarget.toLocaleString()} Museum Points</p>` : "";
+  const targetMessage = pointTarget
+    ? `<p class="optimizer-result-note ${total >= pointTarget ? "met" : "missed"}">${total >= pointTarget ? "Target met" : "Target not met"}: ${total.toLocaleString()} / ${pointTarget.toLocaleString()} Museum Points</p>`
+    : "";
 
   list.innerHTML = targetMessage + setup.map((item) => {
     const width = Math.max(5, Math.round((item.points / max) * 100));
@@ -723,11 +753,73 @@ function applyOptimizedSetup() {
   const priority = document.getElementById("optimizer-priority")?.value || "balanced";
   const pointTarget = getOptimizerPointTarget();
   const setup = buildOptimizedSetup(goals, priority, pointTarget);
+
   timeRiftAssignments = {};
   setup.forEach((item) => { timeRiftAssignments[String(item.pedestal.slot)] = item.relic.id; });
   saveAssignments();
   activeTab = "museum";
   renderAll();
+}
+
+function relicAssetFileName(relicName, keepApostrophesAsSeparator = false) {
+  const apostropheReplacement = keepApostrophesAsSeparator ? "_" : "";
+  return String(relicName || "").toLowerCase().replace(/[’']/g, apostropheReplacement).replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+}
+
+function relicImageCandidates(relic) {
+  if (!relic) return [];
+  const candidates = [relicAssetFileName(relic.baseName, false), relicAssetFileName(relic.baseName, true)].filter(Boolean);
+  return [...new Set(candidates)].map((fileName) => `assets/relics/${fileName}.png`);
+}
+
+function placeholderPath(pedestalType) {
+  return `assets/placeholders/${String(pedestalType || "ALL").toLowerCase()}.png`;
+}
+
+function relicArtworkMarkup(relic, pedestalType, size = "large") {
+  const typeClass = String(pedestalType || "ALL").toLowerCase();
+  const images = relic ? relicImageCandidates(relic) : [];
+  const firstImage = images[0] || placeholderPath(pedestalType);
+
+  return `
+    <span class="relic-art-wrap ${size}">
+      <img class="relic-art" src="${escapeHtml(firstImage)}" data-art-candidates="${escapeHtml(images.join("|"))}" data-placeholder="${escapeHtml(placeholderPath(pedestalType))}" data-art-index="0" alt="${relic ? escapeHtml(relic.baseName) : ""}" loading="lazy" />
+      <span class="relic-art-fallback ${size}" hidden aria-hidden="true"><span class="relic-glyph ${typeClass}"></span></span>
+    </span>`;
+}
+
+function attachRelicArtworkFallbacks() {
+  document.querySelectorAll(".relic-art").forEach((img) => {
+    img.onerror = function () {
+      const candidates = String(this.dataset.artCandidates || "").split("|").filter(Boolean);
+      const nextIndex = Number(this.dataset.artIndex || 0) + 1;
+
+      if (candidates[nextIndex]) {
+        this.dataset.artIndex = String(nextIndex);
+        this.src = candidates[nextIndex];
+        return;
+      }
+
+      if (this.src.endsWith(this.dataset.placeholder || "")) {
+        this.hidden = true;
+        const fallback = this.parentElement?.querySelector(".relic-art-fallback");
+        if (fallback) fallback.hidden = false;
+        return;
+      }
+
+      this.src = this.dataset.placeholder;
+    };
+  });
+}
+
+function attachGroupIconFallbacks() {
+  document.querySelectorAll(".group-icon-art img").forEach((img) => {
+    img.onerror = function () {
+      this.hidden = true;
+      const fallback = this.parentElement?.querySelector(".group-icon-fallback");
+      if (fallback) fallback.hidden = false;
+    };
+  });
 }
 
 function saveAssignments() {
@@ -786,66 +878,6 @@ function saveSnapshot() {
   setStatus(`Saved snapshot: ${name}.`);
 }
 
-function relicAssetFileName(relicName, keepApostrophesAsSeparator = false) {
-  const apostropheReplacement = keepApostrophesAsSeparator ? "_" : "";
-  return String(relicName || "").toLowerCase().replace(/[’']/g, apostropheReplacement).replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
-}
-
-function relicImageCandidates(relic) {
-  if (!relic) return [];
-  const candidates = [relicAssetFileName(relic.baseName, false), relicAssetFileName(relic.baseName, true)].filter(Boolean);
-  return [...new Set(candidates)].map((fileName) => `assets/relics/${fileName}.png`);
-}
-
-function placeholderPath(pedestalType) {
-  return `assets/placeholders/${String(pedestalType || "ALL").toLowerCase()}.png`;
-}
-
-function relicArtworkMarkup(relic, pedestalType, size = "large") {
-  const typeClass = String(pedestalType || "ALL").toLowerCase();
-  const images = relic ? relicImageCandidates(relic) : [];
-  const firstImage = images[0] || placeholderPath(pedestalType);
-  return `
-    <span class="relic-art-wrap ${size}">
-      <img class="relic-art" src="${escapeHtml(firstImage)}" data-art-candidates="${escapeHtml(images.join("|"))}" data-placeholder="${escapeHtml(placeholderPath(pedestalType))}" data-art-index="0" alt="${relic ? escapeHtml(relic.baseName) : ""}" loading="lazy" />
-      <span class="relic-art-fallback ${size}" hidden aria-hidden="true"><span class="relic-glyph ${typeClass}"></span></span>
-    </span>`;
-}
-
-function attachRelicArtworkFallbacks() {
-  document.querySelectorAll(".relic-art").forEach((img) => {
-    img.onerror = function () {
-      const candidates = String(this.dataset.artCandidates || "").split("|").filter(Boolean);
-      const nextIndex = Number(this.dataset.artIndex || 0) + 1;
-
-      if (candidates[nextIndex]) {
-        this.dataset.artIndex = String(nextIndex);
-        this.src = candidates[nextIndex];
-        return;
-      }
-
-      if (this.src.endsWith(this.dataset.placeholder || "")) {
-        this.hidden = true;
-        const fallback = this.parentElement?.querySelector(".relic-art-fallback");
-        if (fallback) fallback.hidden = false;
-        return;
-      }
-
-      this.src = this.dataset.placeholder;
-    };
-  });
-}
-
-function attachGroupIconFallbacks() {
-  document.querySelectorAll(".group-icon-art img").forEach((img) => {
-    img.onerror = function () {
-      this.hidden = true;
-      const fallback = this.parentElement?.querySelector(".group-icon-fallback");
-      if (fallback) fallback.hidden = false;
-    };
-  });
-}
-
 function setStatus(message, isError = false) {
   const status = document.getElementById("sync-status");
   if (!status) return;
@@ -859,7 +891,12 @@ function setText(id, value) {
 }
 
 function escapeHtml(value) {
-  return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 function renderAll() {
@@ -882,7 +919,6 @@ function bindStaticEvents() {
   document.getElementById("owned-search")?.addEventListener("input", renderOwnedInput);
   document.getElementById("owned-type-filter")?.addEventListener("change", renderOwnedInput);
   document.getElementById("owned-view-filter")?.addEventListener("change", renderOwnedInput);
-  document.querySelectorAll('input[name="optimizer-goal"]').forEach((input) => input.addEventListener("change", renderOptimizer));
   document.getElementById("optimizer-point-target")?.addEventListener("input", renderOptimizer);
   document.getElementById("optimizer-priority")?.addEventListener("change", renderOptimizer);
   document.getElementById("apply-optimized")?.addEventListener("click", applyOptimizedSetup);
@@ -893,9 +929,18 @@ function bindStaticEvents() {
   document.getElementById("relic-picker")?.addEventListener("click", (event) => { if (event.target.id === "relic-picker") closeRelicPicker(); });
   document.getElementById("auto-sync-relics")?.addEventListener("change", (event) => localStorage.setItem(TIME_RIFT_AUTO_SYNC_KEY, String(event.target.checked)));
 
+  document.querySelectorAll('input[name="optimizer-goal"]').forEach((input) => input.addEventListener("change", renderOptimizer));
+
   document.querySelectorAll(".rift-tab").forEach((button) => {
     button.addEventListener("click", () => {
       activeTab = button.dataset.tab;
+      renderAll();
+    });
+  });
+
+  document.querySelectorAll("[data-view-mode]").forEach((button) => {
+    button.addEventListener("click", () => {
+      viewMode = button.dataset.viewMode;
       renderAll();
     });
   });

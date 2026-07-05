@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Time Rift Museum | Snail Lab</title>
   <link rel="stylesheet" href="/snail-lab/styles.css?v=5" />
-  <link rel="stylesheet" href="time-rift-museum.css?v=6" />
+  <link rel="stylesheet" href="time-rift-museum.css?v=7" />
 </head>
 <body>
   <div class="app-shell">
     <div id="shared-sidebar"></div>
 
     <main class="tool-main time-rift-main">
-      <section class="rift-app-shell">
+      <section class="rift-shell">
         <header class="rift-hero">
           <div class="rift-title">
             <p>Super Snail</p>
@@ -33,14 +33,14 @@
           </div>
         </header>
 
-        <section class="rift-top-grid compact-top">
-          <article class="rift-card overview-card compact-overview">
-            <div class="rift-card-title"><span class="title-icon museum-icon"></span><h2>Museum Overview</h2></div>
-            <div class="overview-stats compact-stats">
+        <section class="top-grid">
+          <article class="rift-card overview-card">
+            <div class="card-title"><span class="museum-mark"></span><h2>Museum Overview</h2></div>
+            <div class="overview-stats">
               <div><span>Points</span><strong id="total-points">0</strong></div>
               <div><span>Rank</span><strong id="current-rating" class="rank-badge">—</strong></div>
               <div>
-                <span id="next-rank-label">Next</span>
+                <span>Next</span>
                 <strong id="next-threshold">120 (C)</strong>
                 <div class="rank-progress"><span id="rank-progress-bar"></span></div>
                 <small>Need <b id="points-needed">120</b></small>
@@ -48,11 +48,11 @@
             </div>
           </article>
 
-          <article class="rift-card sync-card compact-sync">
+          <article class="rift-card sync-card">
             <h2>Relic data sync</h2>
             <p>Refreshes the Time Rift Museum relic database from the maintained online data source.</p>
             <div class="sync-actions">
-              <button id="refresh-relics" class="rift-primary" type="button">Sync Relic Data</button>
+              <button id="refresh-relics" class="primary-btn" type="button">Sync Relic Data</button>
               <label><input id="auto-sync-relics" type="checkbox" checked /> Auto-sync when app opens</label>
             </div>
             <p id="sync-status" class="sync-status">Loading Time Rift Museum relics…</p>
@@ -61,20 +61,17 @@
 
         <section id="panel-input" class="tab-panel active" role="tabpanel">
           <section class="rift-card input-card">
-            <div class="section-heading">
+            <div class="section-head">
               <div>
                 <h2>Owned Relics</h2>
                 <p>Select the highest level you own for each relic. The museum picker and optimizer will use this list.</p>
               </div>
-              <div class="owned-summary">
-                <span>Owned</span>
-                <strong id="owned-count">0</strong>
-              </div>
+              <div class="owned-count-box"><span>Owned</span><strong id="owned-count">0</strong></div>
             </div>
 
             <div class="input-toolbar">
               <input id="owned-search" type="search" placeholder="Search relic name, type, stamp, or reward…" autocomplete="off" />
-              <select id="owned-type-filter" aria-label="Filter owned relic input by type">
+              <select id="owned-type-filter" aria-label="Filter relics by type">
                 <option value="all">All types</option>
                 <option value="FAME">FAME</option>
                 <option value="ART">ART</option>
@@ -82,7 +79,7 @@
                 <option value="CIV">CIV</option>
                 <option value="TECH">TECH</option>
               </select>
-              <select id="owned-view-filter" aria-label="Filter owned relic input by ownership">
+              <select id="owned-view-filter" aria-label="Filter relics by ownership">
                 <option value="all">All relics</option>
                 <option value="owned">Owned only</option>
                 <option value="missing">Not owned</option>
@@ -94,7 +91,7 @@
         </section>
 
         <section id="panel-museum" class="tab-panel" role="tabpanel" hidden>
-          <section class="museum-workspace">
+          <section class="museum-layout">
             <aside class="museum-sidebar">
               <article class="side-card">
                 <h2>Pedestal Groups</h2>
@@ -112,17 +109,17 @@
               <article class="side-card snapshot-card">
                 <h2>Weekly snapshots</h2>
                 <input id="snapshot-name" type="text" placeholder="Week 1, Species War, etc." />
-                <button id="save-snapshot" class="rift-light" type="button">Save snapshot</button>
+                <button id="save-snapshot" class="light-btn" type="button">Save snapshot</button>
               </article>
             </aside>
 
-            <section class="museum-main-panel">
+            <section class="museum-panel">
               <div id="museum-stage" class="museum-stage" aria-live="polite"></div>
             </section>
           </section>
 
-          <section class="rift-card optimizer-card bottom-optimizer">
-            <div class="optimizer-main-copy">
+          <section class="rift-card optimizer-card">
+            <div class="optimizer-copy">
               <h2>Optimizer</h2>
               <p>Uses only relics marked as owned on the Input tab. Museum Points can be maximized or used as a minimum target while rewards are favored.</p>
               <div id="optimizer-insights" class="optimizer-insights" aria-live="polite"></div>
@@ -131,17 +128,17 @@
             <div class="optimizer-controls">
               <fieldset class="goal-fieldset">
                 <legend>Goals</legend>
-                <label class="goal-check"><input type="checkbox" name="optimizer-goal" value="points" checked /> Museum Points</label>
-                <label class="goal-check"><input type="checkbox" name="optimizer-goal" value="dragon-orbs" /> Dragon Orbs</label>
-                <label class="goal-check"><input type="checkbox" name="optimizer-goal" value="intel" /> INTEL</label>
-                <label class="goal-check"><input type="checkbox" name="optimizer-goal" value="cells" /> Cells</label>
-                <label class="goal-check"><input type="checkbox" name="optimizer-goal" value="speed" /> Travel Speed</label>
-                <label class="goal-check"><input type="checkbox" name="optimizer-goal" value="btads" /> B-tads</label>
+                <label><input type="checkbox" name="optimizer-goal" value="points" checked /> Museum Points</label>
+                <label><input type="checkbox" name="optimizer-goal" value="dragon-orbs" /> Dragon Orbs</label>
+                <label><input type="checkbox" name="optimizer-goal" value="intel" /> INTEL</label>
+                <label><input type="checkbox" name="optimizer-goal" value="cells" /> Cells</label>
+                <label><input type="checkbox" name="optimizer-goal" value="speed" /> Travel Speed</label>
+                <label><input type="checkbox" name="optimizer-goal" value="btads" /> B-tads</label>
               </fieldset>
 
               <label for="optimizer-point-target">Museum Points target</label>
               <input id="optimizer-point-target" type="number" min="0" step="10" placeholder="Optional, ex. 950" />
-              <small class="optimizer-hint">Leave blank to maximize points.</small>
+              <small>Leave blank to maximize points.</small>
 
               <label for="optimizer-priority">Priority</label>
               <select id="optimizer-priority">
@@ -149,7 +146,7 @@
                 <option value="hard">Hard-focus selected rewards</option>
               </select>
 
-              <button id="apply-optimized" class="rift-primary" type="button">Apply Optimized Setup</button>
+              <button id="apply-optimized" class="primary-btn" type="button">Apply Optimized Setup</button>
             </div>
           </section>
 
@@ -159,7 +156,7 @@
             <article class="rift-card summary-card"><span>Goal Matches</span><strong id="optimized-matches">—</strong></article>
           </section>
 
-          <section class="rift-bottom-grid single-bottom">
+          <section class="bottom-grid">
             <article class="rift-card tool-section">
               <h2>Recommended Optimized Setup</h2>
               <div id="optimized-list" class="optimized-list"></div>
@@ -184,7 +181,7 @@
 
           <div class="picker-search-row">
             <input id="relic-search" type="search" placeholder="Search owned relic name, stamp, or reward…" autocomplete="off" />
-            <button id="clear-relic" class="rift-light" type="button">Clear Slot</button>
+            <button id="clear-relic" class="light-btn" type="button">Clear Slot</button>
           </div>
 
           <div class="picker-tools">
@@ -201,7 +198,7 @@
               <button class="picker-type" data-picker-type="CIV" type="button">CIV</button>
               <button class="picker-type" data-picker-type="TECH" type="button">TECH</button>
             </div>
-            <label class="picker-sort-label" for="relic-sort">Sort</label>
+            <label for="relic-sort">Sort</label>
             <select id="relic-sort">
               <option value="score">Best for this pedestal</option>
               <option value="name">Relic name</option>
@@ -219,6 +216,6 @@
   </div>
 
   <script src="/snail-lab/app.js?v=5"></script>
-  <script src="time-rift-museum.js?v=6"></script>
+  <script src="time-rift-museum.js?v=7"></script>
 </body>
 </html>
