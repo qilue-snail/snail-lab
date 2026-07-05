@@ -229,50 +229,48 @@ function parseStampBonus(text) {
 async function loadTimeRiftRelics() {
   setStatus("Loading Time Rift Museum relics…");
   try {
-    const response = await fetch(TIME_RIFT_CSV_URL, { cache: "no-store" });
+    const response = await fetch(getTimeRiftCsvUrl(), { cache: "no-store" });
     if (!response.ok) throw new Error(`Sheet request failed: ${response.status}`);
     const text = await response.text();
     const rows = parseCsv(text);
     timeRiftRelics = parseTimeRiftRelics(rows);
-    cleanInvalidAssignments();
     setStatus(`Loaded ${timeRiftRelics.length} relic rows from “${TIME_RIFT_TAB_NAME}”.`);
+    cleanInvalidAssignments();
+  } catch (error) {
+    console.error("CSV load failed:", error);
+    setStatus("Could not load relics. Check that the Google Sheet tab is published to CSV.", true);
+    return;
+  }
+  try {
     renderAll();
   } catch (error) {
-    console.error(error);
-    setStatus("Could not load relics. Check that the Google Sheet tab is published to CSV.", true);
+    console.error("Render failed after relic load:", error);
+    setStatus(`Loaded ${timeRiftRelics.length} relic rows, but the page render crashed. Check Console.`, true);
   }
 }
-
 function getPedestalType(slot) {
   return timeRiftSlotTypes[String(slot)] || TIME_RIFT_PEDESTALS.find((p) => p.slot === Number(slot))?.type || "FAME";
 }
-
 function setPedestalType(slot, type) {
   if (!PEDESTAL_TYPES.includes(type)) return;
   timeRiftSlotTypes[String(slot)] = type;
   localStorage.setItem(TIME_RIFT_SLOT_STORAGE_KEY, JSON.stringify(timeRiftSlotTypes));
 }
-
 function getBaseStat(relic, pedestalType) {
   if (!relic) return 0;
   if (pedestalType === "ALL") return relic.fame + relic.art + relic.fth + relic.civ + relic.tech;
   return relic[pedestalType.toLowerCase()] || 0;
 }
-
 function getValidStampBonus(relic, pedestalType) {
   if (!relic) return 0;
-
   const bonuses = Array.isArray(relic.stampBonuses)
     ? relic.stampBonuses
     : [];
-
   return bonuses.reduce((total, bonus) => {
     if (!bonus) return total;
-
     if (pedestalType === "ALL") {
       return bonus.target === "ALL" ? total + bonus.value : total;
     }
-
     return bonus.target === pedestalType ? total + bonus.value : total;
   }, 0);
 }
@@ -280,19 +278,16 @@ function calculateRelicScoreForPedestal(relic, pedestalType) {
   if (!relic) return 0;
   return getBaseStat(relic, pedestalType) + getValidStampBonus(relic, pedestalType);
 }
-
 function getAssignedRelic(slot) {
   const relicId = timeRiftAssignments[String(slot)];
   return timeRiftRelics.find((relic) => relic.id === relicId) || null;
 }
-
 function getAssignedFamilies(exceptSlot = null) {
   return new Set(Object.entries(timeRiftAssignments)
     .filter(([slot, relicId]) => relicId && String(slot) !== String(exceptSlot))
     .map(([, relicId]) => timeRiftRelics.find((relic) => relic.id === relicId)?.familyId)
     .filter(Boolean));
 }
-
 function calculateTotalMuseumPoints(assignments = timeRiftAssignments) {
   return TIME_RIFT_PEDESTALS.reduce((total, pedestal) => {
     const relicId = assignments[String(pedestal.slot)];
@@ -300,12 +295,10 @@ function calculateTotalMuseumPoints(assignments = timeRiftAssignments) {
     return total + calculateRelicScoreForPedestal(relic, getPedestalType(pedestal.slot));
   }, 0);
 }
-
 function getCurrentRating(totalPoints) {
   const unlocked = TIME_RIFT_THRESHOLDS.filter((threshold) => totalPoints >= threshold.points);
   return unlocked.length ? unlocked[unlocked.length - 1].rating : "—";
 }
-
 function getNextThreshold(totalPoints) {
   return TIME_RIFT_THRESHOLDS.find((threshold) => totalPoints < threshold.points) || null;
 }
