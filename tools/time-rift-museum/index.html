@@ -5,561 +5,147 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Time Rift Museum | Snail Lab</title>
   <link rel="stylesheet" href="/snail-lab/styles.css?v=5" />
-  <style>
-    .time-rift-main.museum-game-ui {
-      --museum-bg: #f8f0e2;
-      --museum-panel: rgba(255, 249, 239, 0.92);
-      --museum-panel-2: rgba(246, 235, 216, 0.9);
-      --museum-border: #d8bd91;
-      --museum-ink: #2a1d12;
-      --museum-muted: #7a644d;
-      --museum-brown: #8f572d;
-      --museum-blue: #9fbfd1;
-      --museum-glow: rgba(255, 213, 137, 0.42);
-      color: var(--museum-ink);
-    }
-
-    .museum-game-ui .card,
-    .museum-game-ui .tool-title-card {
-      background: linear-gradient(180deg, rgba(255, 250, 241, 0.96), rgba(246, 235, 218, 0.9));
-      border: 1px solid var(--museum-border);
-      box-shadow: 0 18px 35px rgba(82, 55, 28, 0.12);
-    }
-
-    .museum-game-ui .museum-hero {
-      position: relative;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 18px;
-      align-items: center;
-      overflow: visible;
-      padding-right: 28px;
-    }
-
-    .museum-game-ui .museum-hero::after {
-      content: "🐌";
-      width: 86px;
-      height: 86px;
-      display: grid;
-      place-items: center;
-      border-radius: 28px;
-      font-size: 54px;
-      background: radial-gradient(circle at 45% 25%, #fff7de, #d3b07f 60%, #8c6843);
-      border: 3px solid rgba(121, 86, 49, 0.45);
-      box-shadow: inset 0 -8px 18px rgba(79, 49, 22, 0.18), 0 10px 20px rgba(77, 49, 23, 0.18);
-    }
-
-    .museum-game-ui .museum-hero .hero-actions { display: none; }
-
-    .museum-game-ui .museum-tabs {
-      margin: -17px auto 16px;
-      display: flex;
-      justify-content: center;
-      gap: 0;
-      position: relative;
-      z-index: 3;
-    }
-
-    .museum-game-ui .museum-tabs .tool-tab {
-      min-width: 200px;
-      border-radius: 18px 18px 0 0;
-      padding: 15px 28px;
-      background: rgba(247, 237, 221, 0.88);
-      border: 1px solid rgba(193, 159, 112, 0.55);
-      color: var(--museum-muted);
-      font-weight: 800;
-    }
-
-    .museum-game-ui .museum-tabs .tool-tab.active {
-      background: rgba(255, 249, 239, 0.98);
-      color: var(--museum-brown);
-      border-bottom-color: transparent;
-      box-shadow: 0 -4px 0 rgba(143, 87, 45, 0.26) inset;
-    }
-
-    .museum-top-grid {
-      display: grid;
-      grid-template-columns: 1.15fr 1fr;
-      gap: 16px;
-      margin-bottom: 16px;
-    }
-
-    .museum-overview-card,
-    .relic-sync-card {
-      padding: 18px 20px;
-      min-height: 132px;
-    }
-
-    .museum-overview-card h2,
-    .relic-sync-card h2,
-    .pedestal-nav-card h2,
-    .snapshot-card h2,
-    .reset-card h2 {
-      margin: 0 0 12px;
-      font-size: 18px;
-    }
-
-    .museum-overview-stats {
-      display: grid;
-      grid-template-columns: 1fr 0.65fr 1fr;
-      gap: 18px;
-      align-items: center;
-    }
-
-    .museum-overview-stats > div {
-      border-right: 1px solid rgba(216, 189, 145, 0.62);
-      min-height: 70px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-
-    .museum-overview-stats > div:last-child { border-right: 0; }
-    .museum-overview-stats span { color: var(--museum-muted); font-size: 14px; }
-    .museum-overview-stats strong { font-size: 32px; line-height: 1.1; }
-    .museum-overview-stats small { color: var(--museum-muted); margin-top: 6px; }
-
-    .rank-badge {
-      width: 54px;
-      height: 44px;
-      display: inline-grid !important;
-      place-items: center;
-      border-radius: 10px;
-      background: linear-gradient(#d7e8ff, #afcdf1);
-      border: 2px solid #7da4d3;
-      box-shadow: inset 0 2px 0 rgba(255,255,255,.65);
-      font-size: 22px !important;
-    }
-
-    .relic-sync-card p { margin: 0 0 10px; color: var(--museum-muted); }
-    .sync-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
-    .sync-checkbox { display: inline-flex; align-items: center; gap: 6px; color: var(--museum-muted); }
-    .relic-sync-card .sync-status { margin-top: 10px; color: #168347; }
-
-    .museum-layout-grid {
-      display: grid;
-      grid-template-columns: 285px minmax(0, 1fr);
-      gap: 16px;
-      align-items: start;
-    }
-
-    .museum-left-rail {
-      display: grid;
-      gap: 14px;
-      position: sticky;
-      top: 14px;
-    }
-
-    .pedestal-nav-card,
-    .snapshot-card,
-    .reset-card { padding: 14px; }
-
-    .pedestal-group-list { display: grid; gap: 8px; }
-    .pedestal-group-btn {
-      width: 100%;
-      border: 1px solid rgba(216, 189, 145, 0.76);
-      background: rgba(255, 250, 241, 0.74);
-      border-radius: 12px;
-      padding: 10px 12px;
-      color: var(--museum-ink);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-      font-weight: 700;
-      transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
-    }
-
-    .pedestal-group-btn:hover,
-    .pedestal-group-btn.active {
-      transform: translateY(-1px);
-      border-color: #79a9d8;
-      box-shadow: 0 0 0 2px rgba(104, 154, 206, 0.14);
-    }
-
-    .pedestal-group-btn b { color: var(--museum-muted); font-weight: 700; }
-    .snapshot-card input { width: 100%; margin-bottom: 8px; }
-    .reset-card p { margin: 0 0 10px; color: var(--museum-muted); font-size: 14px; }
-
-    .museum-main-display { display: grid; gap: 12px; min-width: 0; }
-
-    .game-museum-stage {
-      padding: 0;
-      overflow: hidden;
-      border-radius: 18px;
-      background: linear-gradient(180deg, #e5d0b1, #c4a883);
-      min-height: 315px;
-    }
-
-    .game-museum-stage .museum-sign {
-      margin: 0 auto;
-      transform: translateY(16px);
-      width: min(520px, 70%);
-      min-height: 74px;
-      border-radius: 18px;
-      display: grid;
-      place-items: center;
-      background: linear-gradient(#b7dddd, #91c2c2);
-      border: 3px solid rgba(84, 119, 120, 0.55);
-      color: #fff8ec;
-      text-shadow: 2px 3px 0 rgba(83, 80, 72, 0.42);
-      font-size: 36px;
-      font-weight: 900;
-      letter-spacing: .04em;
-      box-shadow: inset 0 3px 0 rgba(255,255,255,.35), 0 8px 20px rgba(65, 48, 29, .18);
-      position: relative;
-      z-index: 2;
-    }
-
-    .game-museum-stage .museum-sign strong {
-      display: block;
-      font-size: 20px;
-      color: #f7f2a5;
-      text-shadow: 1px 2px 0 rgba(83,80,72,.35);
-    }
-
-    .game-museum-stage .museum-stage-grid {
-      min-height: 210px;
-      padding: 34px 18px 18px;
-      display: grid;
-      grid-template-columns: repeat(12, minmax(14px, 1fr));
-      gap: 8px;
-      background:
-        linear-gradient(rgba(67, 53, 42, 0.20), rgba(67, 53, 42, 0.18)),
-        repeating-linear-gradient(90deg, rgba(255,255,255,.16) 0 1px, transparent 1px 88px),
-        linear-gradient(180deg, #ceb899, #9c8368);
-      border-top: 1px solid rgba(117, 86, 56, .35);
-    }
-
-    .game-museum-stage .museum-stage-grid > * {
-      min-height: 18px;
-      border-radius: 20px 20px 8px 8px !important;
-      background: radial-gradient(circle at 50% 20%, rgba(255, 239, 169, .8), rgba(160, 121, 79, .7) 45%, rgba(81, 65, 54, .75)) !important;
-      border: 1px solid rgba(255,255,255,.22) !important;
-      box-shadow: inset 0 2px 6px rgba(255,255,255,.18), 0 4px 6px rgba(53,35,20,.12) !important;
-      font-size: 0 !important;
-    }
-
-    .game-museum-stage .museum-rating-box {
-      margin: 0;
-      padding: 12px 18px 16px;
-      background: rgba(255, 248, 235, 0.88);
-      border-top: 1px solid rgba(90, 64, 38, .2);
-      display: grid;
-      grid-template-columns: 1.2fr .8fr .8fr 1.3fr;
-      gap: 12px;
-      align-items: center;
-      color: var(--museum-muted);
-    }
-
-    .museum-progress {
-      height: 12px;
-      border-radius: 999px;
-      overflow: hidden;
-      background: rgba(128, 101, 73, .18);
-      border: 1px solid rgba(128, 101, 73, .22);
-    }
-    .museum-progress span { display: block; height: 100%; background: linear-gradient(90deg, #7fa5b9, #b8d6e0); }
-
-    .group-stage-card { padding: 0; overflow: hidden; }
-    .group-stage-header {
-      width: 100%;
-      border: 0;
-      background: rgba(255, 249, 239, 0.72);
-      padding: 13px 18px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-      color: var(--museum-ink);
-      font-size: 18px;
-      font-weight: 850;
-    }
-    .group-stage-header b { font-size: 14px; color: var(--museum-muted); margin-left: 12px; }
-    .group-stage-header em { font-style: normal; font-size: 13px; color: var(--museum-muted); }
-
-    .pedestal-stage-strip {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-      gap: 0;
-      border-top: 1px solid rgba(137, 101, 61, .22);
-      background:
-        linear-gradient(rgba(49, 40, 35, .18), rgba(49, 40, 35, .2)),
-        repeating-linear-gradient(90deg, rgba(255,255,255,.22) 0 2px, transparent 2px 240px),
-        linear-gradient(180deg, #d2b995, #92765e);
-    }
-
-    .museum-pedestal {
-      position: relative;
-      min-height: 255px;
-      padding: 16px 16px 14px;
-      display: flex;
-      flex-direction: column;
-      justify-content: end;
-      align-items: center;
-      isolation: isolate;
-      border-right: 1px solid rgba(255,255,255,.2);
-      overflow: hidden;
-    }
-
-    .museum-pedestal::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(ellipse at 50% 65%, rgba(194, 153, 255, .42), transparent 34%),
-        radial-gradient(ellipse at 50% 18%, rgba(62, 50, 44, .42), transparent 43%),
-        linear-gradient(90deg, rgba(95, 71, 48, .34), transparent 12% 88%, rgba(95,71,48,.34));
-      z-index: -2;
-    }
-
-    .museum-pedestal::after {
-      content: "";
-      position: absolute;
-      left: 18%;
-      right: 18%;
-      bottom: 48px;
-      height: 34px;
-      border-radius: 50%;
-      background: radial-gradient(ellipse, rgba(45, 38, 34, .45), transparent 70%);
-      z-index: -1;
-    }
-
-    .pedestal-number {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      display: grid;
-      place-items: center;
-      background: linear-gradient(#ddcfbc, #a78e75);
-      border: 3px solid rgba(89, 70, 53, .42);
-      box-shadow: inset 0 2px 0 rgba(255,255,255,.45), 0 3px 9px rgba(42,31,23,.2);
-      font-size: 24px;
-      font-weight: 900;
-      color: #6d543e;
-      text-shadow: 0 1px 0 rgba(255,255,255,.5);
-    }
-
-    .relic-art {
-      width: 92px;
-      height: 92px;
-      margin-bottom: 8px;
-      display: grid;
-      place-items: center;
-      border-radius: 18px;
-      background: radial-gradient(circle at 42% 32%, #fff5c6, #c7954d 42%, #6c4930 74%);
-      border: 3px solid rgba(78, 52, 30, .35);
-      box-shadow: 0 0 18px var(--museum-glow), inset 0 2px 0 rgba(255,255,255,.35);
-      font-size: 46px;
-    }
-
-    .museum-pedestal.empty .relic-art {
-      opacity: .72;
-      filter: grayscale(.55);
-      background: radial-gradient(circle, rgba(255,255,255,.32), rgba(83,69,61,.46));
-    }
-
-    .relic-nameplate {
-      width: min(178px, 95%);
-      min-height: 50px;
-      padding: 7px 8px;
-      border-radius: 8px;
-      text-align: center;
-      background: linear-gradient(#efe2ca, #c7ad88);
-      border: 2px solid rgba(91, 64, 38, .35);
-      box-shadow: inset 0 2px 0 rgba(255,255,255,.35), 0 2px 5px rgba(47,31,17,.18);
-      color: #1f160f;
-      font-weight: 800;
-      display: grid;
-      place-items: center;
-      line-height: 1.15;
-      font-size: 13px;
-    }
-
-    .relic-nameplate small { display: block; color: #5d4734; font-weight: 800; margin-top: 2px; }
-
-    .relic-points-pill {
-      margin-top: 7px;
-      min-width: 86px;
-      padding: 4px 9px;
-      border-radius: 999px;
-      background: linear-gradient(#77788a, #4f5064);
-      border: 1px solid rgba(255,255,255,.28);
-      color: #fff7e9;
-      font-weight: 900;
-      text-align: center;
-      box-shadow: 0 2px 5px rgba(25,18,15,.18);
-    }
-
-    .change-relic-btn {
-      margin-top: 9px;
-      border: 1px solid rgba(90, 63, 38, .34);
-      border-radius: 8px;
-      padding: 7px 12px;
-      background: linear-gradient(#efe7d8, #cbb79a);
-      color: #4b3727;
-      font-weight: 800;
-      cursor: pointer;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 2px 4px rgba(52,32,14,.16);
-    }
-
-    .change-relic-btn:hover { filter: brightness(1.04); transform: translateY(-1px); }
-
-    .legacy-slot-data {
-      position: absolute !important;
-      width: 1px !important;
-      height: 1px !important;
-      overflow: hidden !important;
-      clip: rect(0 0 0 0) !important;
-      clip-path: inset(50%) !important;
-      white-space: nowrap !important;
-    }
-
-    .relic-picker-modal[hidden] { display: none; }
-    .relic-picker-modal { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; padding: 18px; }
-    .relic-picker-backdrop { position: absolute; inset: 0; background: rgba(34, 23, 14, .45); backdrop-filter: blur(3px); }
-    .relic-picker-card {
-      position: relative;
-      width: min(760px, 96vw);
-      max-height: 86vh;
-      overflow: hidden;
-      display: grid;
-      grid-template-rows: auto auto auto 1fr;
-      background: linear-gradient(180deg, #fff7e9, #f1dfc4);
-      border: 1px solid var(--museum-border);
-      border-radius: 22px;
-      box-shadow: 0 28px 80px rgba(24, 15, 9, .34);
-      padding: 18px;
-    }
-    .relic-picker-header { display: flex; justify-content: space-between; align-items: start; gap: 16px; margin-bottom: 12px; }
-    .relic-picker-header h2 { margin: 0; }
-    .relic-picker-search { width: 100%; margin-bottom: 12px; font-size: 16px; }
-    .relic-picker-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-    .relic-picker-filters button {
-      border: 1px solid rgba(143, 87, 45, .28);
-      border-radius: 999px;
-      padding: 7px 12px;
-      background: rgba(255,255,255,.54);
-      cursor: pointer;
-      font-weight: 800;
-    }
-    .relic-picker-filters button.active { background: var(--museum-brown); color: white; }
-    .relic-picker-results { overflow: auto; display: grid; gap: 8px; padding-right: 4px; }
-    .relic-result {
-      border: 1px solid rgba(143, 87, 45, .22);
-      border-radius: 14px;
-      padding: 12px 14px;
-      background: rgba(255,255,255,.58);
-      cursor: pointer;
-      text-align: left;
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: center;
-    }
-    .relic-result:hover { border-color: #79a9d8; box-shadow: 0 0 0 2px rgba(104, 154, 206, .14); }
-    .relic-result strong { color: var(--museum-ink); }
-    .relic-result span { color: var(--museum-muted); font-size: 13px; }
-
-    @media (max-width: 1000px) {
-      .museum-top-grid,
-      .museum-layout-grid { grid-template-columns: 1fr; }
-      .museum-left-rail { position: static; grid-template-columns: 1fr; }
-      .pedestal-group-list { grid-template-columns: repeat(2, 1fr); }
-      .game-museum-stage .museum-rating-box { grid-template-columns: 1fr 1fr; }
-    }
-
-    @media (max-width: 640px) {
-      .museum-game-ui .museum-hero { grid-template-columns: 1fr; }
-      .museum-game-ui .museum-hero::after { display: none; }
-      .museum-game-ui .museum-tabs .tool-tab { min-width: 0; flex: 1; padding: 12px; }
-      .museum-top-grid { gap: 10px; }
-      .museum-overview-stats { grid-template-columns: 1fr; gap: 8px; }
-      .museum-overview-stats > div { border-right: 0; border-bottom: 1px solid rgba(216, 189, 145, 0.62); padding-bottom: 8px; min-height: auto; }
-      .museum-overview-stats > div:last-child { border-bottom: 0; }
-      .pedestal-group-list { grid-template-columns: 1fr; }
-      .game-museum-stage .museum-sign { width: 88%; font-size: 24px; }
-      .pedestal-stage-strip { grid-template-columns: 1fr; }
-      .game-museum-stage .museum-rating-box { grid-template-columns: 1fr; }
-    }
-  </style>
+  <link rel="stylesheet" href="time-rift-museum.css?v=1" />
 </head>
 <body>
   <div class="app-shell">
     <div id="shared-sidebar"></div>
-    <main class="tool-main time-rift-main museum-game-ui">
-      <section class="tool-title-card time-rift-hero museum-hero">
-        <div>
-          <p class="eyebrow">Super Snail</p>
-          <h1>Time Rift Museum</h1>
-          <p>Build your museum manually or optimize all 83 slots for points, INTEL, Dragon Orbs, Cells, B-tads, medals, or travel speed.</p>
-        </div>
-        <div class="hero-actions" aria-hidden="true">
-          <button id="refresh-relics" class="primary-button" type="button">Refresh Relics</button>
-          <button id="reset-museum" class="ghost-button danger-button" type="button">Reset</button>
-        </div>
-      </section>
 
-      <nav class="tool-tabs museum-tabs" role="tablist" aria-label="Time Rift Museum tabs">
-        <button class="tool-tab active" data-tab="setup" type="button" role="tab" aria-selected="true">Museum Setup</button>
-        <button class="tool-tab" data-tab="optimizer" type="button" role="tab" aria-selected="false">Optimizer</button>
-      </nav>
+    <main class="tool-main trm-page">
+      <section class="trm-shell">
+        <header class="trm-hero">
+          <div class="trm-title-block">
+            <p class="trm-eyebrow">Super Snail</p>
+            <h1>Time Rift Museum</h1>
+            <p>Build your museum manually or optimize all 83 slots<br class="desktop-break" /> for points, INTEL, Dragon Orbs, Cells, B-tads, medals, or travel speed.</p>
+          </div>
 
-      <section id="panel-setup" class="tab-panel active" role="tabpanel">
-        <section class="museum-top-grid">
-          <article class="card museum-overview-card">
-            <h2>🏛️ Museum Overview</h2>
-            <div class="museum-overview-stats">
-              <div><span>Total Museum Points</span><strong id="total-points">0</strong></div>
-              <div><span>Museum Rank</span><strong id="current-rating" class="rank-badge">—</strong></div>
-              <div><span>Next Threshold</span><strong id="next-threshold">120 (C)</strong><small>Need <b id="points-needed">120</b> more</small></div>
-            </div>
-          </article>
+          <nav class="trm-top-tabs tool-tabs" role="tablist" aria-label="Time Rift Museum tabs">
+            <button class="tool-tab active" data-tab="setup" type="button" role="tab" aria-selected="true">Museum Setup</button>
+            <button class="tool-tab" data-tab="optimizer" type="button" role="tab" aria-selected="false">Optimizer</button>
+          </nav>
 
-          <article class="card relic-sync-card">
-            <h2>Relic data sync</h2>
-            <p>Refreshes the Time Rift Museum relic database from the maintained online data source.</p>
-            <div class="sync-row">
-              <button id="refresh-relics-visible" class="primary-button" type="button">Sync Relic Data</button>
-              <label class="sync-checkbox"><input id="auto-sync-relics" type="checkbox" checked /> Auto-sync when app opens</label>
-            </div>
-            <p id="sync-status">Loading Time Rift Museum relics…</p>
-          </article>
-        </section>
+          <div class="trm-mascot" aria-hidden="true">
+            <span class="rail left"></span>
+            <span class="snail">🐌</span>
+            <span class="rail right"></span>
+            <span class="help">?</span>
+          </div>
 
-        <section class="museum-layout-grid">
-          <aside class="museum-left-rail">
-            <article class="card pedestal-nav-card">
-              <h2>Pedestal Groups</h2>
-              <div class="pedestal-group-list">
-                <button class="pedestal-group-btn active" type="button" data-group-jump="ALL"><span>✦ ALL Slots</span><b id="count-ALL">0 / 3</b></button>
-                <button class="pedestal-group-btn" type="button" data-group-jump="FAME"><span>👑 FAME Slots</span><b id="count-FAME">0 / 16</b></button>
-                <button class="pedestal-group-btn" type="button" data-group-jump="ART"><span>🎨 ART Slots</span><b id="count-ART">0 / 16</b></button>
-                <button class="pedestal-group-btn" type="button" data-group-jump="FTH"><span>🙏 FTH Slots</span><b id="count-FTH">0 / 16</b></button>
-                <button class="pedestal-group-btn" type="button" data-group-jump="CIV"><span>🏛️ CIV Slots</span><b id="count-CIV">0 / 16</b></button>
-                <button class="pedestal-group-btn" type="button" data-group-jump="TECH"><span>⚙️ TECH Slots</span><b id="count-TECH">0 / 16</b></button>
+          <div class="trm-hidden-actions" aria-hidden="true">
+            <button id="refresh-relics" type="button">Refresh Relics</button>
+            <button id="reset-museum" type="button">Reset</button>
+          </div>
+        </header>
+
+        <section id="panel-setup" class="tab-panel active" role="tabpanel">
+          <section class="trm-top-grid">
+            <article class="trm-card trm-overview-card">
+              <h2><span class="trm-icon">🏛️</span> Museum Overview</h2>
+              <div class="trm-overview-stats">
+                <div class="stat wide">
+                  <span>Total Museum Points</span>
+                  <strong id="total-points">0</strong>
+                </div>
+                <div class="stat center">
+                  <span>Museum Rank</span>
+                  <strong id="current-rating" class="trm-rank-badge">—</strong>
+                </div>
+                <div class="stat progress-stat">
+                  <span>Next Rank <b id="next-rank-label">(B)</b></span>
+                  <strong id="next-threshold">120 / 250</strong>
+                  <small class="trm-progress"><i id="trm-overview-progress"></i></small>
+                  <small class="need-line">Need <b id="points-needed">120</b> more</small>
+                </div>
               </div>
             </article>
 
-            <article class="card snapshot-card">
-              <h2>Weekly snapshots</h2>
-              <input id="snapshot-name" type="text" placeholder="Week 1, Species War, etc." />
-              <button id="save-snapshot" class="ghost-button" type="button">💾 Save snapshot</button>
+            <article class="trm-card trm-sync-card">
+              <h2>Relic data sync</h2>
+              <p>Refreshes the Time Rift Museum relic database from<br class="desktop-break" /> the maintained online data source.</p>
+              <div class="trm-sync-row">
+                <button id="refresh-relics-visible" class="trm-brown-btn" type="button">Sync Relic Data</button>
+                <label class="trm-checkbox"><input id="auto-sync-relics" type="checkbox" checked /> Auto-sync when app opens</label>
+              </div>
+              <p id="sync-status" class="trm-sync-status">Loading Time Rift Museum relics…</p>
             </article>
+          </section>
 
-            <article class="card reset-card">
-              <h2>Reset</h2>
-              <p>Clear all museum assignments and start over.</p>
-              <button id="reset-museum-visible" class="ghost-button danger-button" type="button">Reset Museum</button>
-            </article>
-          </aside>
+          <section class="trm-workspace">
+            <aside class="trm-left-rail">
+              <article class="trm-card trm-nav-card">
+                <h2>Pedestal Groups</h2>
+                <div class="trm-group-list">
+                  <button class="trm-group-btn active" type="button" data-group-jump="ALL"><span><i>✦</i> ALL Slots</span><b id="count-ALL">0 / 3</b></button>
+                  <button class="trm-group-btn" type="button" data-group-jump="FAME"><span><i>♛</i> FAME Slots</span><b id="count-FAME">0 / 16</b></button>
+                  <button class="trm-group-btn" type="button" data-group-jump="ART"><span><i>🎨</i> ART Slots</span><b id="count-ART">0 / 16</b></button>
+                  <button class="trm-group-btn" type="button" data-group-jump="FTH"><span><i>🙏</i> FTH Slots</span><b id="count-FTH">0 / 16</b></button>
+                  <button class="trm-group-btn" type="button" data-group-jump="CIV"><span><i>🏛️</i> CIV Slots</span><b id="count-CIV">0 / 16</b></button>
+                  <button class="trm-group-btn" type="button" data-group-jump="TECH"><span><i>⚙️</i> TECH Slots</span><b id="count-TECH">0 / 16</b></button>
+                </div>
+              </article>
 
-          <section class="museum-main-display">
-            <article class="card museum-stage-card game-museum-stage" aria-label="Time Rift Museum visual preview">
+              <article class="trm-card trm-view-card">
+                <h2>View</h2>
+                <div class="trm-view-toggle">
+                  <button id="view-by-group" class="active" type="button"><span>▦</span> By Group</button>
+                  <button id="view-by-slot" type="button"><span>☷</span> By Slot<br />Number</button>
+                </div>
+              </article>
+
+              <article class="trm-card trm-snapshot-card">
+                <h2>Weekly snapshots</h2>
+                <input id="snapshot-name" type="text" placeholder="Week 1, Species War, etc." />
+                <button id="save-snapshot" class="trm-soft-btn" type="button">💾 Save snapshot</button>
+              </article>
+
+              <article class="trm-card trm-reset-card">
+                <h2>Reset</h2>
+                <button id="reset-museum-visible" class="trm-danger-btn" type="button">Reset Museum</button>
+              </article>
+            </aside>
+
+            <section class="trm-main-area">
+              <article class="trm-group-stage open" id="group-ALL">
+                <button class="trm-stage-header" type="button" data-toggle-group="ALL">
+                  <span><i>✦</i> ALL Slots <b id="header-count-ALL">0 / 3</b></span>
+                  <em>Collapse⌃</em>
+                </button>
+                <div class="trm-stage-body" data-group-body="ALL">
+                  <div class="trm-museum-hall" id="stage-ALL"></div>
+                </div>
+              </article>
+
+              <article class="trm-group-stage" id="group-FAME">
+                <button class="trm-stage-header" type="button" data-toggle-group="FAME"><span><i>♛</i> FAME Slots <b id="header-count-FAME">0 / 16</b></span><em>⌄</em></button>
+                <div class="trm-stage-body" data-group-body="FAME" hidden><div class="trm-museum-hall" id="stage-FAME"></div></div>
+              </article>
+              <article class="trm-group-stage" id="group-ART">
+                <button class="trm-stage-header" type="button" data-toggle-group="ART"><span><i>🎨</i> ART Slots <b id="header-count-ART">0 / 16</b></span><em>⌄</em></button>
+                <div class="trm-stage-body" data-group-body="ART" hidden><div class="trm-museum-hall" id="stage-ART"></div></div>
+              </article>
+              <article class="trm-group-stage" id="group-FTH">
+                <button class="trm-stage-header" type="button" data-toggle-group="FTH"><span><i>🙏</i> FTH Slots <b id="header-count-FTH">0 / 16</b></span><em>⌄</em></button>
+                <div class="trm-stage-body" data-group-body="FTH" hidden><div class="trm-museum-hall" id="stage-FTH"></div></div>
+              </article>
+              <article class="trm-group-stage" id="group-CIV">
+                <button class="trm-stage-header" type="button" data-toggle-group="CIV"><span><i>🏛️</i> CIV Slots <b id="header-count-CIV">0 / 16</b></span><em>⌄</em></button>
+                <div class="trm-stage-body" data-group-body="CIV" hidden><div class="trm-museum-hall" id="stage-CIV"></div></div>
+              </article>
+              <article class="trm-group-stage" id="group-TECH">
+                <button class="trm-stage-header" type="button" data-toggle-group="TECH"><span><i>⚙️</i> TECH Slots <b id="header-count-TECH">0 / 16</b></span><em>⌄</em></button>
+                <div class="trm-stage-body" data-group-body="TECH" hidden><div class="trm-museum-hall" id="stage-TECH"></div></div>
+              </article>
+            </section>
+          </section>
+
+          <section class="trm-bottom-grid">
+            <article class="trm-card tool-section"><h2>Best Available by Empty Slot</h2><div id="recommendations" class="recommendation-grid"></div></article>
+            <article class="trm-card tool-section"><h2>Museum Buff Progress</h2><div id="buff-list" class="buff-list"></div></article>
+          </section>
+
+          <section class="trm-hidden-legacy" aria-hidden="true">
+            <article class="museum-stage-card card" aria-label="Time Rift Museum visual preview">
               <div class="museum-sign"><span>Time Rift Museum</span><strong id="visual-filled-count">0/83</strong></div>
               <div id="visual-museum-grid" class="museum-stage-grid"></div>
               <div class="museum-rating-box">
@@ -569,52 +155,56 @@
                 <div class="museum-progress"><span id="visual-progress-bar"></span></div>
               </div>
             </article>
-
-            <article class="card group-stage-card open" id="group-ALL"><button class="group-stage-header" type="button" data-toggle-group="ALL"><span>✦ ALL Slots <b id="header-count-ALL">0 / 3</b></span><em>Collapse</em></button><div class="group-stage-body" data-group-body="ALL"><div class="pedestal-stage-strip" id="stage-ALL"></div></div></article>
-            <article class="card group-stage-card" id="group-FAME"><button class="group-stage-header" type="button" data-toggle-group="FAME"><span>👑 FAME Slots <b id="header-count-FAME">0 / 16</b></span><em>Expand</em></button><div class="group-stage-body" data-group-body="FAME" hidden><div class="pedestal-stage-strip" id="stage-FAME"></div></div></article>
-            <article class="card group-stage-card" id="group-ART"><button class="group-stage-header" type="button" data-toggle-group="ART"><span>🎨 ART Slots <b id="header-count-ART">0 / 16</b></span><em>Expand</em></button><div class="group-stage-body" data-group-body="ART" hidden><div class="pedestal-stage-strip" id="stage-ART"></div></div></article>
-            <article class="card group-stage-card" id="group-FTH"><button class="group-stage-header" type="button" data-toggle-group="FTH"><span>🙏 FTH Slots <b id="header-count-FTH">0 / 16</b></span><em>Expand</em></button><div class="group-stage-body" data-group-body="FTH" hidden><div class="pedestal-stage-strip" id="stage-FTH"></div></div></article>
-            <article class="card group-stage-card" id="group-CIV"><button class="group-stage-header" type="button" data-toggle-group="CIV"><span>🏛️ CIV Slots <b id="header-count-CIV">0 / 16</b></span><em>Expand</em></button><div class="group-stage-body" data-group-body="CIV" hidden><div class="pedestal-stage-strip" id="stage-CIV"></div></div></article>
-            <article class="card group-stage-card" id="group-TECH"><button class="group-stage-header" type="button" data-toggle-group="TECH"><span>⚙️ TECH Slots <b id="header-count-TECH">0 / 16</b></span><em>Expand</em></button><div class="group-stage-body" data-group-body="TECH" hidden><div class="pedestal-stage-strip" id="stage-TECH"></div></div></article>
+            <label for="slot-filter">View slots</label>
+            <select id="slot-filter">
+              <option value="all">All slots</option><option value="empty">Empty slots</option><option value="assigned">Assigned slots</option>
+              <option value="ALL">ALL pedestals</option><option value="FAME">FAME pedestals</option><option value="ART">ART pedestals</option><option value="FTH">FTH pedestals</option><option value="CIV">CIV pedestals</option><option value="TECH">TECH pedestals</option>
+            </select>
+            <table class="museum-table"><tbody id="pedestal-body"></tbody></table>
           </section>
         </section>
 
-        <section class="two-column-grid museum-bottom-grid">
-          <article class="card tool-section"><h2>Best Available by Empty Slot</h2><div id="recommendations" class="recommendation-grid"></div></article>
-          <article class="card tool-section"><h2>Museum Buff Progress</h2><div id="buff-list" class="buff-list"></div></article>
-        </section>
+        <section id="panel-optimizer" class="tab-panel" role="tabpanel" hidden>
+          <section class="trm-card trm-optimizer-card optimizer-card">
+            <div>
+              <h2>Optimization Goal</h2>
+              <p>Choose what you care about most. Goal matches are favored first, then pedestal points decide the best layout.</p>
+            </div>
+            <div class="optimizer-controls">
+              <label for="optimizer-goal">Goal</label>
+              <select id="optimizer-goal">
+                <option value="points">Highest Museum Points</option><option value="intel">More INTEL</option><option value="dragon-orbs">Dragon Orbs</option><option value="btads">B-tads</option><option value="cells">Cells</option><option value="medals">Museum Medals</option><option value="speed">Travel Speed</option><option value="damage">Rift Damage / Combat</option>
+              </select>
+              <label for="optimizer-priority">Priority</label>
+              <select id="optimizer-priority"><option value="balanced">Balanced</option><option value="hard">Hard-focus goal</option></select>
+              <button id="apply-optimized" class="trm-brown-btn" type="button">Apply Optimized Setup</button>
+            </div>
+          </section>
 
-        <section class="legacy-slot-data" aria-hidden="true">
-          <label for="slot-filter">View slots</label>
-          <select id="slot-filter"><option value="all">All slots</option><option value="empty">Empty slots</option><option value="assigned">Assigned slots</option><option value="ALL">ALL pedestals</option><option value="FAME">FAME pedestals</option><option value="ART">ART pedestals</option><option value="FTH">FTH pedestals</option><option value="CIV">CIV pedestals</option><option value="TECH">TECH pedestals</option></select>
-          <table class="museum-table"><tbody id="pedestal-body"></tbody></table>
-        </section>
-      </section>
+          <section class="summary-grid optimizer-summary-grid">
+            <article class="trm-card summary-card"><span>Optimized Points</span><strong id="optimized-points">0</strong></article>
+            <article class="trm-card summary-card"><span>Optimized Rating</span><strong id="optimized-rating">—</strong></article>
+            <article class="trm-card summary-card"><span>Goal Matches</span><strong id="optimized-matches">—</strong></article>
+          </section>
 
-      <section id="panel-optimizer" class="tab-panel" role="tabpanel" hidden>
-        <section class="card optimizer-card museum-optimizer-card">
-          <div><h2>Optimization Goal</h2><p>Choose what you care about most. Goal matches are favored first, then pedestal points decide the best layout.</p></div>
-          <div class="optimizer-controls">
-            <label for="optimizer-goal">Goal</label>
-            <select id="optimizer-goal"><option value="points">Highest Museum Points</option><option value="intel">More INTEL</option><option value="dragon-orbs">Dragon Orbs</option><option value="btads">B-tads</option><option value="cells">Cells</option><option value="medals">Museum Medals</option><option value="speed">Travel Speed</option><option value="damage">Rift Damage / Combat</option></select>
-            <label for="optimizer-priority">Priority</label>
-            <select id="optimizer-priority"><option value="balanced">Balanced</option><option value="hard">Hard-focus goal</option></select>
-            <button id="apply-optimized" class="primary-button" type="button">Apply Optimized Setup</button>
-          </div>
+          <section class="trm-card tool-section"><h2>Recommended Optimized Setup</h2><div id="optimized-list" class="optimized-list"></div></section>
         </section>
-        <section class="summary-grid optimizer-summary-grid"><article class="summary-card card"><span>Optimized Points</span><strong id="optimized-points">0</strong></article><article class="summary-card card"><span>Optimized Rating</span><strong id="optimized-rating">—</strong></article><article class="summary-card card"><span>Goal Matches</span><strong id="optimized-matches">—</strong></article></section>
-        <section class="card tool-section"><h2>Recommended Optimized Setup</h2><div id="optimized-list" class="optimized-list"></div></section>
       </section>
     </main>
   </div>
 
-  <div id="relic-picker-modal" class="relic-picker-modal" hidden>
-    <div class="relic-picker-backdrop" data-close-picker></div>
-    <section class="relic-picker-card" role="dialog" aria-modal="true" aria-labelledby="relic-picker-title">
-      <div class="relic-picker-header"><div><p class="eyebrow">Choose Relic</p><h2 id="relic-picker-title">Select relic</h2></div><button id="close-relic-picker" class="ghost-button" type="button">×</button></div>
-      <input id="relic-picker-search" class="relic-picker-search" type="search" placeholder="Search relic name, Awaken, grade, or AFFCT…" />
-      <div class="relic-picker-filters"><button type="button" data-picker-filter="all" class="active">All</button><button type="button" data-picker-filter="FAME">FAME</button><button type="button" data-picker-filter="ART">ART</button><button type="button" data-picker-filter="FTH">FTH</button><button type="button" data-picker-filter="CIV">CIV</button><button type="button" data-picker-filter="TECH">TECH</button></div>
-      <div id="relic-picker-results" class="relic-picker-results"></div>
+  <div id="relic-picker-modal" class="trm-picker-modal" hidden>
+    <div class="trm-picker-backdrop" data-close-picker></div>
+    <section class="trm-picker-card" role="dialog" aria-modal="true" aria-labelledby="relic-picker-title">
+      <div class="trm-picker-header">
+        <div><p class="trm-eyebrow">Choose Relic</p><h2 id="relic-picker-title">Select relic</h2></div>
+        <button id="close-relic-picker" class="trm-soft-btn" type="button">×</button>
+      </div>
+      <input id="relic-picker-search" class="trm-picker-search" type="search" placeholder="Search relic name, Awaken, grade, or AFFCT…" />
+      <div class="trm-picker-filters">
+        <button type="button" data-picker-filter="all" class="active">All</button><button type="button" data-picker-filter="FAME">FAME</button><button type="button" data-picker-filter="ART">ART</button><button type="button" data-picker-filter="FTH">FTH</button><button type="button" data-picker-filter="CIV">CIV</button><button type="button" data-picker-filter="TECH">TECH</button>
+      </div>
+      <div id="relic-picker-results" class="trm-picker-results"></div>
     </section>
   </div>
 
@@ -623,24 +213,40 @@
   <script>
     (() => {
       const TYPES = ["ALL", "FAME", "ART", "FTH", "CIV", "TECH"];
-      const TYPE_ICONS = { ALL: "✦", FAME: "👑", ART: "🎨", FTH: "🙏", CIV: "🏛️", TECH: "⚙️" };
+      const TYPE_ICONS = { ALL: "✦", FAME: "♛", ART: "🎨", FTH: "🙏", CIV: "🏛️", TECH: "⚙️" };
       const RELIC_ICONS = ["🧭", "🔭", "🏷️", "⚖️", "📜", "💎", "🪙", "🔮", "🗿", "🏺", "📚", "⚙️"];
       let activeSelect = null;
       let activeFilter = "all";
 
       const byId = (id) => document.getElementById(id);
       const text = (el) => (el?.textContent || "").replace(/\s+/g, " ").trim();
-      const relicIcon = (name, slot) => name && name !== "Select relic..." ? RELIC_ICONS[Math.abs(hash(name)) % RELIC_ICONS.length] : TYPE_ICONS[slot] || "✦";
-      const hash = (str) => Array.from(str).reduce((a, c) => ((a << 5) - a + c.charCodeAt(0)) | 0, 0);
+      const hash = (str) => Array.from(str || "").reduce((a, c) => ((a << 5) - a + c.charCodeAt(0)) | 0, 0);
+      const relicIcon = (name, type) => name && name !== "Select relic..." ? RELIC_ICONS[Math.abs(hash(name)) % RELIC_ICONS.length] : TYPE_ICONS[type] || "✦";
+      const escapeHtml = (value) => String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
 
-      function clickHiddenButton(hiddenId) {
-        const hidden = byId(hiddenId);
-        if (hidden) hidden.click();
-      }
+      function clickHiddenButton(hiddenId) { byId(hiddenId)?.click(); }
 
       function setupButtons() {
         byId("refresh-relics-visible")?.addEventListener("click", () => clickHiddenButton("refresh-relics"));
         byId("reset-museum-visible")?.addEventListener("click", () => clickHiddenButton("reset-museum"));
+        byId("view-by-group")?.addEventListener("click", () => toggleView("group"));
+        byId("view-by-slot")?.addEventListener("click", () => toggleView("slot"));
+      }
+
+      function toggleView(mode) {
+        byId("view-by-group")?.classList.toggle("active", mode === "group");
+        byId("view-by-slot")?.classList.toggle("active", mode === "slot");
+        document.querySelector(".trm-main-area")?.classList.toggle("slot-view", mode === "slot");
+        if (mode === "slot") {
+          TYPES.forEach(type => {
+            const body = document.querySelector(`[data-group-body="${type}"]`);
+            const card = byId(`group-${type}`);
+            const em = document.querySelector(`[data-toggle-group="${type}"] em`);
+            if (body) body.hidden = false;
+            card?.classList.add("open");
+            if (em) em.textContent = "Collapse⌃";
+          });
+        }
       }
 
       function setupGroups() {
@@ -653,21 +259,21 @@
             const opening = body.hidden;
             body.hidden = !opening;
             card.classList.toggle("open", opening);
-            btn.querySelector("em").textContent = opening ? "Collapse" : "Expand";
+            btn.querySelector("em").textContent = opening ? "Collapse⌃" : "⌄";
           });
         });
 
         document.querySelectorAll("[data-group-jump]").forEach((btn) => {
           btn.addEventListener("click", () => {
             const type = btn.dataset.groupJump;
-            document.querySelectorAll(".pedestal-group-btn").forEach((b) => b.classList.toggle("active", b === btn));
+            document.querySelectorAll(".trm-group-btn").forEach((b) => b.classList.toggle("active", b === btn));
             const body = document.querySelector(`[data-group-body="${type}"]`);
             const header = document.querySelector(`[data-toggle-group="${type}"]`);
             const card = byId(`group-${type}`);
             if (body && body.hidden) {
               body.hidden = false;
               card?.classList.add("open");
-              header && (header.querySelector("em").textContent = "Collapse");
+              if (header) header.querySelector("em").textContent = "Collapse⌃";
             }
             card?.scrollIntoView({ behavior: "smooth", block: "start" });
           });
@@ -691,7 +297,6 @@
       function renderMuseumCards() {
         const rows = readRows();
         if (!rows.length) return;
-
         const groups = Object.fromEntries(TYPES.map(t => [t, []]));
         rows.forEach((item) => (groups[item.type] ||= []).push(item));
 
@@ -699,24 +304,38 @@
           const assigned = (groups[type] || []).filter(x => x.relic !== "Select relic...").length;
           const total = (groups[type] || []).length || (type === "ALL" ? 3 : 16);
           [byId(`count-${type}`), byId(`header-count-${type}`)].forEach(el => { if (el) el.textContent = `${assigned} / ${total}`; });
-
           const stage = byId(`stage-${type}`);
           if (!stage) return;
           stage.innerHTML = "";
           (groups[type] || []).forEach((item) => stage.appendChild(createPedestal(item)));
         });
+
+        updateOverviewProgress();
+      }
+
+      function updateOverviewProgress() {
+        const points = parseFloat(text(byId("total-points"))) || 0;
+        const nextText = text(byId("next-threshold"));
+        const nums = nextText.match(/\d+/g)?.map(Number) || [];
+        const next = nums.length ? nums[nums.length - 1] : 250;
+        const pct = Math.max(0, Math.min(100, next ? (points / next) * 100 : 0));
+        const bar = byId("trm-overview-progress");
+        if (bar) bar.style.width = pct + "%";
       }
 
       function createPedestal(item) {
         const isEmpty = item.relic === "Select relic...";
+        const displayName = isEmpty ? `${item.type} Slot` : item.relic.replace(/\s+-\s+/, "<br>");
         const card = document.createElement("div");
-        card.className = `museum-pedestal ${isEmpty ? "empty" : ""}`;
+        card.className = `trm-pedestal ${isEmpty ? "empty" : "filled"}`;
         card.innerHTML = `
-          <div class="pedestal-number">${item.slot}</div>
-          <div class="relic-art">${relicIcon(item.relic, item.type)}</div>
-          <div class="relic-nameplate">${escapeHtml(isEmpty ? `${item.type} Slot` : item.relic)}${isEmpty ? "" : `<small>${escapeHtml(item.type)}</small>`}</div>
-          <div class="relic-points-pill">✦ ${escapeHtml(item.points || "0")}</div>
-          <button class="change-relic-btn" type="button">↻ ${isEmpty ? "Select Relic" : "Change Relic"}</button>`;
+          <div class="trm-slot-medallion">${item.slot}</div>
+          <div class="trm-arch-light"></div>
+          <div class="trm-relic-object">${relicIcon(item.relic, item.type)}</div>
+          <div class="trm-stone-base"></div>
+          <div class="trm-nameplate"><strong>${isEmpty ? escapeHtml(displayName) : displayName}</strong>${isEmpty ? "" : `<small>${escapeHtml(item.type)}</small>`}</div>
+          <div class="trm-points-pill">✦ ${escapeHtml(item.points || "0")}</div>
+          <button class="trm-change-btn" type="button">↻ ${isEmpty ? "Select Relic" : "Change Relic"}</button>`;
         card.querySelector("button").addEventListener("click", () => openPicker(item.select));
         return card;
       }
@@ -749,12 +368,11 @@
           if (activeFilter !== "all" && !label.includes(activeFilter.toLowerCase())) return false;
           return true;
         }).slice(0, 120);
-
         results.innerHTML = "";
         filtered.forEach((option) => {
           const btn = document.createElement("button");
           btn.type = "button";
-          btn.className = "relic-result";
+          btn.className = "trm-relic-result";
           btn.innerHTML = `<strong>${escapeHtml(option.label)}</strong><span>${option.label === "Select relic..." ? "Clear slot" : "Use this relic"}</span>`;
           btn.addEventListener("click", () => {
             activeSelect.value = option.value;
@@ -777,13 +395,7 @@
             renderPicker();
           });
         });
-        document.addEventListener("keydown", (e) => {
-          if (e.key === "Escape" && !byId("relic-picker-modal")?.hidden) closePicker();
-        });
-      }
-
-      function escapeHtml(value) {
-        return String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
+        document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !byId("relic-picker-modal")?.hidden) closePicker(); });
       }
 
       function startObserver() {
@@ -795,7 +407,7 @@
         let tries = 0;
         const timer = setInterval(() => {
           renderMuseumCards();
-          if (++tries > 25 && readRows().length) clearInterval(timer);
+          if (++tries > 32 && readRows().length) clearInterval(timer);
         }, 250);
       }
 
