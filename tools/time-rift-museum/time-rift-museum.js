@@ -229,7 +229,7 @@ function parseStampBonus(text) {
 async function loadTimeRiftRelics() {
   setStatus("Loading Time Rift Museum relics…");
   try {
-    const response = await fetch(getTimeRiftCsvUrl(), { cache: "no-store" });
+    const response = await fetch(TIME_RIFT_CSV_URL, { cache: "no-store" });
     if (!response.ok) throw new Error(`Sheet request failed: ${response.status}`);
     const text = await response.text();
     const rows = parseCsv(text);
