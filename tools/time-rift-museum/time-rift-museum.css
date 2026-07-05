@@ -632,7 +632,9 @@
   box-shadow: 0 26px 70px rgba(29,20,13,0.32);
   overflow: hidden;
 }
-
+.picker-backdrop[hidden] {
+  display: none !important;
+}
 .picker-header,
 .picker-search-row,
 .picker-filter-row { padding: 16px 18px; border-bottom: 1px solid var(--rift-line-soft); }
