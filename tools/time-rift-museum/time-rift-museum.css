@@ -513,6 +513,58 @@
 .relic-plaque.empty { opacity: 0.85; }
 .relic-plaque.has-relic { box-shadow: inset 0 6px 8px rgba(255,255,255,0.28), 0 0 18px rgba(228,188,115,0.48), 0 10px 14px rgba(60,40,21,0.22); }
 
+
+.relic-art-wrap {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.relic-art-wrap.large {
+  width: 92px;
+  height: 92px;
+}
+
+.relic-art-wrap.small,
+.relic-mini-icon .relic-art-wrap.small {
+  width: 42px;
+  height: 42px;
+}
+
+.relic-art-wrap.tiny {
+  width: 34px;
+  height: 34px;
+}
+
+.relic-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 4px rgba(49, 30, 16, 0.38));
+}
+
+.relic-art-fallback {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.relic-art-fallback[hidden] {
+  display: none !important;
+}
+
+.relic-art-wrap.small .relic-glyph,
+.relic-art-wrap.tiny .relic-glyph {
+  transform: scale(0.62);
+}
+
+.relic-art-wrap.tiny .relic-glyph {
+  transform: scale(0.48);
+}
+
 .relic-glyph {
   width: 56px;
   height: 56px;
@@ -651,7 +703,7 @@
 .optimizer-summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
 .summary-card { padding: 18px 20px; }
 .optimized-list { display: grid; gap: 10px; }
-.optimized-row { display: grid; grid-template-columns: 76px 58px 1fr 84px 110px; gap: 12px; align-items: center; border: 1px solid var(--rift-line-soft); border-radius: 12px; padding: 10px; background: rgba(255,250,240,0.8); }
+.optimized-row { display: grid; grid-template-columns: 76px 58px 54px 1fr 84px 110px; gap: 12px; align-items: center; border: 1px solid var(--rift-line-soft); border-radius: 12px; padding: 10px; background: rgba(255,250,240,0.8); }
 .type-pill,
 .goal-pill { border-radius: 999px; padding: 4px 9px; background: #efe1c9; color: #5c4530; font-size: 0.78rem; font-weight: 900; text-align: center; }
 .score-bar { height: 8px; margin-top: 6px; border-radius: 99px; background: #eadbc2; overflow: hidden; }
@@ -719,7 +771,7 @@
 .relic-option { display: grid; grid-template-columns: 52px 1fr auto; gap: 12px; align-items: center; width: 100%; border: 1px solid var(--rift-line-soft); border-radius: 13px; padding: 10px; background: #fffaf0; color: var(--rift-ink); text-align: left; font: inherit; cursor: pointer; }
 .relic-option:hover { border-color: #76a9d4; box-shadow: 0 0 0 1px #76a9d4; }
 .relic-option.unavailable { opacity: 0.48; }
-.relic-mini-icon { width: 48px; height: 48px; border-radius: 12px; border: 2px solid #714621; background: radial-gradient(circle at 38% 27%, #f4d28c, #af7434 54%, #6d3e1c 100%); display: grid; place-items: center; }
+.relic-mini-icon { width: 48px; height: 48px; border-radius: 12px; border: 2px solid #714621; background: radial-gradient(circle at 38% 27%, #f4d28c, #af7434 54%, #6d3e1c 100%); display: grid; place-items: center; overflow: hidden; }
 .relic-mini-icon .relic-glyph { transform: scale(0.62); }
 .relic-option b,
 .relic-option small,
@@ -954,5 +1006,26 @@
   .relic-family-head .relic-score {
     grid-column: 2;
     justify-self: start;
+  }
+}
+
+
+.optimized-art,
+.optimizer-art {
+  display: grid;
+  place-items: center;
+}
+
+.optimizer-stamp-preview li {
+  grid-template-columns: 42px 62px 1fr auto;
+}
+
+@media (max-width: 760px) {
+  .optimized-row {
+    grid-template-columns: 1fr;
+  }
+
+  .optimizer-stamp-preview li {
+    grid-template-columns: 36px 1fr;
   }
 }
