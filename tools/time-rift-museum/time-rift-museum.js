@@ -1,6 +1,6 @@
 /* =========================================================
    Time Rift Museum Tool
-   Version 5: clean in-game museum layout with artwork-ready rendering.
+   Clean functional rewrite for the in-game museum layout.
 ========================================================= */
 
 const TIME_RIFT_TAB_NAME = "Time Rift Museum Relics";
@@ -366,7 +366,7 @@ function renderPedestalCard(pedestal) {
     <article class="pedestal-cell type-${type.toLowerCase()}">
       <div class="slot-medallion">${pedestal.slot}</div>
       <div class="relic-plaque ${relic ? "has-relic" : "empty"}">
-        ${relicArtworkMarkup(relic, glyph, "large")}
+        <span class="relic-glyph ${glyph.toLowerCase()}"></span>
       </div>
       <div class="relic-nameplate" title="${escapeHtml(name)}">
         <b>${escapeHtml(name)}</b>
@@ -505,7 +505,7 @@ function renderRelicResults() {
     return `
       <article class="relic-family-option">
         <div class="relic-family-head">
-          <span class="relic-mini-icon">${relicArtworkMarkup(best.relic, type, "small")}</span>
+          <span class="relic-mini-icon"><span class="relic-glyph ${type.toLowerCase()}"></span></span>
           <div>
             <b>${index + 1}. ${escapeHtml(best.baseName)}</b>
             <small>${escapeHtml(stampSummary)}</small>
@@ -518,8 +518,6 @@ function renderRelicResults() {
         </div>
       </article>`;
   }).join("");
-
-  attachRelicArtworkFallbacks();
 
   results.querySelectorAll("[data-relic-id]").forEach((button) => {
     button.addEventListener("click", () => assignRelicToSlot(pickerSlot, button.dataset.relicId));
@@ -696,7 +694,6 @@ function renderOptimizerInsights(setup, goals, pointTarget, total) {
   const stampList = stampHighlights.length
     ? stampHighlights.map((item) => `
         <li>
-          <span class="optimizer-art">${relicArtworkMarkup(item.relic, item.pedestalType, "tiny")}</span>
           <strong>Slot ${item.pedestal.slot}</strong>
           <span>${escapeHtml(displayRelicBaseName(item.relic.name))} · ${escapeHtml(item.relic.level || item.relic.rank || "?")}</span>
           <em>${item.base.toLocaleString()} + ${item.stampBonus.toLocaleString()} stamp = ${item.points.toLocaleString()}</em>
@@ -746,7 +743,6 @@ function renderOptimizer() {
       <article class="optimized-row">
         <strong>Slot ${item.pedestal.slot}</strong>
         <span class="type-pill">${item.pedestalType}</span>
-        <span class="optimized-art">${relicArtworkMarkup(item.relic, item.pedestalType, "small")}</span>
         <div>
           <strong>${escapeHtml(item.relic.name)}</strong>${item.relic.level ? ` <small>· ${escapeHtml(item.relic.level)}</small>` : ""}<br />
           <small>${item.pedestalType === "ALL" ? "Total AFFCT" : item.pedestalType} score</small>
@@ -845,64 +841,6 @@ function setStatus(message, isError = false) {
 function setText(id, value) {
   const element = document.getElementById(id);
   if (element) element.textContent = value;
-}
-
-
-/* =========================================================
-   Relic Artwork
-========================================================= */
-
-function relicAssetFileName(relicName, keepApostrophesAsSeparator = false) {
-  const apostropheReplacement = keepApostrophesAsSeparator ? "_" : "";
-  return String(relicName || "")
-    .toLowerCase()
-    .replace(/[’']/g, apostropheReplacement)
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
-}
-
-function relicImageCandidates(relic) {
-  if (!relic) return [];
-  const baseName = displayRelicBaseName(relic.name);
-  const candidates = [
-    relicAssetFileName(baseName, false),
-    relicAssetFileName(baseName, true)
-  ].filter(Boolean);
-  return [...new Set(candidates)].map((fileName) => `assets/relics/${fileName}.png`);
-}
-
-function relicArtworkMarkup(relic, pedestalType, size = "large") {
-  const typeClass = String(pedestalType || "ALL").toLowerCase();
-  if (!relic) {
-    return `<span class="relic-art-fallback ${size}" aria-hidden="true"><span class="relic-glyph ${typeClass}"></span></span>`;
-  }
-
-  const candidates = relicImageCandidates(relic);
-  const firstImage = candidates[0] || "";
-  return `
-    <span class="relic-art-wrap ${size}">
-      <img class="relic-art" src="${escapeHtml(firstImage)}" data-art-candidates="${escapeHtml(candidates.join("|"))}" data-art-index="0" alt="${escapeHtml(displayRelicBaseName(relic.name))}" loading="lazy" />
-      <span class="relic-art-fallback ${size}" hidden aria-hidden="true"><span class="relic-glyph ${typeClass}"></span></span>
-    </span>`;
-}
-
-function attachRelicArtworkFallbacks() {
-  document.querySelectorAll(".relic-art").forEach((img) => {
-    img.addEventListener("error", () => {
-      const candidates = String(img.dataset.artCandidates || "").split("|").filter(Boolean);
-      const nextIndex = Number(img.dataset.artIndex || 0) + 1;
-
-      if (candidates[nextIndex]) {
-        img.dataset.artIndex = String(nextIndex);
-        img.src = candidates[nextIndex];
-        return;
-      }
-
-      img.hidden = true;
-      const fallback = img.parentElement?.querySelector(".relic-art-fallback");
-      if (fallback) fallback.hidden = false;
-    }, { once: true });
-  });
 }
 
 function escapeHtml(value) {
