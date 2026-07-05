@@ -5,419 +5,179 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Time Rift Museum | Snail Lab</title>
   <link rel="stylesheet" href="/snail-lab/styles.css?v=5" />
-  <link rel="stylesheet" href="time-rift-museum.css?v=1" />
+  <link rel="stylesheet" href="time-rift-museum.css?v=2" />
 </head>
 <body>
   <div class="app-shell">
     <div id="shared-sidebar"></div>
 
-    <main class="tool-main trm-page">
-      <section class="trm-shell">
-        <header class="trm-hero">
-          <div class="trm-title-block">
-            <p class="trm-eyebrow">Super Snail</p>
+    <main class="tool-main time-rift-main">
+      <section class="rift-app-shell">
+        <header class="rift-hero">
+          <div class="rift-title">
+            <p>Super Snail</p>
             <h1>Time Rift Museum</h1>
-            <p>Build your museum manually or optimize all 83 slots<br class="desktop-break" /> for points, INTEL, Dragon Orbs, Cells, B-tads, medals, or travel speed.</p>
+            <span>Build your museum manually or optimize all 83 slots for points, INTEL, Dragon Orbs, Cells, B-tads, medals, or travel speed.</span>
           </div>
 
-          <nav class="trm-top-tabs tool-tabs" role="tablist" aria-label="Time Rift Museum tabs">
-            <button class="tool-tab active" data-tab="setup" type="button" role="tab" aria-selected="true">Museum Setup</button>
-            <button class="tool-tab" data-tab="optimizer" type="button" role="tab" aria-selected="false">Optimizer</button>
+          <nav class="rift-tabs" role="tablist" aria-label="Time Rift Museum tabs">
+            <button class="rift-tab active" type="button" data-tab="setup" role="tab" aria-selected="true">Museum Setup</button>
+            <button class="rift-tab" type="button" data-tab="optimizer" role="tab" aria-selected="false">Optimizer</button>
           </nav>
 
-          <div class="trm-mascot" aria-hidden="true">
-            <span class="rail left"></span>
-            <span class="snail">🐌</span>
-            <span class="rail right"></span>
-            <span class="help">?</span>
-          </div>
-
-          <div class="trm-hidden-actions" aria-hidden="true">
-            <button id="refresh-relics" type="button">Refresh Relics</button>
-            <button id="reset-museum" type="button">Reset</button>
+          <div class="rift-ornament" aria-hidden="true">
+            <span class="ornament-post"></span>
+            <span class="snail-statue"><span></span></span>
+            <span class="ornament-post"></span>
+            <button id="reset-museum" class="reset-token" type="button" title="Reset museum">?</button>
           </div>
         </header>
 
         <section id="panel-setup" class="tab-panel active" role="tabpanel">
-          <section class="trm-top-grid">
-            <article class="trm-card trm-overview-card">
-              <h2><span class="trm-icon">🏛️</span> Museum Overview</h2>
-              <div class="trm-overview-stats">
-                <div class="stat wide">
+          <section class="rift-top-grid">
+            <article class="rift-card overview-card">
+              <div class="rift-card-title"><span class="title-icon museum-icon"></span><h2>Museum Overview</h2></div>
+              <div class="overview-stats">
+                <div>
                   <span>Total Museum Points</span>
                   <strong id="total-points">0</strong>
                 </div>
-                <div class="stat center">
+                <div>
                   <span>Museum Rank</span>
-                  <strong id="current-rating" class="trm-rank-badge">—</strong>
+                  <strong id="current-rating" class="rank-badge">—</strong>
                 </div>
-                <div class="stat progress-stat">
-                  <span>Next Rank <b id="next-rank-label">(B)</b></span>
-                  <strong id="next-threshold">120 / 250</strong>
-                  <small class="trm-progress"><i id="trm-overview-progress"></i></small>
-                  <small class="need-line">Need <b id="points-needed">120</b> more</small>
+                <div>
+                  <span id="next-rank-label">Next Rank</span>
+                  <strong id="next-threshold">120 (C)</strong>
+                  <div class="rank-progress"><span id="rank-progress-bar"></span></div>
+                  <small>Need <b id="points-needed">120</b> more</small>
                 </div>
               </div>
             </article>
 
-            <article class="trm-card trm-sync-card">
+            <article class="rift-card sync-card">
               <h2>Relic data sync</h2>
-              <p>Refreshes the Time Rift Museum relic database from<br class="desktop-break" /> the maintained online data source.</p>
-              <div class="trm-sync-row">
-                <button id="refresh-relics-visible" class="trm-brown-btn" type="button">Sync Relic Data</button>
-                <label class="trm-checkbox"><input id="auto-sync-relics" type="checkbox" checked /> Auto-sync when app opens</label>
+              <p>Refreshes the Time Rift Museum relic database from the maintained online data source.</p>
+              <div class="sync-actions">
+                <button id="refresh-relics" class="rift-primary" type="button">Sync Relic Data</button>
+                <label><input id="auto-sync-relics" type="checkbox" checked /> Auto-sync when app opens</label>
               </div>
-              <p id="sync-status" class="trm-sync-status">Loading Time Rift Museum relics…</p>
+              <p id="sync-status" class="sync-status">Loading Time Rift Museum relics…</p>
             </article>
           </section>
 
-          <section class="trm-workspace">
-            <aside class="trm-left-rail">
-              <article class="trm-card trm-nav-card">
+          <section class="museum-workspace">
+            <aside class="museum-sidebar">
+              <article class="side-card">
                 <h2>Pedestal Groups</h2>
-                <div class="trm-group-list">
-                  <button class="trm-group-btn active" type="button" data-group-jump="ALL"><span><i>✦</i> ALL Slots</span><b id="count-ALL">0 / 3</b></button>
-                  <button class="trm-group-btn" type="button" data-group-jump="FAME"><span><i>♛</i> FAME Slots</span><b id="count-FAME">0 / 16</b></button>
-                  <button class="trm-group-btn" type="button" data-group-jump="ART"><span><i>🎨</i> ART Slots</span><b id="count-ART">0 / 16</b></button>
-                  <button class="trm-group-btn" type="button" data-group-jump="FTH"><span><i>🙏</i> FTH Slots</span><b id="count-FTH">0 / 16</b></button>
-                  <button class="trm-group-btn" type="button" data-group-jump="CIV"><span><i>🏛️</i> CIV Slots</span><b id="count-CIV">0 / 16</b></button>
-                  <button class="trm-group-btn" type="button" data-group-jump="TECH"><span><i>⚙️</i> TECH Slots</span><b id="count-TECH">0 / 16</b></button>
-                </div>
+                <div id="group-nav" class="group-nav"></div>
               </article>
 
-              <article class="trm-card trm-view-card">
+              <article class="side-card">
                 <h2>View</h2>
-                <div class="trm-view-toggle">
-                  <button id="view-by-group" class="active" type="button"><span>▦</span> By Group</button>
-                  <button id="view-by-slot" type="button"><span>☷</span> By Slot<br />Number</button>
+                <div class="view-switch" role="group" aria-label="Museum view mode">
+                  <button class="view-button active" data-view-mode="group" type="button"><span class="view-grid-icon"></span>By Group</button>
+                  <button class="view-button" data-view-mode="slot" type="button"><span class="view-list-icon"></span>By Slot Number</button>
                 </div>
               </article>
 
-              <article class="trm-card trm-snapshot-card">
+              <article class="side-card snapshot-card">
                 <h2>Weekly snapshots</h2>
                 <input id="snapshot-name" type="text" placeholder="Week 1, Species War, etc." />
-                <button id="save-snapshot" class="trm-soft-btn" type="button">💾 Save snapshot</button>
-              </article>
-
-              <article class="trm-card trm-reset-card">
-                <h2>Reset</h2>
-                <button id="reset-museum-visible" class="trm-danger-btn" type="button">Reset Museum</button>
+                <button id="save-snapshot" class="rift-light" type="button">Save snapshot</button>
               </article>
             </aside>
 
-            <section class="trm-main-area">
-              <article class="trm-group-stage open" id="group-ALL">
-                <button class="trm-stage-header" type="button" data-toggle-group="ALL">
-                  <span><i>✦</i> ALL Slots <b id="header-count-ALL">0 / 3</b></span>
-                  <em>Collapse⌃</em>
-                </button>
-                <div class="trm-stage-body" data-group-body="ALL">
-                  <div class="trm-museum-hall" id="stage-ALL"></div>
-                </div>
-              </article>
-
-              <article class="trm-group-stage" id="group-FAME">
-                <button class="trm-stage-header" type="button" data-toggle-group="FAME"><span><i>♛</i> FAME Slots <b id="header-count-FAME">0 / 16</b></span><em>⌄</em></button>
-                <div class="trm-stage-body" data-group-body="FAME" hidden><div class="trm-museum-hall" id="stage-FAME"></div></div>
-              </article>
-              <article class="trm-group-stage" id="group-ART">
-                <button class="trm-stage-header" type="button" data-toggle-group="ART"><span><i>🎨</i> ART Slots <b id="header-count-ART">0 / 16</b></span><em>⌄</em></button>
-                <div class="trm-stage-body" data-group-body="ART" hidden><div class="trm-museum-hall" id="stage-ART"></div></div>
-              </article>
-              <article class="trm-group-stage" id="group-FTH">
-                <button class="trm-stage-header" type="button" data-toggle-group="FTH"><span><i>🙏</i> FTH Slots <b id="header-count-FTH">0 / 16</b></span><em>⌄</em></button>
-                <div class="trm-stage-body" data-group-body="FTH" hidden><div class="trm-museum-hall" id="stage-FTH"></div></div>
-              </article>
-              <article class="trm-group-stage" id="group-CIV">
-                <button class="trm-stage-header" type="button" data-toggle-group="CIV"><span><i>🏛️</i> CIV Slots <b id="header-count-CIV">0 / 16</b></span><em>⌄</em></button>
-                <div class="trm-stage-body" data-group-body="CIV" hidden><div class="trm-museum-hall" id="stage-CIV"></div></div>
-              </article>
-              <article class="trm-group-stage" id="group-TECH">
-                <button class="trm-stage-header" type="button" data-toggle-group="TECH"><span><i>⚙️</i> TECH Slots <b id="header-count-TECH">0 / 16</b></span><em>⌄</em></button>
-                <div class="trm-stage-body" data-group-body="TECH" hidden><div class="trm-museum-hall" id="stage-TECH"></div></div>
-              </article>
+            <section class="museum-main-panel">
+              <div id="museum-stage" class="museum-stage" aria-live="polite"></div>
             </section>
           </section>
 
-          <section class="trm-bottom-grid">
-            <article class="trm-card tool-section"><h2>Best Available by Empty Slot</h2><div id="recommendations" class="recommendation-grid"></div></article>
-            <article class="trm-card tool-section"><h2>Museum Buff Progress</h2><div id="buff-list" class="buff-list"></div></article>
-          </section>
-
-          <section class="trm-hidden-legacy" aria-hidden="true">
-            <article class="museum-stage-card card" aria-label="Time Rift Museum visual preview">
-              <div class="museum-sign"><span>Time Rift Museum</span><strong id="visual-filled-count">0/83</strong></div>
-              <div id="visual-museum-grid" class="museum-stage-grid"></div>
-              <div class="museum-rating-box">
-                <div><strong>Time Rift Museum Rating</strong> <span id="visual-rating-points">0</span></div>
-                <div>Current Rating <strong id="visual-rating-label">—</strong></div>
-                <div>Next buff in <strong id="visual-next-points">120</strong> points</div>
-                <div class="museum-progress"><span id="visual-progress-bar"></span></div>
-              </div>
+          <section class="rift-bottom-grid">
+            <article class="rift-card tool-section">
+              <h2>Best Available by Empty Slot</h2>
+              <div id="recommendations" class="recommendation-grid"></div>
             </article>
-            <label for="slot-filter">View slots</label>
-            <select id="slot-filter">
-              <option value="all">All slots</option><option value="empty">Empty slots</option><option value="assigned">Assigned slots</option>
-              <option value="ALL">ALL pedestals</option><option value="FAME">FAME pedestals</option><option value="ART">ART pedestals</option><option value="FTH">FTH pedestals</option><option value="CIV">CIV pedestals</option><option value="TECH">TECH pedestals</option>
-            </select>
-            <table class="museum-table"><tbody id="pedestal-body"></tbody></table>
+            <article class="rift-card tool-section">
+              <h2>Museum Buff Progress</h2>
+              <div id="buff-list" class="buff-list"></div>
+            </article>
           </section>
         </section>
 
         <section id="panel-optimizer" class="tab-panel" role="tabpanel" hidden>
-          <section class="trm-card trm-optimizer-card optimizer-card">
-            <div>
-              <h2>Optimization Goal</h2>
-              <p>Choose what you care about most. Goal matches are favored first, then pedestal points decide the best layout.</p>
-            </div>
-            <div class="optimizer-controls">
-              <label for="optimizer-goal">Goal</label>
-              <select id="optimizer-goal">
-                <option value="points">Highest Museum Points</option><option value="intel">More INTEL</option><option value="dragon-orbs">Dragon Orbs</option><option value="btads">B-tads</option><option value="cells">Cells</option><option value="medals">Museum Medals</option><option value="speed">Travel Speed</option><option value="damage">Rift Damage / Combat</option>
-              </select>
-              <label for="optimizer-priority">Priority</label>
-              <select id="optimizer-priority"><option value="balanced">Balanced</option><option value="hard">Hard-focus goal</option></select>
-              <button id="apply-optimized" class="trm-brown-btn" type="button">Apply Optimized Setup</button>
-            </div>
-          </section>
+          <section class="optimizer-layout">
+            <article class="rift-card optimizer-card">
+              <div>
+                <h2>Optimization Goal</h2>
+                <p>Choose what matters most. Goal matches are favored first, then pedestal points decide the layout.</p>
+              </div>
+              <div class="optimizer-controls">
+                <label for="optimizer-goal">Goal</label>
+                <select id="optimizer-goal">
+                  <option value="points">Highest Museum Points</option>
+                  <option value="intel">More INTEL</option>
+                  <option value="dragon-orbs">Dragon Orbs</option>
+                  <option value="btads">B-tads</option>
+                  <option value="cells">Cells</option>
+                  <option value="medals">Museum Medals</option>
+                  <option value="speed">Travel Speed</option>
+                  <option value="damage">Rift Damage / Combat</option>
+                </select>
 
-          <section class="summary-grid optimizer-summary-grid">
-            <article class="trm-card summary-card"><span>Optimized Points</span><strong id="optimized-points">0</strong></article>
-            <article class="trm-card summary-card"><span>Optimized Rating</span><strong id="optimized-rating">—</strong></article>
-            <article class="trm-card summary-card"><span>Goal Matches</span><strong id="optimized-matches">—</strong></article>
-          </section>
+                <label for="optimizer-priority">Priority</label>
+                <select id="optimizer-priority">
+                  <option value="balanced">Balanced</option>
+                  <option value="hard">Hard-focus goal</option>
+                </select>
 
-          <section class="trm-card tool-section"><h2>Recommended Optimized Setup</h2><div id="optimized-list" class="optimized-list"></div></section>
+                <button id="apply-optimized" class="rift-primary" type="button">Apply Optimized Setup</button>
+              </div>
+            </article>
+
+            <section class="optimizer-summary-grid">
+              <article class="rift-card summary-card"><span>Optimized Points</span><strong id="optimized-points">0</strong></article>
+              <article class="rift-card summary-card"><span>Optimized Rating</span><strong id="optimized-rating">—</strong></article>
+              <article class="rift-card summary-card"><span>Goal Matches</span><strong id="optimized-matches">—</strong></article>
+            </section>
+
+            <article class="rift-card tool-section">
+              <h2>Recommended Optimized Setup</h2>
+              <div id="optimized-list" class="optimized-list"></div>
+            </article>
+          </section>
         </section>
+      </section>
+
+      <section id="relic-picker" class="picker-backdrop" hidden>
+        <div class="picker-modal" role="dialog" aria-modal="true" aria-labelledby="picker-title">
+          <header class="picker-header">
+            <div>
+              <p id="picker-slot-label">Slot —</p>
+              <h2 id="picker-title">Select Relic</h2>
+            </div>
+            <button id="close-picker" class="picker-close" type="button" aria-label="Close relic picker">×</button>
+          </header>
+
+          <div class="picker-search-row">
+            <input id="relic-search" type="search" placeholder="Search relic name, level, rank, or stamp…" autocomplete="off" />
+            <button id="clear-relic" class="rift-light" type="button">Clear Slot</button>
+          </div>
+
+          <div class="picker-filter-row" role="group" aria-label="Relic picker filters">
+            <button class="picker-filter active" data-picker-filter="all" type="button">All</button>
+            <button class="picker-filter" data-picker-filter="available" type="button">Available</button>
+            <button class="picker-filter" data-picker-filter="best" type="button">Best Score</button>
+            <button class="picker-filter" data-picker-filter="stamp" type="button">Stamp Match</button>
+          </div>
+
+          <div id="relic-results" class="relic-results"></div>
+        </div>
       </section>
     </main>
   </div>
 
-  <div id="relic-picker-modal" class="trm-picker-modal" hidden>
-    <div class="trm-picker-backdrop" data-close-picker></div>
-    <section class="trm-picker-card" role="dialog" aria-modal="true" aria-labelledby="relic-picker-title">
-      <div class="trm-picker-header">
-        <div><p class="trm-eyebrow">Choose Relic</p><h2 id="relic-picker-title">Select relic</h2></div>
-        <button id="close-relic-picker" class="trm-soft-btn" type="button">×</button>
-      </div>
-      <input id="relic-picker-search" class="trm-picker-search" type="search" placeholder="Search relic name, Awaken, grade, or AFFCT…" />
-      <div class="trm-picker-filters">
-        <button type="button" data-picker-filter="all" class="active">All</button><button type="button" data-picker-filter="FAME">FAME</button><button type="button" data-picker-filter="ART">ART</button><button type="button" data-picker-filter="FTH">FTH</button><button type="button" data-picker-filter="CIV">CIV</button><button type="button" data-picker-filter="TECH">TECH</button>
-      </div>
-      <div id="relic-picker-results" class="trm-picker-results"></div>
-    </section>
-  </div>
-
   <script src="/snail-lab/app.js?v=5"></script>
-  <script src="time-rift-museum.js?v=5"></script>
-  <script>
-    (() => {
-      const TYPES = ["ALL", "FAME", "ART", "FTH", "CIV", "TECH"];
-      const TYPE_ICONS = { ALL: "✦", FAME: "♛", ART: "🎨", FTH: "🙏", CIV: "🏛️", TECH: "⚙️" };
-      const RELIC_ICONS = ["🧭", "🔭", "🏷️", "⚖️", "📜", "💎", "🪙", "🔮", "🗿", "🏺", "📚", "⚙️"];
-      let activeSelect = null;
-      let activeFilter = "all";
-
-      const byId = (id) => document.getElementById(id);
-      const text = (el) => (el?.textContent || "").replace(/\s+/g, " ").trim();
-      const hash = (str) => Array.from(str || "").reduce((a, c) => ((a << 5) - a + c.charCodeAt(0)) | 0, 0);
-      const relicIcon = (name, type) => name && name !== "Select relic..." ? RELIC_ICONS[Math.abs(hash(name)) % RELIC_ICONS.length] : TYPE_ICONS[type] || "✦";
-      const escapeHtml = (value) => String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
-
-      function clickHiddenButton(hiddenId) { byId(hiddenId)?.click(); }
-
-      function setupButtons() {
-        byId("refresh-relics-visible")?.addEventListener("click", () => clickHiddenButton("refresh-relics"));
-        byId("reset-museum-visible")?.addEventListener("click", () => clickHiddenButton("reset-museum"));
-        byId("view-by-group")?.addEventListener("click", () => toggleView("group"));
-        byId("view-by-slot")?.addEventListener("click", () => toggleView("slot"));
-      }
-
-      function toggleView(mode) {
-        byId("view-by-group")?.classList.toggle("active", mode === "group");
-        byId("view-by-slot")?.classList.toggle("active", mode === "slot");
-        document.querySelector(".trm-main-area")?.classList.toggle("slot-view", mode === "slot");
-        if (mode === "slot") {
-          TYPES.forEach(type => {
-            const body = document.querySelector(`[data-group-body="${type}"]`);
-            const card = byId(`group-${type}`);
-            const em = document.querySelector(`[data-toggle-group="${type}"] em`);
-            if (body) body.hidden = false;
-            card?.classList.add("open");
-            if (em) em.textContent = "Collapse⌃";
-          });
-        }
-      }
-
-      function setupGroups() {
-        document.querySelectorAll("[data-toggle-group]").forEach((btn) => {
-          btn.addEventListener("click", () => {
-            const type = btn.dataset.toggleGroup;
-            const body = document.querySelector(`[data-group-body="${type}"]`);
-            const card = byId(`group-${type}`);
-            if (!body || !card) return;
-            const opening = body.hidden;
-            body.hidden = !opening;
-            card.classList.toggle("open", opening);
-            btn.querySelector("em").textContent = opening ? "Collapse⌃" : "⌄";
-          });
-        });
-
-        document.querySelectorAll("[data-group-jump]").forEach((btn) => {
-          btn.addEventListener("click", () => {
-            const type = btn.dataset.groupJump;
-            document.querySelectorAll(".trm-group-btn").forEach((b) => b.classList.toggle("active", b === btn));
-            const body = document.querySelector(`[data-group-body="${type}"]`);
-            const header = document.querySelector(`[data-toggle-group="${type}"]`);
-            const card = byId(`group-${type}`);
-            if (body && body.hidden) {
-              body.hidden = false;
-              card?.classList.add("open");
-              if (header) header.querySelector("em").textContent = "Collapse⌃";
-            }
-            card?.scrollIntoView({ behavior: "smooth", block: "start" });
-          });
-        });
-      }
-
-      function readRows() {
-        return [...document.querySelectorAll("#pedestal-body tr")].map((row, idx) => {
-          const cells = row.children;
-          const select = row.querySelector("select");
-          const slot = parseInt(text(cells[0]), 10) || idx + 1;
-          const type = TYPES.includes(text(cells[1])) ? text(cells[1]) : TYPES.find(t => row.textContent.includes(t)) || "ALL";
-          const selectedOption = select?.selectedOptions?.[0];
-          let relic = selectedOption ? selectedOption.textContent.trim() : text(cells[2]);
-          if (!relic || /select relic/i.test(relic)) relic = "Select relic...";
-          const points = text(cells[3]) || "0";
-          return { row, select, slot, type, relic, points };
-        });
-      }
-
-      function renderMuseumCards() {
-        const rows = readRows();
-        if (!rows.length) return;
-        const groups = Object.fromEntries(TYPES.map(t => [t, []]));
-        rows.forEach((item) => (groups[item.type] ||= []).push(item));
-
-        TYPES.forEach((type) => {
-          const assigned = (groups[type] || []).filter(x => x.relic !== "Select relic...").length;
-          const total = (groups[type] || []).length || (type === "ALL" ? 3 : 16);
-          [byId(`count-${type}`), byId(`header-count-${type}`)].forEach(el => { if (el) el.textContent = `${assigned} / ${total}`; });
-          const stage = byId(`stage-${type}`);
-          if (!stage) return;
-          stage.innerHTML = "";
-          (groups[type] || []).forEach((item) => stage.appendChild(createPedestal(item)));
-        });
-
-        updateOverviewProgress();
-      }
-
-      function updateOverviewProgress() {
-        const points = parseFloat(text(byId("total-points"))) || 0;
-        const nextText = text(byId("next-threshold"));
-        const nums = nextText.match(/\d+/g)?.map(Number) || [];
-        const next = nums.length ? nums[nums.length - 1] : 250;
-        const pct = Math.max(0, Math.min(100, next ? (points / next) * 100 : 0));
-        const bar = byId("trm-overview-progress");
-        if (bar) bar.style.width = pct + "%";
-      }
-
-      function createPedestal(item) {
-        const isEmpty = item.relic === "Select relic...";
-        const displayName = isEmpty ? `${item.type} Slot` : item.relic.replace(/\s+-\s+/, "<br>");
-        const card = document.createElement("div");
-        card.className = `trm-pedestal ${isEmpty ? "empty" : "filled"}`;
-        card.innerHTML = `
-          <div class="trm-slot-medallion">${item.slot}</div>
-          <div class="trm-arch-light"></div>
-          <div class="trm-relic-object">${relicIcon(item.relic, item.type)}</div>
-          <div class="trm-stone-base"></div>
-          <div class="trm-nameplate"><strong>${isEmpty ? escapeHtml(displayName) : displayName}</strong>${isEmpty ? "" : `<small>${escapeHtml(item.type)}</small>`}</div>
-          <div class="trm-points-pill">✦ ${escapeHtml(item.points || "0")}</div>
-          <button class="trm-change-btn" type="button">↻ ${isEmpty ? "Select Relic" : "Change Relic"}</button>`;
-        card.querySelector("button").addEventListener("click", () => openPicker(item.select));
-        return card;
-      }
-
-      function openPicker(select) {
-        if (!select) return;
-        activeSelect = select;
-        activeFilter = "all";
-        document.querySelectorAll("[data-picker-filter]").forEach(b => b.classList.toggle("active", b.dataset.pickerFilter === "all"));
-        byId("relic-picker-search").value = "";
-        byId("relic-picker-title").textContent = "Select relic";
-        renderPicker();
-        byId("relic-picker-modal").hidden = false;
-        setTimeout(() => byId("relic-picker-search")?.focus(), 0);
-      }
-
-      function closePicker() {
-        byId("relic-picker-modal").hidden = true;
-        activeSelect = null;
-      }
-
-      function renderPicker() {
-        const results = byId("relic-picker-results");
-        if (!results || !activeSelect) return;
-        const query = byId("relic-picker-search").value.trim().toLowerCase();
-        const options = [...activeSelect.options].map((option) => ({ value: option.value, label: option.textContent.trim() }));
-        const filtered = options.filter((option) => {
-          const label = option.label.toLowerCase();
-          if (query && !label.includes(query)) return false;
-          if (activeFilter !== "all" && !label.includes(activeFilter.toLowerCase())) return false;
-          return true;
-        }).slice(0, 120);
-        results.innerHTML = "";
-        filtered.forEach((option) => {
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.className = "trm-relic-result";
-          btn.innerHTML = `<strong>${escapeHtml(option.label)}</strong><span>${option.label === "Select relic..." ? "Clear slot" : "Use this relic"}</span>`;
-          btn.addEventListener("click", () => {
-            activeSelect.value = option.value;
-            activeSelect.dispatchEvent(new Event("change", { bubbles: true }));
-            closePicker();
-            setTimeout(renderMuseumCards, 50);
-          });
-          results.appendChild(btn);
-        });
-      }
-
-      function setupPicker() {
-        byId("close-relic-picker")?.addEventListener("click", closePicker);
-        document.querySelector("[data-close-picker]")?.addEventListener("click", closePicker);
-        byId("relic-picker-search")?.addEventListener("input", renderPicker);
-        document.querySelectorAll("[data-picker-filter]").forEach((btn) => {
-          btn.addEventListener("click", () => {
-            activeFilter = btn.dataset.pickerFilter;
-            document.querySelectorAll("[data-picker-filter]").forEach(b => b.classList.toggle("active", b === btn));
-            renderPicker();
-          });
-        });
-        document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !byId("relic-picker-modal")?.hidden) closePicker(); });
-      }
-
-      function startObserver() {
-        const body = byId("pedestal-body");
-        if (!body) return;
-        const observer = new MutationObserver(() => requestAnimationFrame(renderMuseumCards));
-        observer.observe(body, { childList: true, subtree: true, attributes: true, characterData: true });
-        body.addEventListener("change", () => setTimeout(renderMuseumCards, 50));
-        let tries = 0;
-        const timer = setInterval(() => {
-          renderMuseumCards();
-          if (++tries > 32 && readRows().length) clearInterval(timer);
-        }, 250);
-      }
-
-      document.addEventListener("DOMContentLoaded", () => {
-        setupButtons();
-        setupGroups();
-        setupPicker();
-        startObserver();
-      });
-    })();
-  </script>
+  <script src="time-rift-museum.js?v=2"></script>
 </body>
 </html>
