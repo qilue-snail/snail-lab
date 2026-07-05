@@ -9,49 +9,152 @@
 <body>
   <div class="app-shell">
     <div id="shared-sidebar"></div>
-    <main class="tool-main time-rift-main">
-      <section class="tool-title-card time-rift-hero">
+
+    <main class="tool-main time-rift-main museum-ui">
+      <section class="tool-title-card time-rift-hero museum-hero">
         <div>
           <p class="eyebrow">Super Snail</p>
           <h1>Time Rift Museum</h1>
           <p>Build your museum manually or optimize all 83 slots for points, INTEL, Dragon Orbs, Cells, B-tads, medals, or travel speed.</p>
         </div>
-        <div class="hero-actions">
-          <button id="refresh-relics" class="primary-button" type="button">Refresh Relics</button>
-          <button id="reset-museum" class="ghost-button danger-button" type="button">Reset</button>
-        </div>
+        <div class="museum-snail-badge" aria-hidden="true">🐌</div>
       </section>
 
-      <section class="museum-stage-card card" aria-label="Time Rift Museum visual preview">
-        <div class="museum-sign">
-          <span>Time Rift Museum</span>
-          <strong id="visual-filled-count">0/83</strong>
-        </div>
-        <div id="visual-museum-grid" class="museum-stage-grid"></div>
-        <div class="museum-rating-box">
-          <div><strong>Time Rift Museum Rating</strong> <span id="visual-rating-points">0</span></div>
-          <div>Current Rating <strong id="visual-rating-label">—</strong></div>
-          <div>Next buff in <strong id="visual-next-points">120</strong> points</div>
-          <div class="museum-progress"><span id="visual-progress-bar"></span></div>
-        </div>
-      </section>
-
-      <section class="summary-grid">
-        <article class="summary-card card"><span>Total Museum Points</span><strong id="total-points">0</strong></article>
-        <article class="summary-card card"><span>Current Rating</span><strong id="current-rating">—</strong></article>
-        <article class="summary-card card"><span>Next Threshold</span><strong id="next-threshold">120 (C)</strong></article>
-        <article class="summary-card card"><span>Points Needed</span><strong id="points-needed">120</strong></article>
-      </section>
-
-      <p id="sync-status" class="sync-status">Loading Time Rift Museum relics…</p>
-
-      <nav class="tool-tabs" role="tablist" aria-label="Time Rift Museum tabs">
+      <nav class="tool-tabs museum-tabs" role="tablist" aria-label="Time Rift Museum tabs">
         <button class="tool-tab active" data-tab="setup" type="button" role="tab" aria-selected="true">Museum Setup</button>
         <button class="tool-tab" data-tab="optimizer" type="button" role="tab" aria-selected="false">Optimizer</button>
       </nav>
 
       <section id="panel-setup" class="tab-panel active" role="tabpanel">
-        <div class="setup-toolbar card">
+        <section class="museum-top-grid">
+          <article class="card museum-overview-card">
+            <div class="section-heading compact-heading">
+              <div>
+                <h2>🏛️ Museum Overview</h2>
+              </div>
+            </div>
+            <div class="museum-overview-stats">
+              <div>
+                <span>Total Museum Points</span>
+                <strong id="total-points">0</strong>
+              </div>
+              <div>
+                <span>Museum Rank</span>
+                <strong id="current-rating" class="rank-badge">—</strong>
+              </div>
+              <div>
+                <span>Next Threshold</span>
+                <strong id="next-threshold">120 (C)</strong>
+                <small>Need <b id="points-needed">120</b> more</small>
+              </div>
+            </div>
+          </article>
+
+          <article class="card relic-sync-card">
+            <h2>Relic data sync</h2>
+            <p>Refreshes the Time Rift Museum relic database from the maintained online data source.</p>
+            <div class="sync-row">
+              <button id="refresh-relics" class="primary-button" type="button">Sync Relic Data</button>
+              <label class="sync-checkbox">
+                <input id="auto-sync-relics" type="checkbox" checked />
+                Auto-sync when app opens
+              </label>
+            </div>
+            <p id="sync-status" class="sync-status">Loading Time Rift Museum relics…</p>
+          </article>
+        </section>
+
+        <section class="museum-layout-grid">
+          <aside class="museum-left-rail">
+            <article class="card pedestal-nav-card">
+              <h2>Pedestal Groups</h2>
+              <div class="pedestal-group-list" aria-label="Pedestal groups">
+                <button class="pedestal-group-btn active" type="button" data-group-jump="ALL"><span>✦ ALL Slots</span><b id="count-ALL">0 / 3</b></button>
+                <button class="pedestal-group-btn" type="button" data-group-jump="FAME"><span>👑 FAME Slots</span><b id="count-FAME">0 / 16</b></button>
+                <button class="pedestal-group-btn" type="button" data-group-jump="ART"><span>🎨 ART Slots</span><b id="count-ART">0 / 16</b></button>
+                <button class="pedestal-group-btn" type="button" data-group-jump="FTH"><span>🙏 FTH Slots</span><b id="count-FTH">0 / 16</b></button>
+                <button class="pedestal-group-btn" type="button" data-group-jump="CIV"><span>🏛️ CIV Slots</span><b id="count-CIV">0 / 16</b></button>
+                <button class="pedestal-group-btn" type="button" data-group-jump="TECH"><span>⚙️ TECH Slots</span><b id="count-TECH">0 / 16</b></button>
+              </div>
+            </article>
+
+            <article class="card snapshot-card">
+              <h2>Weekly snapshots</h2>
+              <input id="snapshot-name" type="text" placeholder="Week 1, Species War, etc." />
+              <button id="save-snapshot" class="ghost-button" type="button">💾 Save snapshot</button>
+            </article>
+
+            <article class="card reset-card">
+              <h2>Reset</h2>
+              <p>Clear all museum assignments and start over.</p>
+              <button id="reset-museum" class="ghost-button danger-button" type="button">Reset Museum</button>
+            </article>
+          </aside>
+
+          <section class="museum-main-display">
+            <article class="card museum-stage-card game-museum-stage" aria-label="Time Rift Museum visual preview">
+              <div class="museum-sign">
+                <span>Time Rift Museum</span>
+                <strong id="visual-filled-count">0/83</strong>
+              </div>
+              <div id="visual-museum-grid" class="museum-stage-grid"></div>
+              <div class="museum-rating-box">
+                <div><strong>Time Rift Museum Rating</strong> <span id="visual-rating-points">0</span></div>
+                <div>Current Rating <strong id="visual-rating-label">—</strong></div>
+                <div>Next buff in <strong id="visual-next-points">120</strong> points</div>
+                <div class="museum-progress"><span id="visual-progress-bar"></span></div>
+              </div>
+            </article>
+
+            <article class="card group-stage-card open" id="group-ALL">
+              <button class="group-stage-header" type="button" data-toggle-group="ALL">
+                <span>✦ ALL Slots <b id="header-count-ALL">0 / 3</b></span>
+                <em>Collapse</em>
+              </button>
+              <div class="group-stage-body" data-group-body="ALL">
+                <div class="pedestal-stage-strip" id="stage-ALL"></div>
+              </div>
+            </article>
+
+            <article class="card group-stage-card" id="group-FAME">
+              <button class="group-stage-header" type="button" data-toggle-group="FAME"><span>👑 FAME Slots <b id="header-count-FAME">0 / 16</b></span><em>Expand</em></button>
+              <div class="group-stage-body" data-group-body="FAME" hidden><div class="pedestal-stage-strip" id="stage-FAME"></div></div>
+            </article>
+
+            <article class="card group-stage-card" id="group-ART">
+              <button class="group-stage-header" type="button" data-toggle-group="ART"><span>🎨 ART Slots <b id="header-count-ART">0 / 16</b></span><em>Expand</em></button>
+              <div class="group-stage-body" data-group-body="ART" hidden><div class="pedestal-stage-strip" id="stage-ART"></div></div>
+            </article>
+
+            <article class="card group-stage-card" id="group-FTH">
+              <button class="group-stage-header" type="button" data-toggle-group="FTH"><span>🙏 FTH Slots <b id="header-count-FTH">0 / 16</b></span><em>Expand</em></button>
+              <div class="group-stage-body" data-group-body="FTH" hidden><div class="pedestal-stage-strip" id="stage-FTH"></div></div>
+            </article>
+
+            <article class="card group-stage-card" id="group-CIV">
+              <button class="group-stage-header" type="button" data-toggle-group="CIV"><span>🏛️ CIV Slots <b id="header-count-CIV">0 / 16</b></span><em>Expand</em></button>
+              <div class="group-stage-body" data-group-body="CIV" hidden><div class="pedestal-stage-strip" id="stage-CIV"></div></div>
+            </article>
+
+            <article class="card group-stage-card" id="group-TECH">
+              <button class="group-stage-header" type="button" data-toggle-group="TECH"><span>⚙️ TECH Slots <b id="header-count-TECH">0 / 16</b></span><em>Expand</em></button>
+              <div class="group-stage-body" data-group-body="TECH" hidden><div class="pedestal-stage-strip" id="stage-TECH"></div></div>
+            </article>
+          </section>
+        </section>
+
+        <section class="two-column-grid museum-bottom-grid">
+          <article class="card tool-section">
+            <h2>Best Available by Empty Slot</h2>
+            <div id="recommendations" class="recommendation-grid"></div>
+          </article>
+          <article class="card tool-section">
+            <h2>Museum Buff Progress</h2>
+            <div id="buff-list" class="buff-list"></div>
+          </article>
+        </section>
+
+        <section class="legacy-slot-data" aria-hidden="true">
           <label for="slot-filter">View slots</label>
           <select id="slot-filter">
             <option value="all">All slots</option>
@@ -64,46 +167,12 @@
             <option value="CIV">CIV pedestals</option>
             <option value="TECH">TECH pedestals</option>
           </select>
-        </div>
-
-        <section class="card tool-section">
-          <div class="section-heading">
-            <div>
-              <h2>Pedestal Assignments</h2>
-              <p>Typed pedestals use the matching AFFCT stat. ALL pedestals use total AFFCT.</p>
-            </div>
-            <span class="mini-pill">Duplicate relics blocked</span>
-          </div>
-          <div class="table-scroll">
-            <table class="museum-table">
-              <thead>
-                <tr>
-                  <th>Slot</th>
-                  <th>Type</th>
-                  <th>Assigned Relic</th>
-                  <th>Points</th>
-                  <th>Reason</th>
-                </tr>
-              </thead>
-              <tbody id="pedestal-body"></tbody>
-            </table>
-          </div>
-        </section>
-
-        <section class="two-column-grid">
-          <article class="card tool-section">
-            <h2>Best Available by Empty Slot</h2>
-            <div id="recommendations" class="recommendation-grid"></div>
-          </article>
-          <article class="card tool-section">
-            <h2>Museum Buff Progress</h2>
-            <div id="buff-list" class="buff-list"></div>
-          </article>
+          <table class="museum-table"><tbody id="pedestal-body"></tbody></table>
         </section>
       </section>
 
       <section id="panel-optimizer" class="tab-panel" role="tabpanel" hidden>
-        <section class="card optimizer-card">
+        <section class="card optimizer-card museum-optimizer-card">
           <div>
             <h2>Optimization Goal</h2>
             <p>Choose what you care about most. Goal matches are favored first, then pedestal points decide the best layout.</p>
@@ -142,6 +211,30 @@
       </section>
     </main>
   </div>
+
+  <div id="relic-picker-modal" class="relic-picker-modal" hidden>
+    <div class="relic-picker-backdrop" data-close-picker></div>
+    <section class="relic-picker-card" role="dialog" aria-modal="true" aria-labelledby="relic-picker-title">
+      <div class="relic-picker-header">
+        <div>
+          <p class="eyebrow">Choose Relic</p>
+          <h2 id="relic-picker-title">Select relic</h2>
+        </div>
+        <button id="close-relic-picker" class="ghost-button" type="button">×</button>
+      </div>
+      <input id="relic-picker-search" class="relic-picker-search" type="search" placeholder="Search relic name, Awaken, grade, or AFFCT…" />
+      <div class="relic-picker-filters">
+        <button type="button" data-picker-filter="all" class="active">All</button>
+        <button type="button" data-picker-filter="FAME">FAME</button>
+        <button type="button" data-picker-filter="ART">ART</button>
+        <button type="button" data-picker-filter="FTH">FTH</button>
+        <button type="button" data-picker-filter="CIV">CIV</button>
+        <button type="button" data-picker-filter="TECH">TECH</button>
+      </div>
+      <div id="relic-picker-results" class="relic-picker-results"></div>
+    </section>
+  </div>
+
   <script src="/snail-lab/app.js?v=5"></script>
   <script src="time-rift-museum.js?v=5"></script>
 </body>
