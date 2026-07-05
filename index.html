@@ -3,57 +3,206 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Snail Lab</title>
-  <link rel="stylesheet" href="/snail-lab/styles.css?v=4" />
+  <title>Time Rift Museum | Snail Lab</title>
+  <link rel="stylesheet" href="/snail-lab/styles.css?v=5" />
+  <link rel="stylesheet" href="time-rift-museum.css?v=5" />
 </head>
 <body>
   <div class="app-shell">
     <div id="shared-sidebar"></div>
-<main class="main">
-      <section class="hero card">
-        <div>
-          <p class="eyebrow">Welcome to</p>
-          <h2>Snail Lab</h2>
-          <p class="hero-text">A growing suite of Super Snail tools for planning, tracking, and optimizing your progress.</p>
-        </div>
-        <div class="mascot">🐌</div>
+
+    <main class="tool-main time-rift-main">
+      <section class="rift-app-shell">
+        <header class="rift-hero">
+          <div class="rift-title">
+            <p>Super Snail</p>
+            <h1>Time Rift Museum</h1>
+            <span>Build your museum manually or optimize all 83 slots for points, INTEL, Dragon Orbs, Cells, B-tads, medals, or travel speed.</span>
+          </div>
+
+          <nav class="rift-tabs" role="tablist" aria-label="Time Rift Museum tabs">
+            <button class="rift-tab active" type="button" data-tab="setup" role="tab" aria-selected="true">Museum Setup</button>
+            <button class="rift-tab" type="button" data-tab="optimizer" role="tab" aria-selected="false">Optimizer</button>
+          </nav>
+
+          <div class="rift-ornament" aria-hidden="true">
+            <span class="ornament-post"></span>
+            <span class="snail-statue"><span></span></span>
+            <span class="ornament-post"></span>
+            <button id="reset-museum" class="reset-token" type="button" title="Reset museum">?</button>
+          </div>
+        </header>
+
+        <section id="panel-setup" class="tab-panel active" role="tabpanel">
+          <section class="rift-top-grid">
+            <article class="rift-card overview-card">
+              <div class="rift-card-title"><span class="title-icon museum-icon"></span><h2>Museum Overview</h2></div>
+              <div class="overview-stats">
+                <div>
+                  <span>Total Museum Points</span>
+                  <strong id="total-points">0</strong>
+                </div>
+                <div>
+                  <span>Museum Rank</span>
+                  <strong id="current-rating" class="rank-badge">—</strong>
+                </div>
+                <div>
+                  <span id="next-rank-label">Next Rank</span>
+                  <strong id="next-threshold">120 (C)</strong>
+                  <div class="rank-progress"><span id="rank-progress-bar"></span></div>
+                  <small>Need <b id="points-needed">120</b> more</small>
+                </div>
+              </div>
+            </article>
+
+            <article class="rift-card sync-card">
+              <h2>Relic data sync</h2>
+              <p>Refreshes the Time Rift Museum relic database from the maintained online data source.</p>
+              <div class="sync-actions">
+                <button id="refresh-relics" class="rift-primary" type="button">Sync Relic Data</button>
+                <label><input id="auto-sync-relics" type="checkbox" checked /> Auto-sync when app opens</label>
+              </div>
+              <p id="sync-status" class="sync-status">Loading Time Rift Museum relics…</p>
+            </article>
+          </section>
+
+          <section class="museum-workspace">
+            <aside class="museum-sidebar">
+              <article class="side-card">
+                <h2>Pedestal Groups</h2>
+                <div id="group-nav" class="group-nav"></div>
+              </article>
+
+              <article class="side-card">
+                <h2>View</h2>
+                <div class="view-switch" role="group" aria-label="Museum view mode">
+                  <button class="view-button active" data-view-mode="group" type="button"><span class="view-grid-icon"></span>By Group</button>
+                  <button class="view-button" data-view-mode="slot" type="button"><span class="view-list-icon"></span>By Slot Number</button>
+                </div>
+              </article>
+
+              <article class="side-card snapshot-card">
+                <h2>Weekly snapshots</h2>
+                <input id="snapshot-name" type="text" placeholder="Week 1, Species War, etc." />
+                <button id="save-snapshot" class="rift-light" type="button">Save snapshot</button>
+              </article>
+            </aside>
+
+            <section class="museum-main-panel">
+              <div id="museum-stage" class="museum-stage" aria-live="polite"></div>
+            </section>
+          </section>
+
+          <section class="rift-bottom-grid">
+            <article class="rift-card tool-section">
+              <h2>Best Available by Empty Slot</h2>
+              <div id="recommendations" class="recommendation-grid"></div>
+            </article>
+            <article class="rift-card tool-section">
+              <h2>Museum Buff Progress</h2>
+              <div id="buff-list" class="buff-list"></div>
+            </article>
+          </section>
+        </section>
+
+        <section id="panel-optimizer" class="tab-panel" role="tabpanel" hidden>
+          <section class="optimizer-layout">
+            <article class="rift-card optimizer-card">
+              <div class="optimizer-main-copy">
+                <h2>Optimization Goals</h2>
+                <p>Select one or more goals. Museum Points can be maximized, or used as a minimum target while the optimizer favors your selected rewards.</p>
+                <div id="optimizer-insights" class="optimizer-insights" aria-live="polite"></div>
+              </div>
+
+              <div class="optimizer-controls">
+                <fieldset class="goal-fieldset">
+                  <legend>Goals</legend>
+                  <label class="goal-check"><input type="checkbox" name="optimizer-goal" value="points" checked /> Museum Points</label>
+                  <label class="goal-check"><input type="checkbox" name="optimizer-goal" value="dragon-orbs" /> Dragon Orbs</label>
+                  <label class="goal-check"><input type="checkbox" name="optimizer-goal" value="intel" /> INTEL</label>
+                  <label class="goal-check"><input type="checkbox" name="optimizer-goal" value="cells" /> Cells</label>
+                  <label class="goal-check"><input type="checkbox" name="optimizer-goal" value="speed" /> Travel Speed</label>
+                  <label class="goal-check"><input type="checkbox" name="optimizer-goal" value="btads" /> B-tads</label>
+                </fieldset>
+
+                <label for="optimizer-point-target">Museum Points target</label>
+                <input id="optimizer-point-target" type="number" min="0" step="10" placeholder="Optional, ex. 950" />
+                <small class="optimizer-hint">Leave blank to maximize points. Enter a number to treat points as a minimum goal.</small>
+
+                <label for="optimizer-priority">Priority</label>
+                <select id="optimizer-priority">
+                  <option value="balanced">Balanced</option>
+                  <option value="hard">Hard-focus selected rewards</option>
+                </select>
+
+                <button id="apply-optimized" class="rift-primary" type="button">Apply Optimized Setup</button>
+              </div>
+            </article>
+
+            <section class="optimizer-summary-grid">
+              <article class="rift-card summary-card"><span>Optimized Points</span><strong id="optimized-points">0</strong></article>
+              <article class="rift-card summary-card"><span>Optimized Rating</span><strong id="optimized-rating">—</strong></article>
+              <article class="rift-card summary-card"><span>Goal Matches</span><strong id="optimized-matches">—</strong></article>
+            </section>
+
+            <article class="rift-card tool-section">
+              <h2>Recommended Optimized Setup</h2>
+              <div id="optimized-list" class="optimized-list"></div>
+            </article>
+          </section>
+        </section>
       </section>
-      <section class="tool-grid">
-        <a class="tool-card card" href="/snail-lab/tools/biozilla/">
-          <div class="tool-icon">🦖</div>
-          <h3>Biozilla Optimizer</h3>
-          <p>Optimize relic combinations and maximize Biozilla damage.</p>
-          <span class="open-link">Open Tool →</span>
-        </a>
-        <a class="tool-card card" href="/snail-lab/tools/apostle-analytics/">
-          <div class="tool-icon">🧬</div>
-          <h3>Apostle Analytics</h3>
-          <p>Track summons, sessions, rates, luck, streaks, and expected results.</p>
-          <span class="open-link">Open Tool →</span>
-        </a>
-        <a class="tool-card card" href="/snail-lab/tools/time-rift-museum/">
-          <div class="tool-icon">🏛️</div>
-          <h3>Time Rift Museum</h3>
-          <p>Assign relics, preview museum score, and optimize all 83 slots for points or farming goals.</p>
-          <span class="open-link">Open Tool →</span>
-        </a>
- <div class="tool-card card future-card">
-    <div class="tool-icon">🧪🐌</div>
-    <h3>The Future of Snail Lab</h3>
-    <p class="future-main">
-        <strong>Snail Lab is built to grow alongside Super Snail.</strong>
-    </p>
-    <p class="future-text">
-        New tools, calculators, planners, and research projects may be
-        added over time as new ideas emerge and the game evolves.
-    </p>
-    <p class="future-footer">
-        Every tool starts with a question.
-    </p>
-</div>
+
+      <section id="relic-picker" class="picker-backdrop" hidden>
+        <div class="picker-modal" role="dialog" aria-modal="true" aria-labelledby="picker-title">
+          <header class="picker-header">
+            <div>
+              <p id="picker-slot-label">Slot —</p>
+              <h2 id="picker-title">Select Relic</h2>
+            </div>
+            <button id="close-picker" class="picker-close" type="button" aria-label="Close relic picker">×</button>
+          </header>
+
+          <div class="picker-search-row">
+            <input id="relic-search" type="search" placeholder="Search relic name, level, rank, stamp, or reward…" autocomplete="off" />
+            <button id="clear-relic" class="rift-light" type="button">Clear Slot</button>
+          </div>
+
+          <div class="picker-tools">
+            <div class="picker-filter-row" role="group" aria-label="Relic picker filters">
+              <button class="picker-filter active" data-picker-filter="all" type="button">All</button>
+              <button class="picker-filter" data-picker-filter="available" type="button">Available</button>
+              <button class="picker-filter" data-picker-filter="best" type="button">Best Score</button>
+              <button class="picker-filter" data-picker-filter="stamp" type="button">Stamp Match</button>
+            </div>
+
+            <div class="picker-type-row" role="group" aria-label="Filter relic type">
+              <button class="picker-type active" data-picker-type="all" type="button">All Types</button>
+              <button class="picker-type" data-picker-type="FAME" type="button">FAME</button>
+              <button class="picker-type" data-picker-type="ART" type="button">ART</button>
+              <button class="picker-type" data-picker-type="FTH" type="button">FTH</button>
+              <button class="picker-type" data-picker-type="CIV" type="button">CIV</button>
+              <button class="picker-type" data-picker-type="TECH" type="button">TECH</button>
+            </div>
+
+            <label class="picker-sort-label" for="relic-sort">Sort</label>
+            <select id="relic-sort">
+              <option value="score">Best for this pedestal</option>
+              <option value="name">Relic name</option>
+              <option value="level">Level</option>
+              <option value="stamp">Stamp bonus first</option>
+            </select>
+          </div>
+
+          <p id="picker-result-count" class="picker-result-count">0 relics</p>
+          <p class="picker-helper">Relics are grouped by name. Pick the exact level you own: Awaken, 6, 5, 4, or 3.</p>
+          <div id="relic-results" class="relic-results"></div>
+        </div>
       </section>
     </main>
   </div>
-  <script src="/snail-lab/app.js?v=4"></script>
+
+  <script src="/snail-lab/app.js?v=5"></script>
+  <script src="time-rift-museum.js?v=5"></script>
 </body>
 </html>
