@@ -108,9 +108,10 @@
         <section id="panel-optimizer" class="tab-panel" role="tabpanel" hidden>
           <section class="optimizer-layout">
             <article class="rift-card optimizer-card">
-              <div>
+              <div class="optimizer-main-copy">
                 <h2>Optimization Goals</h2>
                 <p>Select one or more goals. Museum Points can be maximized, or used as a minimum target while the optimizer favors your selected rewards.</p>
+                <div id="optimizer-insights" class="optimizer-insights" aria-live="polite"></div>
               </div>
 
               <div class="optimizer-controls">
@@ -163,7 +164,7 @@
           </header>
 
           <div class="picker-search-row">
-            <input id="relic-search" type="search" placeholder="Search relic name, level, rank, or stamp…" autocomplete="off" />
+            <input id="relic-search" type="search" placeholder="Search relic name, level, rank, stamp, or reward…" autocomplete="off" />
             <button id="clear-relic" class="rift-light" type="button">Clear Slot</button>
           </div>
 
@@ -194,6 +195,7 @@
           </div>
 
           <p id="picker-result-count" class="picker-result-count">0 relics</p>
+          <p class="picker-helper">Relics are grouped by name. Pick the exact level you own: Awaken, 6, 5, 4, or 3.</p>
           <div id="relic-results" class="relic-results"></div>
         </div>
       </section>

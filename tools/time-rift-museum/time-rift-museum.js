@@ -401,6 +401,24 @@ function closeRelicPicker() {
   document.getElementById("relic-picker").hidden = true;
 }
 
+function displayRelicBaseName(name) {
+  return String(name || "").replace(/\s[-–—]\s*(Awaken|6|5|4|3)$/i, "").trim();
+}
+
+function levelSortValue(level) {
+  const raw = String(level || "").trim().toLowerCase();
+  if (raw.includes("awaken")) return 7;
+  const num = toNumber(raw);
+  return num || 0;
+}
+
+function summarizeRelicStamp(item, pedestalType) {
+  if (!item.relic) return "";
+  const base = getBaseStat(item.relic, pedestalType);
+  if (!item.bonus) return `${pedestalType === "ALL" ? "Total AFFCT" : pedestalType} ${base}`;
+  return `${pedestalType === "ALL" ? "Total AFFCT" : pedestalType} ${base} + ${item.bonus} stamp`;
+}
+
 function renderRelicResults() {
   const results = document.getElementById("relic-results");
   if (!results || !pickerSlot) return;
@@ -415,8 +433,21 @@ function renderRelicResults() {
     const score = calculateRelicScoreForPedestal(relic, type);
     const bonus = getValidStampBonus(relic, type);
     const unavailable = unavailableFamilies.has(relic.familyId);
-    const haystack = normalizeText([relic.name, relic.level, relic.rank, relic.type, relic.effectText, relic.fame, relic.art, relic.fth, relic.civ, relic.tech].join(" "));
-    return { relic, score, bonus, unavailable, haystack };
+    const baseName = displayRelicBaseName(relic.name);
+    const haystack = normalizeText([
+      baseName,
+      relic.name,
+      relic.level,
+      relic.rank,
+      relic.type,
+      relic.effectText,
+      relic.fame,
+      relic.art,
+      relic.fth,
+      relic.civ,
+      relic.tech
+    ].join(" "));
+    return { relic, score, bonus, unavailable, baseName, haystack };
   });
 
   if (queryParts.length) items = items.filter((item) => queryParts.every((part) => item.haystack.includes(part)));
@@ -425,35 +456,67 @@ function renderRelicResults() {
   if (pickerFilter === "stamp") items = items.filter((item) => item.bonus > 0);
   if (pickerFilter === "best") items = items.filter((item) => item.score > 0);
 
+  const groups = new Map();
+  items.forEach((item) => {
+    if (!groups.has(item.relic.familyId)) groups.set(item.relic.familyId, []);
+    groups.get(item.relic.familyId).push(item);
+  });
+
+  let groupItems = [...groups.values()].map((levels) => {
+    const sortedLevels = levels.sort((a, b) => levelSortValue(b.relic.level) - levelSortValue(a.relic.level) || b.score - a.score);
+    const best = [...sortedLevels].sort((a, b) => b.score - a.score || b.bonus - a.bonus || levelSortValue(b.relic.level) - levelSortValue(a.relic.level))[0];
+    return { best, levels: sortedLevels };
+  });
+
+  groupItems = groupItems.sort((a, b) => {
+    if (sortMode === "name") return a.best.baseName.localeCompare(b.best.baseName);
+    if (sortMode === "level") return levelSortValue(b.best.relic.level) - levelSortValue(a.best.relic.level) || b.best.score - a.best.score;
+    if (sortMode === "stamp") return b.best.bonus - a.best.bonus || b.best.score - a.best.score || a.best.baseName.localeCompare(b.best.baseName);
+    return b.best.score - a.best.score || b.best.bonus - a.best.bonus || a.best.baseName.localeCompare(b.best.baseName);
+  });
+
   const totalMatches = items.length;
-  items = items.sort((a, b) => {
-    if (sortMode === "name") return a.relic.name.localeCompare(b.relic.name) || String(b.relic.level).localeCompare(String(a.relic.level));
-    if (sortMode === "level") return toNumber(b.relic.level) - toNumber(a.relic.level) || b.score - a.score || a.relic.name.localeCompare(b.relic.name);
-    if (sortMode === "stamp") return b.bonus - a.bonus || b.score - a.score || a.relic.name.localeCompare(b.relic.name);
-    return b.score - a.score || b.bonus - a.bonus || a.relic.name.localeCompare(b.relic.name);
-  }).slice(0, pickerFilter === "best" ? 50 : 160);
+  const visibleGroups = groupItems.slice(0, pickerFilter === "best" ? 40 : 80);
+  setText(
+    "picker-result-count",
+    `${groupItems.length.toLocaleString()} relic name${groupItems.length === 1 ? "" : "s"} · ${totalMatches.toLocaleString()} level row${totalMatches === 1 ? "" : "s"}${visibleGroups.length < groupItems.length ? ` · showing top ${visibleGroups.length}` : ""}`
+  );
 
-  setText("picker-result-count", `${totalMatches.toLocaleString()} relic${totalMatches === 1 ? "" : "s"} found${items.length < totalMatches ? ` · showing top ${items.length}` : ""}`);
-
-  if (!items.length) {
+  if (!visibleGroups.length) {
     results.innerHTML = `<p class="empty-results">No relics match that search.</p>`;
     return;
   }
 
-  results.innerHTML = items.map((item, index) => {
-    const disabledText = item.unavailable ? "Already used" : "Available";
-    const bonusText = item.bonus ? `+${item.bonus} stamp` : "No matching stamp";
-    const statText = `FAME ${item.relic.fame} · ART ${item.relic.art} · FTH ${item.relic.fth} · CIV ${item.relic.civ} · TECH ${item.relic.tech}`;
+  results.innerHTML = visibleGroups.map((group, index) => {
+    const best = group.best;
+    const statText = `FAME ${best.relic.fame} · ART ${best.relic.art} · FTH ${best.relic.fth} · CIV ${best.relic.civ} · TECH ${best.relic.tech}`;
+    const stampSummary = summarizeRelicStamp(best, type);
+    const levelButtons = group.levels.map((item) => {
+      const levelLabel = item.relic.level || item.relic.rank || "?";
+      const chipTitle = summarizeRelicStamp(item, type);
+      return `
+        <button class="level-choice ${item.bonus ? "has-stamp" : ""} ${item.unavailable ? "unavailable" : ""}" type="button" data-relic-id="${escapeHtml(item.relic.id)}" ${item.unavailable ? "disabled" : ""} title="${escapeHtml(chipTitle)}">
+          <span>${escapeHtml(levelLabel)}</span>
+          <strong>${item.score.toLocaleString()}</strong>
+          ${item.bonus ? `<small>+${item.bonus}</small>` : ""}
+        </button>`;
+    }).join("");
+
     return `
-      <button class="relic-option ${item.unavailable ? "unavailable" : ""}" type="button" data-relic-id="${escapeHtml(item.relic.id)}" ${item.unavailable ? "disabled" : ""}>
-        <span class="relic-mini-icon"><span class="relic-glyph ${type.toLowerCase()}"></span></span>
-        <span class="relic-option-body">
-          <b>${index + 1}. ${escapeHtml(item.relic.name)}${item.relic.level ? ` · ${escapeHtml(item.relic.level)}` : ""}</b>
-          <small>${type === "ALL" ? "Total AFFCT" : type} score · ${disabledText} · ${bonusText}</small>
-          <em>${escapeHtml(statText)}</em>
-        </span>
-        <span class="relic-score">${item.score.toLocaleString()}</span>
-      </button>`;
+      <article class="relic-family-option">
+        <div class="relic-family-head">
+          <span class="relic-mini-icon"><span class="relic-glyph ${type.toLowerCase()}"></span></span>
+          <div>
+            <b>${index + 1}. ${escapeHtml(best.baseName)}</b>
+            <small>${escapeHtml(stampSummary)}</small>
+            <em>${escapeHtml(statText)}</em>
+          </div>
+          <span class="relic-score">${best.score.toLocaleString()}</span>
+        </div>
+        <div class="level-choice-row" aria-label="Choose ${escapeHtml(best.baseName)} level">
+          ${levelButtons}
+        </div>
+      </article>`;
   }).join("");
 
   results.querySelectorAll("[data-relic-id]").forEach((button) => {
@@ -602,6 +665,52 @@ function formatGoalName(goalKey) {
   return names[goalKey] || goalKey;
 }
 
+
+function renderOptimizerInsights(setup, goals, pointTarget, total) {
+  const container = document.getElementById("optimizer-insights");
+  if (!container) return;
+
+  if (!setup.length) {
+    container.innerHTML = `<p class="optimizer-empty-note">Load relics to preview optimizer details.</p>`;
+    return;
+  }
+
+  const rewardGoals = goals.filter((goal) => goal !== "points");
+  const targetLine = pointTarget
+    ? `<span class="insight-pill ${total >= pointTarget ? "met" : "missed"}">${total >= pointTarget ? "Target met" : "Target short"}: ${total.toLocaleString()} / ${pointTarget.toLocaleString()}</span>`
+    : `<span class="insight-pill met">Maximizing Museum Points</span>`;
+
+  const stampHighlights = setup
+    .map((item) => ({ ...item, stampBonus: getValidStampBonus(item.relic, item.pedestalType), base: getBaseStat(item.relic, item.pedestalType) }))
+    .filter((item) => item.stampBonus > 0)
+    .sort((a, b) => b.stampBonus - a.stampBonus || b.points - a.points)
+    .slice(0, 5);
+
+  const goalCounts = rewardGoals.map((goalKey) => {
+    const count = setup.filter((item) => item.matchedGoals.includes(goalKey)).length;
+    return `<span class="insight-pill">${escapeHtml(formatGoalName(goalKey))}: ${count}</span>`;
+  }).join("");
+
+  const stampList = stampHighlights.length
+    ? stampHighlights.map((item) => `
+        <li>
+          <strong>Slot ${item.pedestal.slot}</strong>
+          <span>${escapeHtml(displayRelicBaseName(item.relic.name))} · ${escapeHtml(item.relic.level || item.relic.rank || "?")}</span>
+          <em>${item.base.toLocaleString()} + ${item.stampBonus.toLocaleString()} stamp = ${item.points.toLocaleString()}</em>
+        </li>`).join("")
+    : `<li><span>No matching stamp bonuses in this preview.</span></li>`;
+
+  container.innerHTML = `
+    <div class="optimizer-preview-pills">
+      ${targetLine}
+      ${goalCounts || `<span class="insight-pill">Reward goals: none selected</span>`}
+    </div>
+    <div class="optimizer-stamp-preview">
+      <h3>Stamp bonus preview</h3>
+      <ul>${stampList}</ul>
+    </div>`;
+}
+
 function renderOptimizer() {
   const goals = getSelectedOptimizerGoals();
   const priority = document.getElementById("optimizer-priority")?.value || "balanced";
@@ -614,6 +723,7 @@ function renderOptimizer() {
   setText("optimized-points", total.toLocaleString());
   setText("optimized-rating", getCurrentRating(total));
   setText("optimized-matches", goals.filter((goal) => goal !== "points").length ? matches.toLocaleString() : "—");
+  renderOptimizerInsights(setup, goals, pointTarget, total);
 
   const list = document.getElementById("optimized-list");
   if (!list) return;
