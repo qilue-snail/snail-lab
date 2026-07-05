@@ -1,0 +1,55 @@
+/* ---------- Biozilla Polish ---------- */
+.tool-main .wrap {
+max-width: none;
+margin: 0;
+padding: 0;
+}
+.tool-main .tabs {
+margin-bottom: 0;
+}
+.tool-main .tab {
+border: 1px solid var(--line) !important;
+background: var(--panel-2) !important;
+color: var(--ink) !important;
+padding: 10px 18px !important;
+border-radius: 16px 16px 0 0 !important;
+font-weight: 900 !important;
+}
+.tool-main .tab.active {
+background: var(--panel) !important;
+border-bottom: 1px solid var(--panel) !important;
+}
+.tool-main .sheet {
+background: rgba(255,250,240,.96) !important;
+border: 1px solid var(--line) !important;
+border-radius: 0 22px 22px 22px !important;
+box-shadow: var(--shadow) !important;
+padding: 18px !important;
+}
+.tool-main .syncbox,
+.tool-main .snapshot,
+.tool-main .mobile-slot-card,
+.tool-main .card {
+border-color: var(--line) !important;
+background: rgba(255,250,240,.85) !important;
+}
+.tool-main .excel,
+.tool-main .owned-table,
+.tool-main .wide-table {
+background: rgba(255,250,240,.9) !important;
+}
+.tool-main .owned-table th,
+.tool-main .excel th {
+background: #efe6d3 !important;
+}
+.tool-main .owned-table td,
+.tool-main .owned-table th {
+border-color: #dac8aa !important;
+}
+.tool-main .excel tr.total-row th,
+.tool-main .excel tr.total-row td,
+.tool-main .excel tr.damage-row th,
+.tool-main .excel tr.damage-row td {
+  background: #f8edd7 !important;
+  font-weight: 800 !important;
+}
