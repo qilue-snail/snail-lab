@@ -1,144 +1,196 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Time Rift Museum | Snail Lab</title>
-  <link rel="stylesheet" href="/snail-lab/styles.css?v=5" />
-  <link rel="stylesheet" href="time-rift-museum.css?v=1" />
-</head>
-<body>
-  <div class="app-shell">
-    <div id="shared-sidebar"></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Time Rift Museum | Snail Lab</title>
+    <link rel="stylesheet" href="/snail-lab/styles.css" />
+    <link rel="stylesheet" href="time-rift-museum.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <div id="shared-sidebar"></div>
 
-    <main class="tool-main time-rift-main">
-      <section class="rift-shell">
-        <header class="rift-header">
-          <div>
-            <p class="eyebrow">Super Snail</p>
-            <h1>Time Rift Museum</h1>
-            <p class="subtitle">Select the relic levels you own, then build the highest-scoring museum setup.</p>
-          </div>
+      <main class="tool-main time-rift-main">
+        <section class="rift-shell">
+          <header class="rift-header">
+            <div>
+              <p class="eyebrow">Super Snail</p>
+              <h1>Time Rift Museum</h1>
+              <p class="subtitle">
+                Select the relic levels you own, then build the highest-scoring
+                museum setup.
+              </p>
+            </div>
 
-          <div class="header-actions">
-            <button id="refresh-relics" class="primary-btn" type="button">Sync Relic Data</button>
-            <button id="reset-museum" class="light-btn" type="button">Reset Setup</button>
-          </div>
-        </header>
+            <div class="header-actions">
+              <button id="refresh-relics" class="primary-btn" type="button">
+                Sync Relic Data
+              </button>
+              <button id="reset-museum" class="light-btn" type="button">
+                Reset Setup
+              </button>
+            </div>
+          </header>
 
-        <section class="summary-grid" aria-label="Museum summary">
-          <article class="summary-card">
-            <span>Current Points</span>
-            <strong id="total-points">0</strong>
-          </article>
-          <article class="summary-card">
-            <span>Current Rating</span>
-            <strong id="current-rating">—</strong>
-          </article>
-          <article class="summary-card wide">
-            <span>Next Unlock</span>
-            <strong id="next-threshold">120 (C)</strong>
-            <div class="progress-track"><span id="rank-progress-bar"></span></div>
-            <small>Need <b id="points-needed">120</b> points</small>
-          </article>
-        </section>
-
-        <p id="sync-status" class="sync-status">Loading Time Rift Museum relics…</p>
-
-        <nav class="rift-tabs" role="tablist" aria-label="Time Rift Museum tabs">
-          <button class="rift-tab active" type="button" data-tab="input" role="tab" aria-selected="true">Input Relics</button>
-          <button class="rift-tab" type="button" data-tab="optimize" role="tab" aria-selected="false">Optimize</button>
-        </nav>
-
-        <section id="panel-input" class="tab-panel active" role="tabpanel">
-          <article class="tool-card">
-            <div class="card-head">
-              <div>
-                <h2>Owned Relics</h2>
-                <p>Choose the highest level you own for each relic. Leave it as Not Owned if you do not have it.</p>
+          <section class="summary-grid" aria-label="Museum summary">
+            <article class="summary-card">
+              <span>Current Points</span>
+              <strong id="total-points">0</strong>
+            </article>
+            <article class="summary-card">
+              <span>Current Rating</span>
+              <strong id="current-rating">—</strong>
+            </article>
+            <article class="summary-card wide">
+              <span>Next Unlock</span>
+              <strong id="next-threshold">120 (C)</strong>
+              <div class="progress-track">
+                <span id="rank-progress-bar"></span>
               </div>
-              <div class="owned-pill"><span>Owned</span><strong id="owned-count">0</strong></div>
-            </div>
+              <small>Need <b id="points-needed">120</b> points</small>
+            </article>
+          </section>
 
-            <div class="toolbar">
-              <input id="owned-search" type="search" placeholder="Search relics…" autocomplete="off" />
-              <select id="owned-type-filter" aria-label="Filter by type">
-                <option value="all">All types</option>
-                <option value="FAME">FAME</option>
-                <option value="ART">ART</option>
-                <option value="FTH">FTH</option>
-                <option value="CIV">CIV</option>
-                <option value="TECH">TECH</option>
-              </select>
-              <select id="owned-view-filter" aria-label="Filter by ownership">
-                <option value="all">All relics</option>
-                <option value="owned">Owned only</option>
-                <option value="missing">Not owned</option>
-              </select>
-            </div>
+          <p id="sync-status" class="sync-status">
+            Loading Time Rift Museum relics…
+          </p>
 
-            <div id="owned-relic-list" class="relic-input-list"></div>
-          </article>
-        </section>
+          <nav
+            class="rift-tabs"
+            role="tablist"
+            aria-label="Time Rift Museum tabs"
+          >
+            <button
+              class="rift-tab active"
+              type="button"
+              data-tab="input"
+              role="tab"
+              aria-selected="true"
+            >
+              Input Relics
+            </button>
+            <button
+              class="rift-tab"
+              type="button"
+              data-tab="optimize"
+              role="tab"
+              aria-selected="false"
+            >
+              Optimize
+            </button>
+          </nav>
 
-        <section id="panel-optimize" class="tab-panel" role="tabpanel" hidden>
-          <article class="tool-card optimizer-card">
-            <div class="card-head">
-              <div>
-                <h2>Optimizer</h2>
-                <p>Uses only relics selected on the Input Relics tab. The first three slots are ALL pedestals.</p>
+          <section id="panel-input" class="tab-panel active" role="tabpanel">
+            <article class="tool-card">
+              <div class="card-head">
+                <div>
+                  <h2>Owned Relics</h2>
+                  <p>
+                    Choose the highest level you own for each relic. Leave it as
+                    Not Owned if you do not have it.
+                  </p>
+                </div>
+                <div class="owned-pill">
+                  <span>Owned</span><strong id="owned-count">0</strong>
+                </div>
               </div>
-              <button id="apply-optimized" class="primary-btn" type="button">Apply Optimized Setup</button>
-            </div>
 
-            <div class="optimizer-controls">
-              <label>
-                Priority
-                <select id="optimizer-priority">
-                  <option value="points">Highest Museum Points</option>
-                  <option value="stamps">Favor stamp matches</option>
+              <div class="toolbar">
+                <input
+                  id="owned-search"
+                  type="search"
+                  placeholder="Search relics…"
+                  autocomplete="off"
+                />
+                <select id="owned-type-filter" aria-label="Filter by type">
+                  <option value="all">All types</option>
+                  <option value="FAME">FAME</option>
+                  <option value="ART">ART</option>
+                  <option value="FTH">FTH</option>
+                  <option value="CIV">CIV</option>
+                  <option value="TECH">TECH</option>
                 </select>
-              </label>
-            </div>
-          </article>
+                <select id="owned-view-filter" aria-label="Filter by ownership">
+                  <option value="all">All relics</option>
+                  <option value="owned">Owned only</option>
+                  <option value="missing">Not owned</option>
+                </select>
+              </div>
 
-          <section class="summary-grid optimize-summary" aria-label="Optimizer summary">
-            <article class="summary-card">
-              <span>Optimized Points</span>
-              <strong id="optimized-points">0</strong>
-            </article>
-            <article class="summary-card">
-              <span>Optimized Rating</span>
-              <strong id="optimized-rating">—</strong>
-            </article>
-            <article class="summary-card">
-              <span>Slots Filled</span>
-              <strong id="optimized-filled">0 / 83</strong>
+              <div id="owned-relic-list" class="relic-input-list"></div>
             </article>
           </section>
 
-          <section class="results-grid">
-            <article class="tool-card">
-              <h2>Recommended Setup</h2>
-              <div id="optimized-list" class="optimized-list"></div>
+          <section id="panel-optimize" class="tab-panel" role="tabpanel" hidden>
+            <article class="tool-card optimizer-card">
+              <div class="card-head">
+                <div>
+                  <h2>Optimizer</h2>
+                  <p>
+                    Uses only relics selected on the Input Relics tab. The first
+                    three slots are ALL pedestals.
+                  </p>
+                </div>
+                <button id="apply-optimized" class="primary-btn" type="button">
+                  Apply Optimized Setup
+                </button>
+              </div>
+
+              <div class="optimizer-controls">
+                <label>
+                  Priority
+                  <select id="optimizer-priority">
+                    <option value="points">Highest Museum Points</option>
+                    <option value="stamps">Favor stamp matches</option>
+                  </select>
+                </label>
+              </div>
             </article>
 
-            <article class="tool-card">
-              <h2>Current Applied Setup</h2>
-              <div id="current-setup-list" class="optimized-list compact"></div>
+            <section
+              class="summary-grid optimize-summary"
+              aria-label="Optimizer summary"
+            >
+              <article class="summary-card">
+                <span>Optimized Points</span>
+                <strong id="optimized-points">0</strong>
+              </article>
+              <article class="summary-card">
+                <span>Optimized Rating</span>
+                <strong id="optimized-rating">—</strong>
+              </article>
+              <article class="summary-card">
+                <span>Slots Filled</span>
+                <strong id="optimized-filled">0 / 83</strong>
+              </article>
+            </section>
+
+            <section class="results-grid">
+              <article class="tool-card">
+                <h2>Recommended Setup</h2>
+                <div id="optimized-list" class="optimized-list"></div>
+              </article>
+
+              <article class="tool-card">
+                <h2>Current Applied Setup</h2>
+                <div
+                  id="current-setup-list"
+                  class="optimized-list compact"
+                ></div>
+              </article>
+            </section>
+
+            <article class="tool-card buff-card">
+              <h2>Museum Buff Progress</h2>
+              <div id="buff-list" class="buff-list"></div>
             </article>
           </section>
-
-          <article class="tool-card buff-card">
-            <h2>Museum Buff Progress</h2>
-            <div id="buff-list" class="buff-list"></div>
-          </article>
         </section>
-      </section>
-    </main>
-  </div>
+      </main>
+    </div>
 
-  <script src="/snail-lab/app.js?v=5"></script>
-  <script src="time-rift-museum.js?v=1"></script>
-</body>
+    <script src="/snail-lab/app.js?v=5"></script>
+    <script src="time-rift-museum.js"></script>
+  </body>
 </html>

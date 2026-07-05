@@ -72,14 +72,14 @@ function setupGlobalBackupButtons() {
       const backup = {
         version: 1,
         createdAt: new Date().toISOString(),
-        localStorage: {}
+        localStorage: {},
       };
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         backup.localStorage[key] = localStorage.getItem(key);
       }
       const blob = new Blob([JSON.stringify(backup, null, 2)], {
-        type: "application/json"
+        type: "application/json",
       });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
@@ -104,7 +104,11 @@ function setupGlobalBackupButtons() {
               alert("This does not look like a Snail Lab backup file.");
               return;
             }
-            if (!confirm("Import this backup? This will replace saved Snail Lab data.")) {
+            if (
+              !confirm(
+                "Import this backup? This will replace saved Snail Lab data.",
+              )
+            ) {
               return;
             }
             Object.entries(backup.localStorage).forEach(([key, value]) => {

@@ -1,50 +1,516 @@
+/* =========================================================
+Biozilla Tool
+========================================================= */
+
+.tool-main {
+  --grid: #222;
+  --soft: #f8f3e7;
+  --input: #fff2cc;
+  --head: #f3f3f3;
+  --green: #c6e0b4;
+  --red: #f4cccc;
+  --yellow: #ffe599;
+  --purple: #d9c2e9;
+  --blue: #9fc5e8;
+}
+.wrap {
+  max-width: 1480px;
+  margin: 18px auto;
+  padding: 0 16px 48px;
+}
+h1 {
+  font-size: 22px;
+  margin: 0 0 8px;
+}
+.note {
+  color: #555;
+  margin-bottom: 14px;
+}
+.tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.tab {
+  border: 1px solid #bbb;
+  background: #e8eef8;
+  padding: 8px 16px;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  font-weight: 700;
+}
+.tab.active {
+  background: #fff;
+  border-bottom: 1px solid #fff;
+}
+.sheet {
+  display: none;
+  background: white;
+  border: 1px solid #bbb;
+  box-shadow: 0 2px 10px #0001;
+  padding: 18px;
+}
+.sheet.active {
+  display: block;
+}
+.grid {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 18px;
+}
+.excel {
+  border-collapse: collapse;
+  background: #fff;
+}
+.excel th,
+.excel td {
+  border: 1px solid var(--grid);
+  padding: 4px 6px;
+  height: 24px;
+  vertical-align: middle;
+}
+.excel th {
+  background: var(--head);
+  font-weight: 400;
+}
+.excel .input {
+  background: var(--input);
+}
+input,
+select,
+button {
+  font: inherit;
+}
+input[type="number"],
+input[type="text"],
+select {
+  box-sizing: border-box;
+  width: 100%;
+  height: 26px;
+  border: 1px solid #aaa;
+  border-radius: 3px;
+  padding: 2px 6px;
+  background: white;
+}
+button {
+  border: 1px solid #888;
+  background: #f2f2f2;
+  border-radius: 5px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+button.primary {
+  background: #1a73e8;
+  color: white;
+  border-color: #1a73e8;
+}
+.controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: end;
+  margin: 0 0 12px;
+}
+.control {
+  min-width: 180px;
+}
+.control label {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 3px;
+}
+.slot-FAME {
+  background: var(--green);
+}
+.slot-ART {
+  background: var(--red);
+}
+.slot-FTH {
+  background: var(--yellow);
+}
+.slot-CIV {
+  background: var(--purple);
+}
+.slot-TECH {
+  background: var(--blue);
+}
+.num {
+  text-align: right;
+}
+.small {
+  font-size: 12px;
+  color: #555;
+}
+.section-title {
+  font-weight: 700;
+  margin: 18px 0 8px;
+  font-size: 16px;
+}
+.total-row td {
+  font-weight: 700;
+  background: #fafafa;
+}
+.damage {
+  font-weight: 700;
+  font-size: 16px;
+}
+.owned-table-wrap {
+  max-height: 640px;
+  overflow: auto;
+  border: 1px solid #bbb;
+}
+.owned-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.owned-table th,
+.owned-table td {
+  border: 1px solid #ddd;
+  padding: 3px 5px;
+}
+.owned-table th {
+  position: sticky;
+  top: 0;
+  background: #eee;
+  z-index: 1;
+}
+.owned-table select {
+  height: 24px;
+}
+.pill {
+  display: inline-block;
+  border-radius: 10px;
+  padding: 2px 8px;
+  font-size: 12px;
+  color: #111;
+}
+.right {
+  overflow: auto;
+}
+.recommend {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(200px, 1fr));
+  gap: 8px;
+}
+.card {
+  border: 1px solid #bbb;
+  background: #fff;
+  padding: 8px;
+}
+.card h3 {
+  margin: 0 0 6px;
+  font-size: 14px;
+}
+.card ol {
+  margin: 0 0 0 20px;
+  padding: 0;
+}
+.card li {
+  margin: 4px 0;
+}
+.toolbar {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+}
+.status {
+  color: #555;
+  font-size: 12px;
+  margin-left: 8px;
+}
+.wide-table {
+  min-width: 1000px;
+}
+.hide {
+  display: none;
+}
+.snapshots {
+  margin-top: 12px;
+}
+.snapshot {
+  border: 1px solid #ddd;
+  background: #fafafa;
+  padding: 8px;
+  margin: 6px 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+.syncbox {
+  border: 1px solid #bbb;
+  background: #fafafa;
+  padding: 10px;
+  margin: 12px 0;
+  max-width: 760px;
+}
+.syncbox h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+.syncrow {
+  display: flex;
+  gap: 8px;
+  align-items: end;
+  flex-wrap: wrap;
+}
+.syncrow .wide {
+  min-width: 420px;
+  flex: 1;
+}
+.syncstatus {
+  font-size: 12px;
+  color: #555;
+  margin-top: 6px;
+}
+.warn {
+  color: #a15c00;
+}
+.ok {
+  color: #188038;
+}
+.err {
+  color: #b3261e;
+}
+.mobile-loadout {
+  display: none;
+}
+.mobile-slot-card {
+  border: 1px solid #bbb;
+  border-radius: 12px;
+  background: #fff;
+  margin: 10px 0;
+  overflow: hidden;
+  box-shadow: 0 1px 6px #0001;
+}
+.mobile-slot-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  padding: 10px;
+  font-weight: 700;
+}
+.mobile-slot-body {
+  padding: 10px;
+}
+.mobile-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  margin-top: 8px;
+}
+.mobile-stat {
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 6px;
+}
+.mobile-stat b {
+  display: block;
+  font-size: 11px;
+  color: #555;
+}
+.mobile-damage {
+  border: 1px solid #222;
+  border-radius: 12px;
+  background: #fff;
+  padding: 12px;
+  margin: 10px 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+.mobile-actions {
+  display: none;
+}
+@media (max-width: 760px) {
+  body {
+    font-size: 16px;
+    background: #fff;
+  }
+  .wrap {
+    margin: 0;
+    padding: 0 10px 32px;
+  }
+  h1 {
+    font-size: 18px;
+    padding-top: 10px;
+  }
+  .note {
+    font-size: 13px;
+  }
+  .tabs {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: #fff;
+    padding-top: 6px;
+  }
+  .tab {
+    flex: 1;
+    padding: 11px 8px;
+  }
+  .sheet {
+    border: 0;
+    box-shadow: none;
+    padding: 10px 0;
+  }
+  .grid {
+    display: block;
+  }
+  .controls {
+    display: block;
+  }
+  .control {
+    min-width: 0;
+    margin-bottom: 10px;
+  }
+  input[type="number"],
+  input[type="text"],
+  select,
+  button {
+    height: 42px;
+    font-size: 16px;
+  }
+  button {
+    padding: 9px 12px;
+  }
+  .toolbar {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .syncbox {
+    max-width: none;
+  }
+  .owned-table-wrap {
+    max-height: 70vh;
+  }
+  .owned-table th,
+  .owned-table td {
+    padding: 6px 5px;
+  }
+  .right {
+    overflow: visible;
+  }
+  .wide-table {
+    display: none;
+  }
+  .mobile-loadout {
+    display: block;
+  }
+  .recommend {
+    grid-template-columns: 1fr;
+  }
+  .card {
+    border-radius: 12px;
+    margin-bottom: 8px;
+  }
+  .card li {
+    margin: 10px 0;
+  }
+  .section-title {
+    font-size: 18px;
+  }
+  .small {
+    font-size: 13px;
+  }
+  .snapshot {
+    display: block;
+  }
+  .snapshot button {
+    margin-top: 6px;
+  }
+  .mobile-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 8px 0;
+  }
+  .biozilla-note {
+    display: none;
+  }
+}
+/* Biozilla title actions */
+.biozilla-title-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.biozilla-title-copy {
+  min-width: 0;
+}
+.reset-tool-btn {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  color: #a31b1b;
+  padding: 10px 18px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.reset-tool-btn:hover {
+  background: var(--panel-2);
+}
+@media (max-width: 760px) {
+  .biozilla-title-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .reset-tool-btn {
+    width: 100%;
+  }
+}
+
 /* ---------- Biozilla Polish ---------- */
 .tool-main .wrap {
-max-width: none;
-margin: 0;
-padding: 0;
+  max-width: none;
+  margin: 0;
+  padding: 0;
 }
 .tool-main .tabs {
-margin-bottom: 0;
+  margin-bottom: 0;
 }
 .tool-main .tab {
-border: 1px solid var(--line) !important;
-background: var(--panel-2) !important;
-color: var(--ink) !important;
-padding: 10px 18px !important;
-border-radius: 16px 16px 0 0 !important;
-font-weight: 900 !important;
+  border: 1px solid var(--line) !important;
+  background: var(--panel-2) !important;
+  color: var(--ink) !important;
+  padding: 10px 18px !important;
+  border-radius: 16px 16px 0 0 !important;
+  font-weight: 900 !important;
 }
 .tool-main .tab.active {
-background: var(--panel) !important;
-border-bottom: 1px solid var(--panel) !important;
+  background: var(--panel) !important;
+  border-bottom: 1px solid var(--panel) !important;
 }
 .tool-main .sheet {
-background: rgba(255,250,240,.96) !important;
-border: 1px solid var(--line) !important;
-border-radius: 0 22px 22px 22px !important;
-box-shadow: var(--shadow) !important;
-padding: 18px !important;
+  background: rgba(255, 250, 240, 0.96) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 0 22px 22px 22px !important;
+  box-shadow: var(--shadow) !important;
+  padding: 18px !important;
 }
 .tool-main .syncbox,
 .tool-main .snapshot,
 .tool-main .mobile-slot-card,
 .tool-main .card {
-border-color: var(--line) !important;
-background: rgba(255,250,240,.85) !important;
+  border-color: var(--line) !important;
+  background: rgba(255, 250, 240, 0.85) !important;
 }
 .tool-main .excel,
 .tool-main .owned-table,
 .tool-main .wide-table {
-background: rgba(255,250,240,.9) !important;
+  background: rgba(255, 250, 240, 0.9) !important;
 }
 .tool-main .owned-table th,
 .tool-main .excel th {
-background: #efe6d3 !important;
+  background: #efe6d3 !important;
 }
 .tool-main .owned-table td,
 .tool-main .owned-table th {
-border-color: #dac8aa !important;
+  border-color: #dac8aa !important;
 }
 .tool-main .excel tr.total-row th,
 .tool-main .excel tr.total-row td,
