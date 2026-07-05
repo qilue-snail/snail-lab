@@ -1,8 +1,6 @@
 /* =========================================================
 Apostle Analytics Tool
-Load after /css/styles.css
 ========================================================= */
-
 /* ---------- Tool Variables ---------- */
 :root {
   --navy: var(--accent, #8a5a2e);
@@ -20,7 +18,6 @@ Load after /css/styles.css
   --bad: #c51e1e;
   --warn: #fff2cc;
 }
-
 /* ---------- Header ---------- */
 header {
   margin: 0 0 20px;
@@ -29,7 +26,6 @@ header {
   border-radius: 20px;
   box-shadow: 0 16px 40px rgba(76, 52, 28, 0.14);
 }
-
 .top {
   max-width: 1500px;
   margin: 0 auto;
@@ -39,24 +35,20 @@ header {
   justify-content: flex-start;
   gap: 18px;
 }
-
 h1 {
   margin: 0;
   font-size: 36px;
   letter-spacing: -0.03em;
 }
-
 h2 {
   margin: 0;
   font-size: 21px;
 }
-
 .sub,
 .muted {
   color: var(--muted);
   font-size: 14px;
 }
-
 .header-actions,
 .btns,
 .session-actions,
@@ -66,29 +58,24 @@ h2 {
   gap: 12px;
   flex-wrap: wrap;
 }
-
 .header-actions,
 .session-actions,
 .section-title {
   justify-content: space-between;
 }
-
 .btns {
   gap: 10px;
 }
-
 .top .btns button {
   padding: 8px 14px;
   font-size: 14px;
 }
-
 /* ---------- Buttons, Inputs, Menu ---------- */
 button,
 input,
 select {
   font: inherit;
 }
-
 button {
   border: 1px solid var(--line);
   background: white;
@@ -97,21 +84,17 @@ button {
   font-weight: 750;
   cursor: pointer;
 }
-
 button.primary {
   background: var(--navy);
   border-color: var(--navy);
   color: white;
 }
-
 button.primary:hover {
   filter: brightness(0.95);
 }
-
 button.danger {
   color: #a31b1b;
 }
-
 input,
 select {
   width: 100%;
@@ -120,14 +103,12 @@ select {
   padding: 9px 10px;
   background: white;
 }
-
 label {
   display: block;
   margin: 10px 0 5px;
   font-size: 13px;
   font-weight: 800;
 }
-
 .reset-tool-btn {
   padding: 9px 16px;
   border-radius: 12px;
@@ -135,11 +116,9 @@ label {
   border: 1px solid var(--line);
   font-weight: 850;
 }
-
 .reset-tool-btn:hover {
   background: #fff4e5;
 }
-
 .new-session-btn {
   flex: 0 0 52px;
   min-width: 52px;
@@ -148,15 +127,12 @@ label {
   font-size: 22px;
   line-height: 1;
 }
-
 .tool-menu {
   position: relative;
 }
-
 .tool-menu-btn {
   padding: 9px 14px;
 }
-
 .tool-menu-panel {
   position: absolute;
   top: calc(100% + 8px);
@@ -170,18 +146,15 @@ label {
   border-radius: 14px;
   box-shadow: var(--shadow);
 }
-
 .tool-menu.open .tool-menu-panel {
   display: grid;
   gap: 7px;
 }
-
 .tool-menu-panel button,
 .tool-menu-panel .danger {
   width: 100%;
   text-align: left;
 }
-
 /* ---------- Layout + Tabs ---------- */
 .layout {
   display: block;
@@ -189,11 +162,9 @@ label {
   margin: 0 auto;
   padding: 24px 32px;
 }
-
 main {
   min-width: 0;
 }
-
 .tool-nav {
   display: flex;
   align-items: flex-end;
@@ -204,7 +175,6 @@ main {
   box-shadow: none;
   overflow: visible;
 }
-
 .navbtn {
   width: auto;
   display: inline-flex;
@@ -219,7 +189,6 @@ main {
   border-radius: 14px 14px 0 0;
   font-weight: 800;
 }
-
 .navbtn.active {
   background: var(--panel);
   color: var(--ink);
@@ -227,20 +196,16 @@ main {
   border-bottom-color: var(--panel);
   font-weight: 900;
 }
-
 .view {
   display: none;
 }
-
 .view.active {
   display: block;
 }
-
 .view > .grid:first-child,
 .view > .card:first-child {
   margin-top: 0;
 }
-
 /* ---------- Cards + Grid Helpers ---------- */
 .card {
   margin-bottom: 20px;
@@ -250,82 +215,67 @@ main {
   border-radius: 0;
   box-shadow: none;
 }
-
 .section-title {
   margin-bottom: 14px;
 }
-
 .grid {
   display: grid;
   gap: 16px;
 }
-
 .g2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-
 .g4 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
-
 .row {
   display: flex;
   align-items: end;
   gap: 10px;
   flex-wrap: wrap;
 }
-
 .row > * {
   flex: 1;
   min-width: 115px;
 }
-
 .metric {
   padding: 16px;
   background: #fff8ec;
   border: 1px solid var(--line);
   border-radius: 12px;
 }
-
 .metric small {
   display: block;
   color: var(--muted);
   font-weight: 800;
 }
-
 .value {
   margin-top: 4px;
   font-size: 29px;
   font-weight: 900;
 }
-
 /* ---------- Utility ---------- */
 .good {
   color: var(--good) !important;
 }
-
 .bad {
   color: var(--bad) !important;
 }
-
 .delta,
 .total-ok,
 .total-bad {
   font-weight: 900;
 }
-
 .small,
 .session-note {
   color: var(--muted);
   font-size: 13px;
 }
-
 .stars {
   color: #f5b301;
   font-size: 23px;
   letter-spacing: 2px;
 }
-
 .session-pill {
   display: inline-flex;
   gap: 8px;
@@ -336,34 +286,28 @@ main {
   font-size: 13px;
   font-weight: 900;
 }
-
 .note {
   display: none;
 }
-
 /* ---------- Tables ---------- */
 table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
 }
-
 th,
 td {
   padding: 8px 7px;
   border-bottom: 1px solid var(--line);
   text-align: right;
 }
-
 th:first-child,
 td:first-child {
   text-align: left;
 }
-
 th {
   background: #f2e5ce;
 }
-
 .school-head {
   margin: -20px -20px 15px;
   padding: 13px 20px;
@@ -373,15 +317,12 @@ th {
   color: var(--ink);
   font-weight: 900;
 }
-
 .magic-head {
   border-bottom: 1px solid var(--magic);
 }
-
 .life-head {
   border-bottom: 1px solid var(--life);
 }
-
 .ravg,
 .rout,
 .rexc,
@@ -389,7 +330,6 @@ th {
 .rsuper {
   background: var(--panel);
 }
-
 .card table tr.ravg td,
 .card table tr.rout td,
 .card table tr.rexc td,
@@ -397,7 +337,6 @@ th {
 .card table tr.rsuper td {
   background: transparent;
 }
-
 .card table tr.ravg td:first-child,
 .card table tr.rout td:first-child,
 .card table tr.rexc td:first-child,
@@ -406,115 +345,94 @@ th {
   border-right: 1px solid var(--line);
   font-weight: 900;
 }
-
 .card table tr.ravg td:first-child,
 .log-table td.ravg,
 input.addInput[data-r="avg"] {
   background: var(--avg);
 }
-
 .card table tr.rout td:first-child,
 .log-table td.rout,
 input.addInput[data-r="out"] {
   background: var(--out);
 }
-
 .card table tr.rexc td:first-child,
 .log-table td.rexc,
 input.addInput[data-r="exc"] {
   background: var(--exc);
 }
-
 .card table tr.rgen td:first-child,
 .log-table td.rgen,
 input.addInput[data-r="gen"] {
   background: var(--gen);
 }
-
 .card table tr.rsuper td:first-child,
 .log-table td.rsuper,
 input.addInput[data-r="super"] {
   background: var(--sup);
 }
-
 /* ---------- Log View ---------- */
 .log-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 22px;
 }
-
 .log-table-wrap,
 .session-stats-wrap {
   overflow: auto;
   border: 1px solid var(--line);
 }
-
 .log-table-wrap {
   max-height: 620px;
   border-radius: 16px;
 }
-
 .session-stats-wrap {
   max-height: 260px;
   margin-top: 12px;
   border-radius: 14px;
 }
-
 .log-table th,
 .session-stats-wrap table th {
   position: sticky;
   top: 0;
   z-index: 1;
 }
-
 .log-table input {
   padding: 5px;
   text-align: center;
   background: rgba(255, 255, 255, 0.82);
   border-radius: 8px;
 }
-
 .log-table tr.break td {
   border-top: 3px solid #8aa0b8;
 }
-
 .log-table th:first-child,
 .log-table td:first-child {
   width: 48px;
   text-align: center;
 }
-
 .total-ok {
   background: #d9f8e3;
 }
-
 .total-bad {
   background: #ffe1e1;
   color: var(--bad);
 }
-
 #log .card:first-child {
   padding-bottom: 22px;
 }
-
 #log .session-row {
   margin-bottom: 18px;
 }
-
 #log .row:not(.session-row) {
   gap: 12px;
 }
-
 #log .row:not(.session-row) > div {
   min-width: 120px;
 }
-
 #log .row:not(.session-row) > button {
   min-width: 150px;
   max-width: 180px;
 }
-
 /* ---------- Charts ---------- */
 .chartbox {
   padding: 16px;
@@ -522,7 +440,6 @@ input.addInput[data-r="super"] {
   border: 1px solid var(--line);
   border-radius: 18px;
 }
-
 .bar-chart {
   height: 270px;
   display: flex;
@@ -530,13 +447,11 @@ input.addInput[data-r="super"] {
   gap: 18px;
   padding: 10px 10px 0;
 }
-
 .group {
   flex: 1;
   min-width: 70px;
   text-align: center;
 }
-
 .bars {
   height: 220px;
   display: flex;
@@ -545,30 +460,24 @@ input.addInput[data-r="super"] {
   gap: 5px;
   border-bottom: 1px solid #9aa7b5;
 }
-
 .bars span {
   width: 15px;
   min-height: 2px;
   display: block;
   border-radius: 6px 6px 0 0;
 }
-
 .mexp {
   background: var(--magic-dark);
 }
-
 .mact {
   background: var(--magic);
 }
-
 .lexp {
   background: var(--life-dark);
 }
-
 .lact {
   background: var(--life-light);
 }
-
 .legend {
   margin-top: 10px;
   display: flex;
@@ -577,7 +486,6 @@ input.addInput[data-r="super"] {
   color: var(--muted);
   font-size: 13px;
 }
-
 .key {
   width: 12px;
   height: 12px;
@@ -586,113 +494,90 @@ input.addInput[data-r="super"] {
   border-radius: 3px;
   vertical-align: -1px;
 }
-
 .timeline {
   height: 330px;
 }
-
 .timeline svg {
   width: 100%;
   height: 100%;
 }
-
 .analytics-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: stretch;
   gap: 20px;
 }
-
 .analytics-grid .card {
   display: flex;
   flex-direction: column;
 }
-
 .analytics-grid .chartbox {
   flex: 1;
   min-height: 330px;
 }
-
 .overview-chart-card {
   max-width: 760px;
 }
-
 .overview-chart-card .chartbox {
   min-height: 330px;
 }
-
 #timelineMetric {
   max-width: 260px;
 }
-
 #dashboard .analytics-grid .row {
   display: block;
 }
-
 #dashboard .analytics-grid .row > div {
   min-width: 0;
   max-width: 260px;
 }
-
 /* ---------- Responsive ---------- */
 @media (max-width: 1100px) {
   .g4 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
   .log-grid,
   .g2,
   .analytics-grid {
     grid-template-columns: 1fr;
   }
 }
-
 @media (max-width: 900px) {
   .overview-chart-card {
     max-width: none;
   }
-
   .overview-chart-card .chartbox {
     overflow-x: auto;
   }
 }
-
 @media (max-width: 650px) {
   .top,
   .layout {
     padding: 14px;
   }
-
   .top {
     align-items: flex-start;
   }
-
   h1 {
     font-size: 21px;
   }
-
   .tool-nav {
     overflow-x: auto;
     white-space: nowrap;
   }
-
   .navbtn {
     flex: 0 0 auto;
     padding: 10px 14px;
   }
-
   .g4 {
     grid-template-columns: 1fr;
   }
-
   .bar-chart {
     gap: 7px;
   }
-
   .bars span {
     width: 10px;
   }
-
   .reset-tool-btn {
     align-self: flex-start;
   }
