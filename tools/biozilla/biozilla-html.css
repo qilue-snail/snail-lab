@@ -1,0 +1,55 @@
+/* =========================================================
+Biozilla HTML Cleanup Helpers
+Small classes that replace inline styles from index.html.
+Move these into biozilla.css later if you want one CSS file.
+========================================================= */
+
+.is-hidden {
+  display: none;
+}
+
+.troop-table {
+  width: 330px;
+}
+
+.syncrow-spaced,
+.checkbox-label {
+  margin-top: 8px;
+}
+
+.checkbox-label {
+  display: block;
+}
+
+.snapshot-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.snapshot-note-input {
+  width: 260px;
+  max-width: 100%;
+}
+
+.bio-title-col {
+  width: 210px;
+}
+
+.slot-col,
+.main-col {
+  width: 70px;
+}
+
+.stat-col {
+  width: 80px;
+}
+
+.excel tr.total-row th,
+.excel tr.total-row td,
+.excel tr.damage-row th,
+.excel tr.damage-row td {
+  background: #f8edd7;
+  font-weight: 800;
+}
