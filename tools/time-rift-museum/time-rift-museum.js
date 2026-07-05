@@ -1,9 +1,8 @@
 /* =========================================================
-   Time Rift Museum
-   Data sync, owned relic input, optimizer, and buff progress.
+   Time Rift Museum Tool
+   Compact relic input + target-based stamp optimizer.
 ========================================================= */
 
-/* ---------- Config ---------- */
 const TIME_RIFT_TAB_NAME = "Time Rift Museum Relics";
 const TIME_RIFT_CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vQt9dkXKEDeiQYyGmYaSZpcq7CY1eM9ALn-kxxmm8qASUHznh0avCAz7hp3ojGNOXxIZncAKcpEMJ5J/pub?gid=1578260911&single=true&output=csv";
@@ -11,8 +10,15 @@ const TIME_RIFT_OWNED_KEY = "timeRiftMuseumOwnedRelicsBaseV1";
 const TIME_RIFT_ASSIGNMENTS_KEY = "timeRiftMuseumAssignmentsBaseV1";
 
 const AFFCT_TYPES = ["FAME", "ART", "FTH", "CIV", "TECH"];
+const LEVEL_BUTTONS = [
+  { value: "", label: "None" },
+  { value: "3", label: "3★" },
+  { value: "4", label: "4★" },
+  { value: "5", label: "5★" },
+  { value: "6", label: "6★" },
+  { value: "Awaken", label: "Awaken" },
+];
 
-/* Slots 1-3 are ALL, then FAME/ART/FTH/CIV/TECH repeats. */
 const TIME_RIFT_PEDESTALS = Array.from({ length: 83 }, (_, index) => {
   const slot = index + 1;
   const type = slot <= 3 ? "ALL" : AFFCT_TYPES[(slot - 4) % AFFCT_TYPES.length];
@@ -59,14 +65,85 @@ const TIME_RIFT_THRESHOLDS = [
   { points: 9500, rating: "SS", buff: "Rift Museum B-tad Output +20000" },
 ];
 
-/* ---------- State ---------- */
+const GOAL_GROUPS = [
+  {
+    id: "element",
+    label: "Elemental DMG",
+    options: [
+      { id: "any", label: "Any Elemental DMG" },
+      { id: "fire", label: "Fire DMG" },
+      { id: "water", label: "Water DMG" },
+      { id: "earth", label: "Earth DMG" },
+      { id: "wind", label: "Wind DMG" },
+    ],
+  },
+  {
+    id: "cells",
+    label: "Cells",
+    options: [
+      { id: "any", label: "Any Cells" },
+      { id: "zombie", label: "Zombie Cells" },
+      { id: "demon", label: "Demon Cells" },
+      { id: "angel", label: "Angel Cells" },
+      { id: "mutant", label: "Mutant Cells" },
+      { id: "mecha", label: "Mecha Cells" },
+      { id: "dragon", label: "Dragon Cells" },
+    ],
+  },
+  {
+    id: "stat",
+    label: "Stats",
+    options: [
+      { id: "atk", label: "ATK" },
+      { id: "def", label: "DEF" },
+      { id: "hp", label: "HP" },
+      { id: "rush", label: "RUSH" },
+      { id: "crit", label: "CRIT" },
+      { id: "crit-dmg", label: "CRIT DMG" },
+      { id: "dmg", label: "DMG" },
+      { id: "dmg-reduc", label: "DMG Reduc" },
+      { id: "hero-dmg", label: "Hero DMG" },
+    ],
+  },
+  {
+    id: "resource",
+    label: "Resources / Progress",
+    options: [
+      { id: "dragon-orbs", label: "Dragon Orbs" },
+      { id: "b-tads", label: "B-tads" },
+      { id: "medals", label: "Museum Medals" },
+      { id: "intel", label: "Intel" },
+      { id: "travel-speed", label: "Travel Speed" },
+      { id: "food", label: "Food Reduction" },
+    ],
+  },
+  {
+    id: "affct",
+    label: "AFFCT",
+    options: [
+      { id: "any", label: "Any AFFCT" },
+      { id: "FAME", label: "FAME" },
+      { id: "ART", label: "ART" },
+      { id: "FTH", label: "FTH" },
+      { id: "CIV", label: "CIV" },
+      { id: "TECH", label: "TECH" },
+    ],
+  },
+  {
+    id: "score",
+    label: "Museum Score",
+    options: [{ id: "points", label: "Highest Points" }],
+  },
+];
+
 let relicRows = [];
 let ownedRelics = {};
 let appliedAssignments = {};
 let activeTab = "input";
 let latestOptimizedSetup = [];
 
-/* ---------- Utility Helpers ---------- */
+/* ---------- General helpers ---------- */
+
 function normalizeId(value) {
   return String(value || "")
     .trim()
@@ -95,7 +172,20 @@ function escapeHtml(value) {
     .replace(/'/g, "&#039;");
 }
 
-/* ---------- CSV Parsing ---------- */
+function setText(id, value) {
+  const element = document.getElementById(id);
+  if (element) element.textContent = value;
+}
+
+function setStatus(message, isError = false) {
+  const element = document.getElementById("sync-status");
+  if (!element) return;
+  element.textContent = message;
+  element.classList.toggle("error", isError);
+}
+
+/* ---------- CSV and relic parsing ---------- */
+
 function parseCsv(text) {
   const rows = [];
   let row = [];
@@ -130,7 +220,6 @@ function parseCsv(text) {
   return rows;
 }
 
-/* ---------- Relic Parsing ---------- */
 function displayRelicBaseName(name) {
   return String(name || "")
     .replace(/\s[-–—]\s*(Awaken|6|5|4|3)$/i, "")
@@ -141,24 +230,37 @@ function familyIdFor(name) {
   return normalizeId(displayRelicBaseName(name));
 }
 
+function levelKey(level) {
+  const raw = String(level || "").trim().toLowerCase();
+  if (raw.includes("awaken")) return "Awaken";
+  if (raw.includes("6")) return "6";
+  if (raw.includes("5")) return "5";
+  if (raw.includes("4")) return "4";
+  if (raw.includes("3")) return "3";
+  return "";
+}
+
 function levelValue(level) {
-  const raw = String(level || "").toLowerCase();
-  if (raw.includes("awaken")) return 7;
-  return toNumber(raw) || 0;
+  const key = levelKey(level);
+  if (key === "Awaken") return 7;
+  return Number(key) || 0;
 }
 
 function parseStampBonus(text) {
   const raw = String(text || "").trim();
   if (!raw) return null;
 
-  const match = raw.match(/\+\s*([\d.]+)/);
+  const match = raw.match(/([+-])\s*([\d.]+)/);
   if (!match) return null;
 
   const upper = raw.toUpperCase();
   const target = AFFCT_TYPES.find((type) => upper.includes(type));
-  if (target) return { target, value: Number(match[1]), raw };
-  if (upper.includes("ALL") || upper.includes("TOTAL"))
-    return { target: "ALL", value: Number(match[1]), raw };
+  const value = Number(match[2]) * (match[1] === "-" ? -1 : 1);
+
+  if (target) return { target, value, raw };
+  if (upper.includes("AFFCT") && (upper.includes("ALL") || upper.includes("TOTAL"))) {
+    return { target: "ALL", value, raw };
+  }
   return null;
 }
 
@@ -193,6 +295,7 @@ function parseRelics(rows) {
         baseName: displayRelicBaseName(name),
         name,
         level,
+        levelKey: levelKey(level || rank),
         rank,
         type: String(obj.Type || "")
           .trim()
@@ -212,10 +315,10 @@ function parseRelics(rows) {
 
 async function loadRelics() {
   setStatus("Loading Time Rift Museum relics…");
+
   try {
     const response = await fetch(TIME_RIFT_CSV_URL, { cache: "no-store" });
-    if (!response.ok)
-      throw new Error(`Sheet request failed: ${response.status}`);
+    if (!response.ok) throw new Error(`Sheet request failed: ${response.status}`);
 
     relicRows = parseRelics(parseCsv(await response.text()));
     cleanSavedState();
@@ -233,7 +336,8 @@ async function loadRelics() {
   }
 }
 
-/* ---------- Relic Accessors ---------- */
+/* ---------- Relic state ---------- */
+
 function getFamilies() {
   const map = new Map();
   relicRows.forEach((relic) => {
@@ -268,25 +372,86 @@ function getOwnedRelics() {
   return Object.values(ownedRelics).map(findRelicById).filter(Boolean);
 }
 
-/* ---------- Museum Scoring ---------- */
+function getRelicAtLevel(family, wantedLevel) {
+  return family.levels.find((relic) => relic.levelKey === wantedLevel) || null;
+}
+
+function loadState() {
+  try {
+    ownedRelics = JSON.parse(localStorage.getItem(TIME_RIFT_OWNED_KEY)) || {};
+  } catch {
+    ownedRelics = {};
+  }
+
+  try {
+    appliedAssignments =
+      JSON.parse(localStorage.getItem(TIME_RIFT_ASSIGNMENTS_KEY)) || {};
+  } catch {
+    appliedAssignments = {};
+  }
+}
+
+function saveState() {
+  localStorage.setItem(TIME_RIFT_OWNED_KEY, JSON.stringify(ownedRelics));
+  localStorage.setItem(
+    TIME_RIFT_ASSIGNMENTS_KEY,
+    JSON.stringify(appliedAssignments),
+  );
+}
+
+function cleanAssignmentsAgainstOwned() {
+  const ownedIds = new Set(Object.values(ownedRelics));
+  Object.keys(appliedAssignments).forEach((slot) => {
+    if (!ownedIds.has(appliedAssignments[slot])) delete appliedAssignments[slot];
+  });
+}
+
+function cleanSavedState() {
+  const validIds = new Set(relicRows.map((relic) => relic.id));
+  Object.keys(ownedRelics).forEach((familyId) => {
+    if (!validIds.has(ownedRelics[familyId])) delete ownedRelics[familyId];
+  });
+  Object.keys(appliedAssignments).forEach((slot) => {
+    if (!validIds.has(appliedAssignments[slot])) delete appliedAssignments[slot];
+  });
+  cleanAssignmentsAgainstOwned();
+  saveState();
+}
+
+/* ---------- Scoring ---------- */
+
 function getBaseStat(relic, pedestalType) {
   if (!relic) return 0;
-  if (pedestalType === "ALL")
+  if (pedestalType === "ALL") {
     return relic.fame + relic.art + relic.fth + relic.civ + relic.tech;
+  }
   return relic[pedestalType.toLowerCase()] || 0;
 }
 
 function getStampBonus(relic, pedestalType) {
   if (!relic) return 0;
+
   return relic.stampBonuses.reduce((total, bonus) => {
-    if (pedestalType === "ALL")
-      return bonus.target === "ALL" ? total + bonus.value : total;
-    return bonus.target === pedestalType ? total + bonus.value : total;
+    if (pedestalType === "ALL") {
+      return bonus.target === "ALL" || AFFCT_TYPES.includes(bonus.target)
+        ? total + bonus.value
+        : total;
+    }
+    return bonus.target === pedestalType || bonus.target === "ALL"
+      ? total + bonus.value
+      : total;
   }, 0);
 }
 
 function scoreRelic(relic, pedestalType) {
   return getBaseStat(relic, pedestalType) + getStampBonus(relic, pedestalType);
+}
+
+function assignmentPoints(assignments) {
+  return TIME_RIFT_PEDESTALS.reduce((total, pedestal) => {
+    const relic = findRelicById(assignments[String(pedestal.slot)]);
+    return total + scoreRelic(relic, pedestal.type);
+  }, 0);
 }
 
 function getRating(points) {
@@ -297,53 +462,241 @@ function getRating(points) {
 }
 
 function getNextThreshold(points) {
-  return (
-    TIME_RIFT_THRESHOLDS.find((threshold) => points < threshold.points) || null
-  );
+  return TIME_RIFT_THRESHOLDS.find((threshold) => points < threshold.points) || null;
 }
 
-function assignmentPoints(assignments) {
-  return TIME_RIFT_PEDESTALS.reduce((total, pedestal) => {
-    const relic = findRelicById(assignments[String(pedestal.slot)]);
-    return total + scoreRelic(relic, pedestal.type);
+/* ---------- Goal matching ---------- */
+
+function getSelectedGoal() {
+  const category = document.getElementById("goal-category")?.value || "element";
+  const subcategory =
+    document.getElementById("goal-subcategory")?.value || "any";
+  return { category, subcategory };
+}
+
+function extractGoalNumber(text) {
+  const match = String(text || "").match(/([+-])\s*([\d.]+)/);
+  if (!match) return 0;
+  return Number(match[2]) * (match[1] === "-" ? -1 : 1);
+}
+
+function stampMatchesGoal(stamp, goal) {
+  const text = String(stamp || "");
+  const lower = text.toLowerCase();
+
+  if (goal.category === "score") return true;
+
+  if (goal.category === "element") {
+    if (!/dmg|damage|elmt|element/i.test(text)) return false;
+    if (goal.subcategory === "any") {
+      return /fire|water|earth|wind|all\s*elmt|all\s*element|elemental|elmt/i.test(text);
+    }
+    return lower.includes(goal.subcategory) || /all\s*elmt|all\s*element|elemental/i.test(lower);
+  }
+
+  if (goal.category === "cells") {
+    if (!/cell/i.test(text)) return false;
+    return goal.subcategory === "any" || lower.includes(goal.subcategory);
+  }
+
+  if (goal.category === "stat") {
+    const statPatterns = {
+      atk: /\batk\b/i,
+      def: /\bdef\b/i,
+      hp: /\bhp\b/i,
+      rush: /\brush\b/i,
+      crit: /\bcrit\b(?!\s*dmg|\s*damage)/i,
+      "crit-dmg": /crit\s*(dmg|damage)/i,
+      dmg: /\bdmg\b|\bdamage\b/i,
+      "dmg-reduc": /dmg\s*reduc|damage\s*reduc|reduction/i,
+      "hero-dmg": /hero\s*(dmg|damage)/i,
+    };
+    return statPatterns[goal.subcategory]?.test(text) || false;
+  }
+
+  if (goal.category === "resource") {
+    const resourcePatterns = {
+      "dragon-orbs": /dragon\s*orbs?/i,
+      "b-tads": /b-?tads?|black\s*tads?/i,
+      medals: /medals?/i,
+      intel: /intel/i,
+      "travel-speed": /travel\s*(spd|speed)/i,
+      food: /food/i,
+    };
+    return resourcePatterns[goal.subcategory]?.test(text) || false;
+  }
+
+  if (goal.category === "affct") {
+    if (goal.subcategory === "any") {
+      return /\b(FAME|ART|FTH|CIV|TECH)\b/i.test(text);
+    }
+    return text.toUpperCase().includes(goal.subcategory);
+  }
+
+  return false;
+}
+
+function goalValueForRelic(relic, goal) {
+  if (!relic) return 0;
+  if (goal.category === "score") return 0;
+
+  return relic.stampTexts.reduce((total, stamp) => {
+    if (!stampMatchesGoal(stamp, goal)) return total;
+
+    const value = extractGoalNumber(stamp);
+    if (goal.category === "resource" && goal.subcategory === "food") {
+      return total + Math.abs(value);
+    }
+    return total + Math.max(0, value);
   }, 0);
 }
 
+function relicHasStampFilter(relic, filterValue) {
+  if (!filterValue || filterValue === "all") return true;
+  const [category, subcategory] = filterValue.split(":");
+  return relic.stampTexts.some((stamp) =>
+    stampMatchesGoal(stamp, { category, subcategory }),
+  );
+}
+
 /* ---------- Optimizer ---------- */
-function buildOptimizedSetup() {
-  const priority =
-    document.getElementById("optimizer-priority")?.value || "points";
-  const usedFamilies = new Set();
+
+function getTargetPoints() {
+  const value = Number(document.getElementById("target-points")?.value || 0);
+  return Number.isFinite(value) ? Math.max(0, value) : 0;
+}
+
+function totalGoalValue(setup) {
+  return setup.reduce((total, item) => total + item.goalValue, 0);
+}
+
+function totalSetupPoints(setup) {
+  return setup.reduce((total, item) => total + item.points, 0);
+}
+
+function buildWeightedSetup(goal, pointWeight, goalWeight) {
   const owned = getOwnedRelics();
-  const setup = [];
+  const candidates = [];
 
   TIME_RIFT_PEDESTALS.forEach((pedestal) => {
-    const best = owned
-      .filter((relic) => !usedFamilies.has(relic.familyId))
-      .map((relic) => {
-        const points = scoreRelic(relic, pedestal.type);
-        const bonus = getStampBonus(relic, pedestal.type);
-        const sortScore = priority === "stamps" ? points + bonus * 10 : points;
-        return { pedestal, relic, points, bonus, sortScore };
-      })
-      .sort(
-        (a, b) =>
-          b.sortScore - a.sortScore ||
-          b.points - a.points ||
-          a.relic.baseName.localeCompare(b.relic.baseName),
-      )[0];
+    owned.forEach((relic) => {
+      const points = scoreRelic(relic, pedestal.type);
+      const goalValue = goalValueForRelic(relic, goal);
+      const weightedScore = points * pointWeight + goalValue * goalWeight;
 
-    if (best) {
-      usedFamilies.add(best.relic.familyId);
-      setup.push(best);
-    }
+      if (points > 0 || goalValue > 0) {
+        candidates.push({ pedestal, relic, points, goalValue, weightedScore });
+      }
+    });
   });
 
-  latestOptimizedSetup = setup;
-  return setup;
+  candidates.sort(
+    (a, b) =>
+      b.weightedScore - a.weightedScore ||
+      b.goalValue - a.goalValue ||
+      b.points - a.points ||
+      a.relic.baseName.localeCompare(b.relic.baseName),
+  );
+
+  const usedSlots = new Set();
+  const usedFamilies = new Set();
+  const setup = [];
+
+  candidates.forEach((candidate) => {
+    if (usedSlots.has(candidate.pedestal.slot)) return;
+    if (usedFamilies.has(candidate.relic.familyId)) return;
+
+    usedSlots.add(candidate.pedestal.slot);
+    usedFamilies.add(candidate.relic.familyId);
+    setup.push(candidate);
+  });
+
+  return setup.sort((a, b) => a.pedestal.slot - b.pedestal.slot);
+}
+
+function compareSetups(a, b, targetPoints, goal) {
+  const aPoints = totalSetupPoints(a);
+  const bPoints = totalSetupPoints(b);
+  const aGoal = totalGoalValue(a);
+  const bGoal = totalGoalValue(b);
+  const aMeets = aPoints >= targetPoints;
+  const bMeets = bPoints >= targetPoints;
+
+  if (aMeets !== bMeets) return aMeets ? -1 : 1;
+
+  if (aMeets && bMeets) {
+    if (goal.category !== "score" && aGoal !== bGoal) return bGoal - aGoal;
+    if (goal.category === "score" && aPoints !== bPoints) return bPoints - aPoints;
+    return aPoints - bPoints;
+  }
+
+  if (aPoints !== bPoints) return bPoints - aPoints;
+  if (aGoal !== bGoal) return bGoal - aGoal;
+  return b.length - a.length;
+}
+
+function buildOptimizedSetup() {
+  const goal = getSelectedGoal();
+  const targetPoints = getTargetPoints();
+  const pointWeights = [0.1, 0.25, 0.5, 1, 2, 4, 8, 16, 32];
+  const goalWeights = goal.category === "score"
+    ? [0]
+    : [0.5, 1, 2, 4, 8, 16, 32, 64, 128];
+
+  const setups = [];
+  pointWeights.forEach((pointWeight) => {
+    goalWeights.forEach((goalWeight) => {
+      setups.push(buildWeightedSetup(goal, pointWeight, goalWeight));
+    });
+  });
+
+  setups.sort((a, b) => compareSetups(a, b, targetPoints, goal));
+  latestOptimizedSetup = setups[0] || [];
+  return latestOptimizedSetup;
+}
+
+function applyOptimizedSetup() {
+  const setup = latestOptimizedSetup.length
+    ? latestOptimizedSetup
+    : buildOptimizedSetup();
+
+  appliedAssignments = {};
+  setup.forEach((item) => {
+    appliedAssignments[String(item.pedestal.slot)] = item.relic.id;
+  });
+
+  saveState();
+  activeTab = "optimize";
+  renderAll();
+}
+
+function resetSetup() {
+  if (
+    !window.confirm(
+      "Reset the applied Time Rift Museum setup? Owned relic inputs will be kept.",
+    )
+  ) {
+    return;
+  }
+
+  appliedAssignments = {};
+  saveState();
+  renderAll();
 }
 
 /* ---------- Rendering ---------- */
+
+function renderAll() {
+  renderTabs();
+  renderGoalControls();
+  renderQuickTargets();
+  renderSummary();
+  renderInputRelics();
+  renderOptimizer();
+  renderBuffTotals();
+  renderBuffProgress();
+}
+
 function renderTabs() {
   document.querySelectorAll(".rift-tab").forEach((button) => {
     const active = button.dataset.tab === activeTab;
@@ -368,9 +721,11 @@ function renderSummary() {
   const progress = next
     ? Math.max(0, Math.min(100, ((total - previous) / range) * 100))
     : 100;
+  const ownedCount = getOwnedRelics().length.toLocaleString();
 
   setText("total-points", total.toLocaleString());
   setText("current-rating", getRating(total));
+  setText("owned-count-summary", ownedCount);
   setText(
     "next-threshold",
     next ? `${next.points.toLocaleString()} (${next.rating})` : "Maxed",
@@ -381,91 +736,126 @@ function renderSummary() {
   if (bar) bar.style.width = `${progress}%`;
 }
 
-function renderInputRelics() {
-  const container = document.getElementById("owned-relic-list");
+function renderGoalControls() {
+  const categorySelect = document.getElementById("goal-category");
+  const subcategorySelect = document.getElementById("goal-subcategory");
+  if (!categorySelect || !subcategorySelect) return;
+
+  const previousCategory = categorySelect.value || "element";
+  const previousSubcategory = subcategorySelect.value || "any";
+
+  categorySelect.innerHTML = GOAL_GROUPS.map(
+    (group) =>
+      `<option value="${group.id}" ${group.id === previousCategory ? "selected" : ""}>${escapeHtml(group.label)}</option>`,
+  ).join("");
+
+  const selectedGroup =
+    GOAL_GROUPS.find((group) => group.id === categorySelect.value) || GOAL_GROUPS[0];
+
+  subcategorySelect.innerHTML = selectedGroup.options
+    .map(
+      (option) =>
+        `<option value="${option.id}" ${option.id === previousSubcategory ? "selected" : ""}>${escapeHtml(option.label)}</option>`,
+    )
+    .join("");
+}
+
+function renderQuickTargets() {
+  const container = document.getElementById("quick-targets");
   if (!container) return;
 
+  const currentTarget = getTargetPoints();
+  container.innerHTML = TIME_RIFT_THRESHOLDS.map((threshold) => {
+    const active = currentTarget === threshold.points;
+    return `<button class="quick-target-btn ${active ? "active" : ""}" type="button" data-target="${threshold.points}">${threshold.rating} ${threshold.points.toLocaleString()}</button>`;
+  }).join("");
+
+  container.querySelectorAll("[data-target]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const targetInput = document.getElementById("target-points");
+      if (targetInput) targetInput.value = button.dataset.target;
+      renderAll();
+    });
+  });
+}
+
+function renderInputRelics() {
+  const body = document.getElementById("owned-relic-list");
+  if (!body) return;
+
   if (!relicRows.length) {
-    container.innerHTML = `<p class="empty-state">Sync relic data to load the relic input list.</p>`;
-    setText("owned-count", "0");
+    body.innerHTML = `<tr class="empty-row"><td colspan="3">Sync relic data to load the relic input list.</td></tr>`;
+    setText("visible-count", "0");
     return;
   }
 
-  const queryParts = normalizeText(
-    document.getElementById("owned-search")?.value || "",
-  )
+  const queryParts = normalizeText(document.getElementById("owned-search")?.value || "")
     .split(/\s+/)
     .filter(Boolean);
-  const typeFilter =
-    document.getElementById("owned-type-filter")?.value || "all";
-  const viewFilter =
-    document.getElementById("owned-view-filter")?.value || "all";
+  const typeFilter = document.getElementById("owned-type-filter")?.value || "all";
+  const viewFilter = document.getElementById("owned-view-filter")?.value || "all";
+  const levelFilter = document.getElementById("owned-level-filter")?.value || "all";
+  const stampFilter = document.getElementById("stamp-filter")?.value || "all";
 
   let items = getFamilies().map((family) => {
     const owned = getOwnedRelic(family.familyId);
     const best = family.levels[0];
-    const haystack = normalizeText(
-      [
-        family.name,
-        family.type,
-        best.effectText,
-        best.fame,
-        best.art,
-        best.fth,
-        best.civ,
-        best.tech,
-      ].join(" "),
-    );
-    return { family, owned, best, haystack };
+    const haystack = normalizeText([family.name, family.type].join(" "));
+    const stampRelic = owned || best;
+    return { family, owned, best, haystack, stampRelic };
   });
 
-  if (typeFilter !== "all")
-    items = items.filter((item) => item.family.type === typeFilter);
+  if (typeFilter !== "all") items = items.filter((item) => item.family.type === typeFilter);
   if (viewFilter === "owned") items = items.filter((item) => item.owned);
   if (viewFilter === "missing") items = items.filter((item) => !item.owned);
-  if (queryParts.length)
+  if (levelFilter === "none") items = items.filter((item) => !item.owned);
+  if (!["all", "none"].includes(levelFilter)) {
+    items = items.filter((item) => item.owned?.levelKey === levelFilter);
+  }
+  if (stampFilter !== "all") {
+    items = items.filter((item) => relicHasStampFilter(item.stampRelic, stampFilter));
+  }
+  if (queryParts.length) {
     items = items.filter((item) =>
       queryParts.every((part) => item.haystack.includes(part)),
     );
+  }
 
-  setText("owned-count", getOwnedRelics().length.toLocaleString());
+  setText("visible-count", items.length.toLocaleString());
 
   if (!items.length) {
-    container.innerHTML = `<p class="empty-state">No relics match that filter.</p>`;
+    body.innerHTML = `<tr class="empty-row"><td colspan="3">No relics match those filters.</td></tr>`;
     return;
   }
 
-  container.innerHTML = items
-    .map(({ family, owned, best }) => {
-      const levelOptions = [`<option value="">Not Owned</option>`]
-        .concat(
-          family.levels.map((relic) => {
-            const label = relic.level || relic.rank || "?";
-            return `<option value="${escapeHtml(relic.id)}" ${owned?.id === relic.id ? "selected" : ""}>${escapeHtml(label)}</option>`;
-          }),
-        )
-        .join("");
+  body.innerHTML = items
+    .map(({ family, owned }) => {
+      const buttons = LEVEL_BUTTONS.map((level) => {
+        const relic = level.value ? getRelicAtLevel(family, level.value) : null;
+        const active = level.value
+          ? owned?.id === relic?.id
+          : !owned;
+        const disabled = Boolean(level.value && !relic);
+        return `<button class="level-btn ${level.value ? "" : "none"} ${active ? "active" : ""}" type="button" data-family-id="${escapeHtml(family.familyId)}" data-relic-id="${escapeHtml(relic?.id || "")}" ${disabled ? "disabled" : ""}>${escapeHtml(level.label)}</button>`;
+      }).join("");
 
       return `
-      <article class="relic-row ${owned ? "owned" : "missing"}">
-        <span class="type-token">${escapeHtml(best.type || "—")}</span>
-        <div class="relic-info">
-          <b>${escapeHtml(family.name)}</b>
-          <small>FAME ${best.fame} · ART ${best.art} · FTH ${best.fth} · CIV ${best.civ} · TECH ${best.tech}</small>
-          <em>${best.effectText ? escapeHtml(best.effectText) : "No stamp text"}</em>
-        </div>
-        <label class="level-label">
-          <span>Owned Level</span>
-          <select data-family-id="${escapeHtml(family.familyId)}">${levelOptions}</select>
-        </label>
-      </article>`;
+        <tr class="${owned ? "relic-row-owned" : ""}">
+          <td><strong>${escapeHtml(family.name)}</strong></td>
+          <td><span class="type-pill type-${escapeHtml(family.type)}">${escapeHtml(family.type || "—")}</span></td>
+          <td><div class="level-buttons">${buttons}</div></td>
+        </tr>`;
     })
     .join("");
 
-  container.querySelectorAll("[data-family-id]").forEach((select) => {
-    select.addEventListener("change", () => {
-      if (select.value) ownedRelics[select.dataset.familyId] = select.value;
-      else delete ownedRelics[select.dataset.familyId];
+  body.querySelectorAll(".level-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+      const familyId = button.dataset.familyId;
+      const relicId = button.dataset.relicId;
+
+      if (relicId) ownedRelics[familyId] = relicId;
+      else delete ownedRelics[familyId];
+
       cleanAssignmentsAgainstOwned();
       saveState();
       renderAll();
@@ -475,201 +865,252 @@ function renderInputRelics() {
 
 function renderOptimizer() {
   const setup = buildOptimizedSetup();
-  const total = setup.reduce((sum, item) => sum + item.points, 0);
-  const filled = setup.length;
+  const total = totalSetupPoints(setup);
+  const goalTotal = totalGoalValue(setup);
+  const target = getTargetPoints();
+  const optimizedList = document.getElementById("optimized-list");
+  const currentList = document.getElementById("current-setup-list");
 
   setText("optimized-points", total.toLocaleString());
   setText("optimized-rating", getRating(total));
-  setText("optimized-filled", `${filled} / ${TIME_RIFT_PEDESTALS.length}`);
+  setText("optimized-goal-value", goalTotal.toLocaleString());
+  setText("optimized-filled", `${setup.length} / ${TIME_RIFT_PEDESTALS.length}`);
 
-  const optimizedList = document.getElementById("optimized-list");
-  if (optimizedList)
-    optimizedList.innerHTML = renderSetupList(
+  const optimizerNote = document.getElementById("optimizer-note");
+  if (optimizerNote) {
+    const targetReached = total >= target;
+    optimizerNote.textContent = targetReached
+      ? `Target met: ${total.toLocaleString()} / ${target.toLocaleString()} points.`
+      : `Target not reachable yet: ${total.toLocaleString()} / ${target.toLocaleString()} points.`;
+    optimizerNote.classList.toggle("warning", !targetReached);
+  }
+
+  if (optimizedList) {
+    optimizedList.innerHTML = renderSetupRows(
       setup,
-      "No optimized setup yet. Add owned relics on the Input Relics tab first.",
+      total < target
+        ? `Target not reachable with currently owned relics. Best result is ${total.toLocaleString()} points.`
+        : "No optimized setup yet. Add owned relics on the Input Relics tab first.",
+      true,
     );
+  }
 
-  const currentSetup = TIME_RIFT_PEDESTALS.map((pedestal) => {
-    const relic = findRelicById(appliedAssignments[String(pedestal.slot)]);
-    return relic
-      ? {
-          pedestal,
-          relic,
-          points: scoreRelic(relic, pedestal.type),
-          bonus: getStampBonus(relic, pedestal.type),
-        }
-      : null;
-  }).filter(Boolean);
-
-  const currentList = document.getElementById("current-setup-list");
-  if (currentList)
-    currentList.innerHTML = renderSetupList(
-      currentSetup,
-      "Nothing has been applied yet.",
-    );
+  if (currentList) {
+    currentList.innerHTML = renderAppliedSetupRows();
+  }
 }
 
-function renderSetupList(setup, emptyText) {
-  if (!setup.length)
-    return `<p class="empty-state">${escapeHtml(emptyText)}</p>`;
+function renderSetupRows(setup, emptyText, showGoal) {
+  if (!setup.length) {
+    return `<tr class="empty-row"><td colspan="6">${escapeHtml(emptyText)}</td></tr>`;
+  }
 
   return setup
     .map((item) => {
-      const base = getBaseStat(item.relic, item.pedestal.type);
-      const bonusText = item.bonus
-        ? ` · ${base} + ${item.bonus} stamp`
-        : ` · ${base} base`;
+      const goalCell = showGoal
+        ? `<td class="goal-cell">${item.goalValue ? item.goalValue.toLocaleString() : "—"}</td>`
+        : "";
       return `
-      <article class="optimized-row">
-        <span class="slot-pill">Slot ${item.pedestal.slot}</span>
-        <span class="slot-pill">${item.pedestal.type}</span>
-        <div>
-          <strong>${escapeHtml(item.relic.baseName)}</strong>
-          <small>${escapeHtml(item.relic.level || item.relic.rank || "?")}${escapeHtml(bonusText)}</small>
-        </div>
-        <strong class="points-pill">${item.points.toLocaleString()}</strong>
-      </article>`;
+        <tr>
+          <td>Slot ${item.pedestal.slot}</td>
+          <td><span class="type-pill type-${escapeHtml(item.pedestal.type)}">${escapeHtml(item.pedestal.type)}</span></td>
+          <td><strong>${escapeHtml(item.relic.baseName)}</strong></td>
+          <td>${escapeHtml(item.relic.level || item.relic.rank || "?")}</td>
+          <td class="points-cell">${item.points.toLocaleString()}</td>
+          ${goalCell}
+        </tr>`;
     })
     .join("");
 }
 
-function renderBuffs() {
-  const container = document.getElementById("buff-list");
-  if (!container) return;
+function renderAppliedSetupRows() {
+  const owned = getOwnedRelics();
+
+  if (!owned.length) {
+    return `<tr class="empty-row"><td colspan="4">Add owned relics before manually changing setup slots.</td></tr>`;
+  }
+
+  return TIME_RIFT_PEDESTALS.map((pedestal) => {
+    const currentRelic = findRelicById(appliedAssignments[String(pedestal.slot)]);
+    const options = [`<option value="">Empty</option>`]
+      .concat(
+        owned
+          .map((relic) => ({
+            relic,
+            points: scoreRelic(relic, pedestal.type),
+          }))
+          .sort(
+            (a, b) =>
+              b.points - a.points || a.relic.baseName.localeCompare(b.relic.baseName),
+          )
+          .map(({ relic, points }) => {
+            const selected = relic.id === currentRelic?.id ? "selected" : "";
+            return `<option value="${escapeHtml(relic.id)}" ${selected}>${escapeHtml(relic.baseName)} (${escapeHtml(relic.level || relic.rank || "?")}) — ${points.toLocaleString()}</option>`;
+          }),
+      )
+      .join("");
+    const points = currentRelic ? scoreRelic(currentRelic, pedestal.type) : 0;
+
+    return `
+      <tr>
+        <td>Slot ${pedestal.slot}</td>
+        <td><span class="type-pill type-${escapeHtml(pedestal.type)}">${escapeHtml(pedestal.type)}</span></td>
+        <td>
+          <select class="setup-select" data-slot="${pedestal.slot}">
+            ${options}
+          </select>
+        </td>
+        <td class="points-cell">${points ? points.toLocaleString() : "—"}</td>
+      </tr>`;
+  }).join("");
+}
+
+function bindAppliedSetupSelects() {
+  document.querySelectorAll(".setup-select").forEach((select) => {
+    select.addEventListener("change", () => {
+      const slot = String(select.dataset.slot);
+
+      if (select.value) {
+        Object.keys(appliedAssignments).forEach((assignedSlot) => {
+          if (assignedSlot !== slot && appliedAssignments[assignedSlot] === select.value) {
+            delete appliedAssignments[assignedSlot];
+          }
+        });
+        appliedAssignments[slot] = select.value;
+      } else {
+        delete appliedAssignments[slot];
+      }
+
+      saveState();
+      renderAll();
+    });
+  });
+}
+
+function renderBuffProgress() {
+  const body = document.getElementById("buff-list");
+  if (!body) return;
 
   const total = assignmentPoints(appliedAssignments);
-  container.innerHTML = `
-    <table class="buff-table">
-      <thead><tr><th>Points</th><th>Rating</th><th>Buff</th><th>Status</th></tr></thead>
-      <tbody>
-        ${TIME_RIFT_THRESHOLDS.map((threshold) => {
-          const unlocked = total >= threshold.points;
-          return `<tr class="${unlocked ? "unlocked" : "locked"}">
-            <td>${threshold.points.toLocaleString()}</td>
-            <td>${threshold.rating}</td>
-            <td>${escapeHtml(threshold.buff)}</td>
-            <td>${unlocked ? "Unlocked" : "Locked"}</td>
-          </tr>`;
-        }).join("")}
-      </tbody>
-    </table>`;
+  body.innerHTML = TIME_RIFT_THRESHOLDS.map((threshold) => {
+    const unlocked = total >= threshold.points;
+    return `
+      <tr class="${unlocked ? "unlocked" : "locked"}">
+        <td>${threshold.points.toLocaleString()}</td>
+        <td>${threshold.rating}</td>
+        <td>${escapeHtml(threshold.buff)}</td>
+        <td>${unlocked ? "Unlocked" : "Locked"}</td>
+      </tr>`;
+  }).join("");
 }
 
-/* ---------- Actions ---------- */
-function applyOptimizedSetup() {
-  const setup = latestOptimizedSetup.length
-    ? latestOptimizedSetup
-    : buildOptimizedSetup();
-  appliedAssignments = {};
-  setup.forEach((item) => {
-    appliedAssignments[String(item.pedestal.slot)] = item.relic.id;
-  });
-  saveState();
-  activeTab = "optimize";
-  renderAll();
-}
+function renderBuffTotals() {
+  const body = document.getElementById("buff-total-list");
+  if (!body) return;
 
-function resetSetup() {
-  if (
-    !window.confirm(
-      "Reset the applied Time Rift Museum setup? Owned relic inputs will be kept.",
+  const total = assignmentPoints(appliedAssignments);
+  const totals = getUnlockedBuffTotals(total);
+  const rows = [
+    ["Dragon Orbs", formatSigned(totals.dragonOrbPct, "%")],
+    ["Museum Medal Output", formatSigned(totals.medalOutput, "")],
+    ["Museum B-tad Output", formatSigned(totals.bTadOutput, "")],
+    ["B-tads Gained", formatSigned(totals.bTadsGainedPct, "%")],
+    ["Cells Collected", formatSigned(totals.cellsPct, "%")],
+    ["Intel Gained", formatSigned(totals.intelPct, "%")],
+    ["Travel Speed", formatSigned(totals.travelSpeedPct, "%")],
+    ["Food Consumed", totals.foodReductionPct ? `-${totals.foodReductionPct}%` : "0%"],
+    ["Snail ATK", formatSigned(totals.atk, "")],
+    ["Snail DEF", formatSigned(totals.def, "")],
+    ["Snail RUSH", formatSigned(totals.rush, "")],
+    ["Snail HP", formatSigned(totals.hp, "")],
+    ["Rift DMG", formatSigned(totals.dmgPct, "%")],
+  ];
+
+  body.innerHTML = rows
+    .map(
+      ([label, value]) => `
+        <tr>
+          <td>${escapeHtml(label)}</td>
+          <td><strong>${escapeHtml(value)}</strong></td>
+        </tr>`,
     )
-  )
-    return;
-  appliedAssignments = {};
-  saveState();
-  renderAll();
+    .join("");
 }
 
-/* ---------- State Cleanup ---------- */
-function cleanAssignmentsAgainstOwned() {
-  const ownedIds = new Set(Object.values(ownedRelics));
-  Object.keys(appliedAssignments).forEach((slot) => {
-    if (!ownedIds.has(appliedAssignments[slot]))
-      delete appliedAssignments[slot];
-  });
-}
+function getUnlockedBuffTotals(points) {
+  const totals = {
+    dragonOrbPct: 0,
+    medalOutput: 0,
+    bTadOutput: 0,
+    bTadsGainedPct: 0,
+    cellsPct: 0,
+    intelPct: 0,
+    travelSpeedPct: 0,
+    foodReductionPct: 0,
+    atk: 0,
+    def: 0,
+    rush: 0,
+    hp: 0,
+    dmgPct: 0,
+  };
 
-function cleanSavedState() {
-  const validIds = new Set(relicRows.map((relic) => relic.id));
-  Object.keys(ownedRelics).forEach((familyId) => {
-    if (!validIds.has(ownedRelics[familyId])) delete ownedRelics[familyId];
-  });
-  Object.keys(appliedAssignments).forEach((slot) => {
-    if (!validIds.has(appliedAssignments[slot]))
-      delete appliedAssignments[slot];
-  });
-  cleanAssignmentsAgainstOwned();
-  saveState();
-}
-
-/* ---------- Persistence ---------- */
-function loadState() {
-  try {
-    ownedRelics = JSON.parse(localStorage.getItem(TIME_RIFT_OWNED_KEY)) || {};
-  } catch {
-    ownedRelics = {};
-  }
-  try {
-    appliedAssignments =
-      JSON.parse(localStorage.getItem(TIME_RIFT_ASSIGNMENTS_KEY)) || {};
-  } catch {
-    appliedAssignments = {};
-  }
-}
-
-function saveState() {
-  localStorage.setItem(TIME_RIFT_OWNED_KEY, JSON.stringify(ownedRelics));
-  localStorage.setItem(
-    TIME_RIFT_ASSIGNMENTS_KEY,
-    JSON.stringify(appliedAssignments),
+  TIME_RIFT_THRESHOLDS.filter((threshold) => points >= threshold.points).forEach(
+    (threshold) => addBuffToTotals(totals, threshold.buff),
   );
+
+  return totals;
 }
 
-/* ---------- DOM Helpers ---------- */
-function setText(id, value) {
-  const element = document.getElementById(id);
-  if (element) element.textContent = value;
+function addBuffToTotals(totals, buffText) {
+  const text = String(buffText || "");
+  const lower = text.toLowerCase();
+  const value = Math.abs(extractGoalNumber(text));
+
+  if (/dragon\s*orbs?/.test(lower)) totals.dragonOrbPct += value;
+  else if (/medal/.test(lower)) totals.medalOutput += value;
+  else if (/b-?tad\s*output/.test(lower)) totals.bTadOutput += value;
+  else if (/b-?tads?\s*gained/.test(lower)) totals.bTadsGainedPct += value;
+  else if (/cells?\s*collected/.test(lower)) totals.cellsPct += value;
+  else if (/intel/.test(lower)) totals.intelPct += value;
+  else if (/travel\s*(spd|speed)/.test(lower)) totals.travelSpeedPct += value;
+  else if (/food\s*consumed/.test(lower)) totals.foodReductionPct += value;
+  else if (/snail\s*atk/.test(lower)) totals.atk += value;
+  else if (/snail\s*def/.test(lower)) totals.def += value;
+  else if (/snail\s*rush/.test(lower)) totals.rush += value;
+  else if (/snail\s*hp/.test(lower)) totals.hp += value;
+  else if (/\bdmg\b/.test(lower)) totals.dmgPct += value;
 }
 
-function setStatus(message, isError = false) {
-  const element = document.getElementById("sync-status");
-  if (!element) return;
-  element.textContent = message;
-  element.classList.toggle("error", isError);
+function formatSigned(value, suffix) {
+  return value ? `+${value.toLocaleString()}${suffix}` : `0${suffix}`;
 }
 
-/* ---------- App Lifecycle ---------- */
-function renderAll() {
-  renderTabs();
-  renderSummary();
-  renderInputRelics();
-  renderOptimizer();
-  renderBuffs();
-}
+/* ---------- Events ---------- */
 
 function bindEvents() {
-  document
-    .getElementById("refresh-relics")
-    ?.addEventListener("click", loadRelics);
-  document
-    .getElementById("reset-museum")
-    ?.addEventListener("click", resetSetup);
-  document
-    .getElementById("apply-optimized")
-    ?.addEventListener("click", applyOptimizedSetup);
-  document
-    .getElementById("owned-search")
-    ?.addEventListener("input", renderInputRelics);
-  document
-    .getElementById("owned-type-filter")
-    ?.addEventListener("change", renderInputRelics);
-  document
-    .getElementById("owned-view-filter")
-    ?.addEventListener("change", renderInputRelics);
-  document
-    .getElementById("optimizer-priority")
-    ?.addEventListener("change", renderOptimizer);
+  document.getElementById("refresh-relics")?.addEventListener("click", loadRelics);
+  document.getElementById("reset-museum")?.addEventListener("click", resetSetup);
+  document.getElementById("apply-optimized")?.addEventListener("click", applyOptimizedSetup);
+
+  [
+    "owned-search",
+    "owned-type-filter",
+    "owned-view-filter",
+    "owned-level-filter",
+    "stamp-filter",
+  ].forEach((id) => {
+    const element = document.getElementById(id);
+    const eventName = element?.tagName === "INPUT" ? "input" : "change";
+    element?.addEventListener(eventName, renderAll);
+  });
+
+  document.getElementById("target-points")?.addEventListener("input", renderAll);
+  document.getElementById("goal-category")?.addEventListener("change", () => {
+    const subcategory = document.getElementById("goal-subcategory");
+    if (subcategory) subcategory.value = "";
+    renderAll();
+  });
+  document.getElementById("goal-subcategory")?.addEventListener("change", renderAll);
 
   document.querySelectorAll(".rift-tab").forEach((button) => {
     button.addEventListener("click", () => {
@@ -678,6 +1119,16 @@ function bindEvents() {
     });
   });
 }
+
+function bindPostRenderEvents() {
+  bindAppliedSetupSelects();
+}
+
+const originalRenderAll = renderAll;
+renderAll = function renderAllWithEvents() {
+  originalRenderAll();
+  bindPostRenderEvents();
+};
 
 document.addEventListener("DOMContentLoaded", () => {
   loadState();

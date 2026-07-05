@@ -18,8 +18,8 @@
               <p class="eyebrow">Super Snail</p>
               <h1>Time Rift Museum</h1>
               <p class="subtitle">
-                Select the relic levels you own, then build the highest-scoring
-                museum setup.
+                Mark the relic levels you own, choose a minimum score target,
+                then optimize the setup for the stamp goal you care about.
               </p>
             </div>
 
@@ -41,6 +41,10 @@
             <article class="summary-card">
               <span>Current Rating</span>
               <strong id="current-rating">—</strong>
+            </article>
+            <article class="summary-card">
+              <span>Owned Relics</span>
+              <strong id="owned-count-summary">0</strong>
             </article>
             <article class="summary-card wide">
               <span>Next Unlock</span>
@@ -77,7 +81,16 @@
               role="tab"
               aria-selected="false"
             >
-              Optimize
+              Optimize Setup
+            </button>
+            <button
+              class="rift-tab"
+              type="button"
+              data-tab="buffs"
+              role="tab"
+              aria-selected="false"
+            >
+              Buff Progress
             </button>
           </nav>
 
@@ -85,18 +98,19 @@
             <article class="tool-card">
               <div class="card-head">
                 <div>
-                  <h2>Owned Relics</h2>
+                  <h2>Input Relics</h2>
                   <p>
-                    Choose the highest level you own for each relic. Leave it as
-                    Not Owned if you do not have it.
+                    Pick the highest level you own. Use filters to move quickly
+                    through the list without opening dropdowns for every relic.
                   </p>
                 </div>
-                <div class="owned-pill">
-                  <span>Owned</span><strong id="owned-count">0</strong>
+                <div class="small-stat">
+                  <span>Shown</span>
+                  <strong id="visible-count">0</strong>
                 </div>
               </div>
 
-              <div class="toolbar">
+              <div class="input-toolbar">
                 <input
                   id="owned-search"
                   type="search"
@@ -116,9 +130,48 @@
                   <option value="owned">Owned only</option>
                   <option value="missing">Not owned</option>
                 </select>
+                <select id="owned-level-filter" aria-label="Filter by level">
+                  <option value="all">All levels</option>
+                  <option value="none">Not owned</option>
+                  <option value="3">3★</option>
+                  <option value="4">4★</option>
+                  <option value="5">5★</option>
+                  <option value="6">6★</option>
+                  <option value="Awaken">Awaken</option>
+                </select>
+                <select id="stamp-filter" aria-label="Filter by stamp">
+                  <option value="all">All stamps</option>
+                  <option value="element:any">Any elemental DMG</option>
+                  <option value="element:fire">Fire DMG</option>
+                  <option value="element:water">Water DMG</option>
+                  <option value="element:earth">Earth DMG</option>
+                  <option value="element:wind">Wind DMG</option>
+                  <option value="cells:any">Any cells</option>
+                  <option value="resource:dragon-orbs">Dragon Orbs</option>
+                  <option value="stat:atk">ATK</option>
+                  <option value="stat:def">DEF</option>
+                  <option value="stat:hp">HP</option>
+                  <option value="stat:rush">RUSH</option>
+                  <option value="stat:crit">CRIT</option>
+                  <option value="stat:crit-dmg">CRIT DMG</option>
+                  <option value="stat:dmg">DMG</option>
+                  <option value="stat:hero-dmg">Hero DMG</option>
+                  <option value="affct:any">AFFCT</option>
+                </select>
               </div>
 
-              <div id="owned-relic-list" class="relic-input-list"></div>
+              <div class="table-scroll">
+                <table class="rift-table relic-table">
+                  <thead>
+                    <tr>
+                      <th>Relic</th>
+                      <th>Type</th>
+                      <th>Owned Level</th>
+                    </tr>
+                  </thead>
+                  <tbody id="owned-relic-list"></tbody>
+                </table>
+              </div>
             </article>
           </section>
 
@@ -128,8 +181,8 @@
                 <div>
                   <h2>Optimizer</h2>
                   <p>
-                    Uses only relics selected on the Input Relics tab. The first
-                    three slots are ALL pedestals.
+                    Set the minimum museum score you want to hit. The optimizer
+                    meets that target first, then maximizes your stamp goal.
                   </p>
                 </div>
                 <button id="apply-optimized" class="primary-btn" type="button">
@@ -139,13 +192,21 @@
 
               <div class="optimizer-controls">
                 <label>
-                  Priority
-                  <select id="optimizer-priority">
-                    <option value="points">Highest Museum Points</option>
-                    <option value="stamps">Favor stamp matches</option>
-                  </select>
+                  Minimum Target Points
+                  <input id="target-points" type="number" min="0" step="10" value="7500" />
+                </label>
+                <label>
+                  Goal Category
+                  <select id="goal-category"></select>
+                </label>
+                <label>
+                  Goal
+                  <select id="goal-subcategory"></select>
                 </label>
               </div>
+
+              <div id="quick-targets" class="quick-targets"></div>
+              <p id="optimizer-note" class="optimizer-note"></p>
             </article>
 
             <section
@@ -161,6 +222,10 @@
                 <strong id="optimized-rating">—</strong>
               </article>
               <article class="summary-card">
+                <span>Goal Value</span>
+                <strong id="optimized-goal-value">0</strong>
+              </article>
+              <article class="summary-card">
                 <span>Slots Filled</span>
                 <strong id="optimized-filled">0 / 83</strong>
               </article>
@@ -169,21 +234,81 @@
             <section class="results-grid">
               <article class="tool-card">
                 <h2>Recommended Setup</h2>
-                <div id="optimized-list" class="optimized-list"></div>
+                <div class="table-scroll">
+                  <table class="rift-table setup-table">
+                    <thead>
+                      <tr>
+                        <th>Slot</th>
+                        <th>Pedestal</th>
+                        <th>Relic</th>
+                        <th>Level</th>
+                        <th>Points</th>
+                        <th>Goal</th>
+                      </tr>
+                    </thead>
+                    <tbody id="optimized-list"></tbody>
+                  </table>
+                </div>
               </article>
 
               <article class="tool-card">
-                <h2>Current Applied Setup</h2>
-                <div
-                  id="current-setup-list"
-                  class="optimized-list compact"
-                ></div>
+                <h2>Applied Setup / Manual Changes</h2>
+                <div class="table-scroll applied-scroll">
+                  <table class="rift-table setup-table">
+                    <thead>
+                      <tr>
+                        <th>Slot</th>
+                        <th>Pedestal</th>
+                        <th>Relic</th>
+                        <th>Points</th>
+                      </tr>
+                    </thead>
+                    <tbody id="current-setup-list"></tbody>
+                  </table>
+                </div>
               </article>
             </section>
+          </section>
+
+          <section id="panel-buffs" class="tab-panel" role="tabpanel" hidden>
+            <article class="tool-card">
+              <div class="card-head">
+                <div>
+                  <h2>Total Buffs Unlocked</h2>
+                  <p>
+                    Totals are calculated from the buff rows unlocked by your
+                    currently applied museum score.
+                  </p>
+                </div>
+              </div>
+              <div class="table-scroll">
+                <table class="rift-table buff-total-table">
+                  <thead>
+                    <tr>
+                      <th>Buff</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody id="buff-total-list"></tbody>
+                </table>
+              </div>
+            </article>
 
             <article class="tool-card buff-card">
-              <h2>Museum Buff Progress</h2>
-              <div id="buff-list" class="buff-list"></div>
+              <h2>Rating / Buff Progress</h2>
+              <div class="table-scroll">
+                <table class="rift-table buff-table">
+                  <thead>
+                    <tr>
+                      <th>Points</th>
+                      <th>Rating</th>
+                      <th>Buff</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="buff-list"></tbody>
+                </table>
+              </div>
             </article>
           </section>
         </section>
