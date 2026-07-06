@@ -161,8 +161,26 @@
                 </select>
               </div>
 
+              <div class="bulk-actions" aria-label="Bulk owned level actions">
+                <span>Mark shown as</span>
+                <button class="bulk-level-btn" type="button" data-level="">
+                  Unowned
+                </button>
+                <button class="bulk-level-btn" type="button" data-level="6">
+                  6★
+                </button>
+                <button class="bulk-level-btn" type="button" data-level="Awaken">
+                  Awaken
+                </button>
+              </div>
+
               <div class="table-scroll">
                 <table class="rift-table relic-table">
+                  <colgroup>
+                    <col class="relic-name-col" />
+                    <col class="relic-type-col" />
+                    <col class="relic-level-col" />
+                  </colgroup>
                   <thead>
                     <tr>
                       <th>Relic</th>
@@ -246,8 +264,11 @@
                         <th>Pedestal</th>
                         <th>Relic</th>
                         <th>Level</th>
+                        <th>Type</th>
                         <th>Points</th>
-                        <th>Stamp Effects</th>
+                        <th>Stamp 1</th>
+                        <th>Stamp 2</th>
+                        <th>Stamp 3</th>
                       </tr>
                     </thead>
                     <tbody id="optimized-list"></tbody>
@@ -264,8 +285,12 @@
                         <th>Slot</th>
                         <th>Pedestal</th>
                         <th>Relic</th>
-                        <th>Stamp Effects</th>
+                        <th>Level</th>
+                        <th>Type</th>
                         <th>Points</th>
+                        <th>Stamp 1</th>
+                        <th>Stamp 2</th>
+                        <th>Stamp 3</th>
                       </tr>
                     </thead>
                     <tbody id="current-setup-list"></tbody>
@@ -276,45 +301,41 @@
           </section>
 
           <section id="panel-buffs" class="tab-panel" role="tabpanel" hidden>
-            <article class="tool-card">
-              <div class="card-head">
-                <div>
-                  <h2>Total Buffs Unlocked</h2>
-                  <p>
-                    Totals are calculated from the buff rows unlocked by your
-                    currently applied museum score.
-                  </p>
+            <div class="buff-layout">
+              <article class="tool-card buff-total-card">
+                <h2>Total Buffs Unlocked</h2>
+                <p>
+                  Calculated from the buff rows unlocked by your applied score.
+                </p>
+                <div class="table-scroll">
+                  <table class="rift-table buff-total-table">
+                    <thead>
+                      <tr>
+                        <th>Buff</th>
+                        <th>Total</th>
+                      </tr>
+                    </thead>
+                    <tbody id="buff-total-list"></tbody>
+                  </table>
                 </div>
-              </div>
-              <div class="table-scroll">
-                <table class="rift-table buff-total-table">
-                  <thead>
-                    <tr>
-                      <th>Buff</th>
-                      <th>Total</th>
-                    </tr>
-                  </thead>
-                  <tbody id="buff-total-list"></tbody>
-                </table>
-              </div>
-            </article>
+              </article>
 
-            <article class="tool-card buff-card">
-              <h2>Rating / Buff Progress</h2>
-              <div class="table-scroll">
-                <table class="rift-table buff-table">
-                  <thead>
-                    <tr>
-                      <th>Points</th>
-                      <th>Rating</th>
-                      <th>Buff</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody id="buff-list"></tbody>
-                </table>
-              </div>
-            </article>
+              <article class="tool-card buff-progress-card">
+                <h2>Rating / Buff Progress</h2>
+                <div class="table-scroll">
+                  <table class="rift-table buff-table">
+                    <thead>
+                      <tr>
+                        <th>Rating</th>
+                        <th>Req. Points</th>
+                        <th>Buff</th>
+                      </tr>
+                    </thead>
+                    <tbody id="buff-list"></tbody>
+                  </table>
+                </div>
+              </article>
+            </div>
           </section>
         </section>
       </main>

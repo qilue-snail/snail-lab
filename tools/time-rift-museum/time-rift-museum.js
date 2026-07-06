@@ -142,6 +142,7 @@ let ownedRelics = {};
 let appliedAssignments = {};
 let activeTab = "input";
 let latestOptimizedSetup = [];
+let visibleFamilyIds = [];
 
 /* ---------- General helpers ---------- */
 
@@ -794,9 +795,9 @@ function renderGoalControls() {
           const key = `${group.id}:${option.id}`;
           const checked = selected.has(key) ? "checked" : "";
           return `
-            <label class="goal-chip">
+            <label class="goal-check-row">
               <input class="goal-check" type="checkbox" value="${escapeHtml(key)}" ${checked} />
-              ${escapeHtml(option.label)}
+              <span>${escapeHtml(option.label)}</span>
             </label>`;
         })
         .join("");
@@ -854,6 +855,7 @@ function renderInputRelics() {
   if (!body) return;
 
   if (!relicRows.length) {
+    visibleFamilyIds = [];
     body.innerHTML = `<tr class="empty-row"><td colspan="3">Sync relic data to load the relic input list.</td></tr>`;
     setText("visible-count", "0");
     return;
@@ -891,6 +893,7 @@ function renderInputRelics() {
     );
   }
 
+  visibleFamilyIds = items.map((item) => item.family.familyId);
   setText("visible-count", items.length.toLocaleString());
 
   if (!items.length) {
@@ -902,9 +905,7 @@ function renderInputRelics() {
     .map(({ family, owned }) => {
       const buttons = LEVEL_BUTTONS.map((level) => {
         const relic = level.value ? getRelicAtLevel(family, level.value) : null;
-        const active = level.value
-          ? owned?.id === relic?.id
-          : !owned;
+        const active = level.value ? owned?.id === relic?.id : !owned;
         const disabled = Boolean(level.value && !relic);
         return `<button class="level-btn ${level.value ? "" : "none"} ${active ? "active" : ""}" type="button" data-family-id="${escapeHtml(family.familyId)}" data-relic-id="${escapeHtml(relic?.id || "")}" ${disabled ? "disabled" : ""}>${escapeHtml(level.label)}</button>`;
       }).join("");
@@ -932,6 +933,7 @@ function renderInputRelics() {
     });
   });
 }
+
 
 function renderOptimizer() {
   const setup = buildOptimizedSetup();
@@ -973,26 +975,29 @@ function renderOptimizer() {
 }
 
 
+function stampCells(relic) {
+  const stamps = relic?.stampTexts || [];
+  return [0, 1, 2]
+    .map((index) => `<td class="effect-cell">${escapeHtml(stamps[index] || "—")}</td>`)
+    .join("");
+}
+
 function renderSetupRows(setup, emptyText) {
   if (!setup.length) {
-    return `<tr class="empty-row"><td colspan="6">${escapeHtml(emptyText)}</td></tr>`;
+    return `<tr class="empty-row"><td colspan="9">${escapeHtml(emptyText)}</td></tr>`;
   }
 
-  const goals = getSelectedGoals();
-
   return setup
-    .map((item) => {
-      const effects = getMatchedStampText(item.relic, goals);
-      return `
-        <tr>
-          <td>Slot ${item.pedestal.slot}</td>
-          <td><span class="pill slot-${escapeHtml(item.pedestal.type)}">${escapeHtml(item.pedestal.type)}</span></td>
-          <td><strong>${escapeHtml(item.relic.baseName)}</strong></td>
-          <td>${escapeHtml(item.relic.level || item.relic.rank || "?")}</td>
-          <td class="points-cell">${item.points.toLocaleString()}</td>
-          <td class="effect-cell">${escapeHtml(effects)}</td>
-        </tr>`;
-    })
+    .map((item) => `
+      <tr>
+        <td>Slot ${item.pedestal.slot}</td>
+        <td><span class="pill slot-${escapeHtml(item.pedestal.type)}">${escapeHtml(item.pedestal.type)}</span></td>
+        <td><strong>${escapeHtml(item.relic.baseName)}</strong></td>
+        <td>${escapeHtml(item.relic.level || item.relic.rank || "?")}</td>
+        <td><span class="pill slot-${escapeHtml(item.relic.type)}">${escapeHtml(item.relic.type || "—")}</span></td>
+        <td class="points-cell">${item.points.toLocaleString()}</td>
+        ${stampCells(item.relic)}
+      </tr>`)
     .join("");
 }
 
@@ -1001,7 +1006,7 @@ function renderAppliedSetupRows() {
   const owned = getOwnedRelics();
 
   if (!owned.length) {
-    return `<tr class="empty-row"><td colspan="5">Add owned relics before manually changing setup slots.</td></tr>`;
+    return `<tr class="empty-row"><td colspan="9">Add owned relics before manually changing setup slots.</td></tr>`;
   }
 
   return TIME_RIFT_PEDESTALS.map((pedestal) => {
@@ -1009,10 +1014,7 @@ function renderAppliedSetupRows() {
     const options = [`<option value="">Empty</option>`]
       .concat(
         owned
-          .map((relic) => ({
-            relic,
-            points: scoreRelic(relic, pedestal.type),
-          }))
+          .map((relic) => ({ relic, points: scoreRelic(relic, pedestal.type) }))
           .sort(
             (a, b) =>
               b.points - a.points || a.relic.baseName.localeCompare(b.relic.baseName),
@@ -1025,22 +1027,21 @@ function renderAppliedSetupRows() {
       )
       .join("");
     const points = currentRelic ? scoreRelic(currentRelic, pedestal.type) : 0;
-    const level = currentRelic?.level || currentRelic?.rank || "";
+    const level = currentRelic?.level || currentRelic?.rank || "—";
 
     return `
       <tr>
         <td>Slot ${pedestal.slot}</td>
         <td><span class="pill slot-${escapeHtml(pedestal.type)}">${escapeHtml(pedestal.type)}</span></td>
         <td>
-          <div class="relic-choice">
-            <select class="setup-select" data-slot="${pedestal.slot}">
-              ${options}
-            </select>
-            ${currentRelic ? `<small>${escapeHtml(level)}</small>` : ""}
-          </div>
+          <select class="setup-select" data-slot="${pedestal.slot}">
+            ${options}
+          </select>
         </td>
-        <td class="effect-cell">${escapeHtml(currentRelic?.effectText || "—")}</td>
+        <td>${escapeHtml(level)}</td>
+        <td>${currentRelic ? `<span class="pill slot-${escapeHtml(currentRelic.type)}">${escapeHtml(currentRelic.type || "—")}</span>` : "—"}</td>
         <td class="points-cell">${points ? points.toLocaleString() : "—"}</td>
+        ${stampCells(currentRelic)}
       </tr>`;
   }).join("");
 }
@@ -1073,17 +1074,22 @@ function renderBuffProgress() {
   if (!body) return;
 
   const total = assignmentPoints(appliedAssignments);
+  let lastRating = "";
+
   body.innerHTML = TIME_RIFT_THRESHOLDS.map((threshold) => {
     const unlocked = total >= threshold.points;
+    const showRating = threshold.rating !== lastRating;
+    lastRating = threshold.rating;
+
     return `
       <tr class="${unlocked ? "unlocked" : "locked"}">
-        <td>${threshold.points.toLocaleString()}</td>
-        <td>${threshold.rating}</td>
+        <td class="rating-cell">${showRating ? escapeHtml(threshold.rating) : ""}</td>
+        <td>${threshold.points.toLocaleString()} points</td>
         <td>${escapeHtml(threshold.buff)}</td>
-        <td>${unlocked ? "Unlocked" : "Locked"}</td>
       </tr>`;
   }).join("");
 }
+
 
 function renderBuffTotals() {
   const body = document.getElementById("buff-total-list");
@@ -1109,11 +1115,14 @@ function renderBuffTotals() {
 
   body.innerHTML = rows
     .map(
-      ([label, value]) => `
-        <tr>
+      ([label, value]) => {
+        const hasValue = !/^0/.test(String(value));
+        return `
+        <tr class="${hasValue ? "has-value" : ""}">
           <td>${escapeHtml(label)}</td>
           <td><strong>${escapeHtml(value)}</strong></td>
-        </tr>`,
+        </tr>`;
+      },
     )
     .join("");
 }
@@ -1166,6 +1175,36 @@ function formatSigned(value, suffix) {
   return value ? `+${value.toLocaleString()}${suffix}` : `0${suffix}`;
 }
 
+
+function applyBulkOwnedLevel(levelValue) {
+  if (!visibleFamilyIds.length) return;
+
+  const familyMap = new Map(getFamilies().map((family) => [family.familyId, family]));
+  let changed = 0;
+
+  visibleFamilyIds.forEach((familyId) => {
+    const family = familyMap.get(familyId);
+    if (!family) return;
+
+    if (!levelValue) {
+      if (ownedRelics[familyId]) changed++;
+      delete ownedRelics[familyId];
+      return;
+    }
+
+    const relic = getRelicAtLevel(family, levelValue);
+    if (relic) {
+      if (ownedRelics[familyId] !== relic.id) changed++;
+      ownedRelics[familyId] = relic.id;
+    }
+  });
+
+  if (!changed) return;
+  cleanAssignmentsAgainstOwned();
+  saveState();
+  renderAll();
+}
+
 /* ---------- Events ---------- */
 
 function bindEvents() {
@@ -1187,6 +1226,10 @@ function bindEvents() {
 
   document.getElementById("target-points")?.addEventListener("input", renderAll);
   document.getElementById("goal-selector")?.addEventListener("change", renderAll);
+
+  document.querySelectorAll(".bulk-level-btn").forEach((button) => {
+    button.addEventListener("click", () => applyBulkOwnedLevel(button.dataset.level || ""));
+  });
 
   document.querySelectorAll(".rift-tab").forEach((button) => {
     button.addEventListener("click", () => {
