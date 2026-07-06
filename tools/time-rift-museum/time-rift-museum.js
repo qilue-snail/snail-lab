@@ -110,6 +110,7 @@ const GOAL_GROUPS = [
     label: "Resources / Progress",
     options: [
       { id: "dragon-orbs", label: "Dragon Orbs" },
+      { id: "incense", label: "Incense" },
       { id: "b-tads", label: "B-tads" },
       { id: "medals", label: "Museum Medals" },
       { id: "intel", label: "Intel" },
@@ -467,11 +468,29 @@ function getNextThreshold(points) {
 
 /* ---------- Goal matching ---------- */
 
-function getSelectedGoal() {
-  const category = document.getElementById("goal-category")?.value || "element";
-  const subcategory =
-    document.getElementById("goal-subcategory")?.value || "any";
-  return { category, subcategory };
+function goalKey(goal) {
+  return `${goal.category}:${goal.subcategory}`;
+}
+
+function getSelectedGoals() {
+  const checked = Array.from(document.querySelectorAll(".goal-check:checked"));
+  const goals = checked.map((input) => {
+    const [category, subcategory] = input.value.split(":");
+    return { category, subcategory };
+  });
+
+  return goals.length ? goals : [{ category: "score", subcategory: "points" }];
+}
+
+function getSelectedGoalLabels() {
+  const goals = getSelectedGoals();
+  return goals
+    .filter((goal) => goal.category !== "score")
+    .map((goal) => {
+      const group = GOAL_GROUPS.find((item) => item.id === goal.category);
+      const option = group?.options.find((item) => item.id === goal.subcategory);
+      return option?.label || group?.label || "Goal";
+    });
 }
 
 function extractGoalNumber(text) {
@@ -491,7 +510,10 @@ function stampMatchesGoal(stamp, goal) {
     if (goal.subcategory === "any") {
       return /fire|water|earth|wind|all\s*elmt|all\s*element|elemental|elmt/i.test(text);
     }
-    return lower.includes(goal.subcategory) || /all\s*elmt|all\s*element|elemental/i.test(lower);
+    return (
+      lower.includes(goal.subcategory) ||
+      /all\s*elmt|all\s*element|elemental/i.test(lower)
+    );
   }
 
   if (goal.category === "cells") {
@@ -517,6 +539,7 @@ function stampMatchesGoal(stamp, goal) {
   if (goal.category === "resource") {
     const resourcePatterns = {
       "dragon-orbs": /dragon\s*orbs?/i,
+      incense: /incense/i,
       "b-tads": /b-?tads?|black\s*tads?/i,
       medals: /medals?/i,
       intel: /intel/i,
@@ -536,18 +559,24 @@ function stampMatchesGoal(stamp, goal) {
   return false;
 }
 
-function goalValueForRelic(relic, goal) {
+function goalValueForRelic(relic, goals) {
   if (!relic) return 0;
-  if (goal.category === "score") return 0;
+  const activeGoals = Array.isArray(goals) ? goals : [goals];
 
-  return relic.stampTexts.reduce((total, stamp) => {
-    if (!stampMatchesGoal(stamp, goal)) return total;
+  return activeGoals.reduce((goalTotal, goal) => {
+    if (goal.category === "score") return goalTotal;
 
-    const value = extractGoalNumber(stamp);
-    if (goal.category === "resource" && goal.subcategory === "food") {
-      return total + Math.abs(value);
-    }
-    return total + Math.max(0, value);
+    const stampTotal = relic.stampTexts.reduce((total, stamp) => {
+      if (!stampMatchesGoal(stamp, goal)) return total;
+
+      const value = extractGoalNumber(stamp);
+      if (goal.category === "resource" && goal.subcategory === "food") {
+        return total + Math.abs(value);
+      }
+      return total + Math.max(0, value);
+    }, 0);
+
+    return goalTotal + stampTotal;
   }, 0);
 }
 
@@ -557,6 +586,16 @@ function relicHasStampFilter(relic, filterValue) {
   return relic.stampTexts.some((stamp) =>
     stampMatchesGoal(stamp, { category, subcategory }),
   );
+}
+
+function getMatchedStampText(relic, goals) {
+  if (!relic) return "—";
+  const activeGoals = Array.isArray(goals) ? goals : getSelectedGoals();
+  const goalStamps = relic.stampTexts.filter((stamp) =>
+    activeGoals.some((goal) => goal.category !== "score" && stampMatchesGoal(stamp, goal)),
+  );
+
+  return (goalStamps.length ? goalStamps : relic.stampTexts).join(" | ") || "—";
 }
 
 /* ---------- Optimizer ---------- */
@@ -574,14 +613,14 @@ function totalSetupPoints(setup) {
   return setup.reduce((total, item) => total + item.points, 0);
 }
 
-function buildWeightedSetup(goal, pointWeight, goalWeight) {
+function buildWeightedSetup(goals, pointWeight, goalWeight) {
   const owned = getOwnedRelics();
   const candidates = [];
 
   TIME_RIFT_PEDESTALS.forEach((pedestal) => {
     owned.forEach((relic) => {
       const points = scoreRelic(relic, pedestal.type);
-      const goalValue = goalValueForRelic(relic, goal);
+      const goalValue = goalValueForRelic(relic, goals);
       const weightedScore = points * pointWeight + goalValue * goalWeight;
 
       if (points > 0 || goalValue > 0) {
@@ -614,19 +653,20 @@ function buildWeightedSetup(goal, pointWeight, goalWeight) {
   return setup.sort((a, b) => a.pedestal.slot - b.pedestal.slot);
 }
 
-function compareSetups(a, b, targetPoints, goal) {
+function compareSetups(a, b, targetPoints, goals) {
   const aPoints = totalSetupPoints(a);
   const bPoints = totalSetupPoints(b);
   const aGoal = totalGoalValue(a);
   const bGoal = totalGoalValue(b);
   const aMeets = aPoints >= targetPoints;
   const bMeets = bPoints >= targetPoints;
+  const hasStampGoal = goals.some((goal) => goal.category !== "score");
 
   if (aMeets !== bMeets) return aMeets ? -1 : 1;
 
   if (aMeets && bMeets) {
-    if (goal.category !== "score" && aGoal !== bGoal) return bGoal - aGoal;
-    if (goal.category === "score" && aPoints !== bPoints) return bPoints - aPoints;
+    if (hasStampGoal && aGoal !== bGoal) return bGoal - aGoal;
+    if (!hasStampGoal && aPoints !== bPoints) return bPoints - aPoints;
     return aPoints - bPoints;
   }
 
@@ -636,21 +676,22 @@ function compareSetups(a, b, targetPoints, goal) {
 }
 
 function buildOptimizedSetup() {
-  const goal = getSelectedGoal();
+  const goals = getSelectedGoals();
   const targetPoints = getTargetPoints();
+  const hasStampGoal = goals.some((goal) => goal.category !== "score");
   const pointWeights = [0.1, 0.25, 0.5, 1, 2, 4, 8, 16, 32];
-  const goalWeights = goal.category === "score"
-    ? [0]
-    : [0.5, 1, 2, 4, 8, 16, 32, 64, 128];
+  const goalWeights = hasStampGoal
+    ? [0.5, 1, 2, 4, 8, 16, 32, 64, 128]
+    : [0];
 
   const setups = [];
   pointWeights.forEach((pointWeight) => {
     goalWeights.forEach((goalWeight) => {
-      setups.push(buildWeightedSetup(goal, pointWeight, goalWeight));
+      setups.push(buildWeightedSetup(goals, pointWeight, goalWeight));
     });
   });
 
-  setups.sort((a, b) => compareSetups(a, b, targetPoints, goal));
+  setups.sort((a, b) => compareSetups(a, b, targetPoints, goals));
   latestOptimizedSetup = setups[0] || [];
   return latestOptimizedSetup;
 }
@@ -737,38 +778,66 @@ function renderSummary() {
 }
 
 function renderGoalControls() {
-  const categorySelect = document.getElementById("goal-category");
-  const subcategorySelect = document.getElementById("goal-subcategory");
-  if (!categorySelect || !subcategorySelect) return;
+  const container = document.getElementById("goal-selector");
+  if (!container) return;
 
-  const previousCategory = categorySelect.value || "element";
-  const previousSubcategory = subcategorySelect.value || "any";
+  const selected = new Set(
+    Array.from(document.querySelectorAll(".goal-check:checked")).map(
+      (input) => input.value,
+    ),
+  );
 
-  categorySelect.innerHTML = GOAL_GROUPS.map(
-    (group) =>
-      `<option value="${group.id}" ${group.id === previousCategory ? "selected" : ""}>${escapeHtml(group.label)}</option>`,
-  ).join("");
+  container.innerHTML = GOAL_GROUPS.filter((group) => group.id !== "score")
+    .map((group) => {
+      const options = group.options
+        .map((option) => {
+          const key = `${group.id}:${option.id}`;
+          const checked = selected.has(key) ? "checked" : "";
+          return `
+            <label class="goal-chip">
+              <input class="goal-check" type="checkbox" value="${escapeHtml(key)}" ${checked} />
+              ${escapeHtml(option.label)}
+            </label>`;
+        })
+        .join("");
 
-  const selectedGroup =
-    GOAL_GROUPS.find((group) => group.id === categorySelect.value) || GOAL_GROUPS[0];
-
-  subcategorySelect.innerHTML = selectedGroup.options
-    .map(
-      (option) =>
-        `<option value="${option.id}" ${option.id === previousSubcategory ? "selected" : ""}>${escapeHtml(option.label)}</option>`,
-    )
+      return `
+        <section class="goal-group">
+          <span class="goal-group-title">${escapeHtml(group.label)}</span>
+          <div class="goal-options">${options}</div>
+        </section>`;
+    })
     .join("");
 }
+
 
 function renderQuickTargets() {
   const container = document.getElementById("quick-targets");
   if (!container) return;
 
   const currentTarget = getTargetPoints();
-  container.innerHTML = TIME_RIFT_THRESHOLDS.map((threshold) => {
-    const active = currentTarget === threshold.points;
-    return `<button class="quick-target-btn ${active ? "active" : ""}" type="button" data-target="${threshold.points}">${threshold.rating} ${threshold.points.toLocaleString()}</button>`;
-  }).join("");
+  const byRating = TIME_RIFT_THRESHOLDS.reduce((map, threshold) => {
+    if (!map.has(threshold.rating)) map.set(threshold.rating, []);
+    map.get(threshold.rating).push(threshold);
+    return map;
+  }, new Map());
+
+  container.innerHTML = Array.from(byRating.entries())
+    .map(([rating, thresholds]) => {
+      const buttons = thresholds
+        .map((threshold) => {
+          const active = currentTarget === threshold.points;
+          return `<button class="quick-target-btn ${active ? "active" : ""}" type="button" data-target="${threshold.points}">${threshold.points.toLocaleString()}</button>`;
+        })
+        .join("");
+
+      return `
+        <div class="target-group">
+          <span class="target-group-label">${escapeHtml(rating)}</span>
+          <div class="target-group-buttons">${buttons}</div>
+        </div>`;
+    })
+    .join("");
 
   container.querySelectorAll("[data-target]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -778,6 +847,7 @@ function renderQuickTargets() {
     });
   });
 }
+
 
 function renderInputRelics() {
   const body = document.getElementById("owned-relic-list");
@@ -842,7 +912,7 @@ function renderInputRelics() {
       return `
         <tr class="${owned ? "relic-row-owned" : ""}">
           <td><strong>${escapeHtml(family.name)}</strong></td>
-          <td><span class="type-pill type-${escapeHtml(family.type)}">${escapeHtml(family.type || "—")}</span></td>
+          <td><span class="pill slot-${escapeHtml(family.type)}">${escapeHtml(family.type || "—")}</span></td>
           <td><div class="level-buttons">${buttons}</div></td>
         </tr>`;
     })
@@ -866,22 +936,25 @@ function renderInputRelics() {
 function renderOptimizer() {
   const setup = buildOptimizedSetup();
   const total = totalSetupPoints(setup);
-  const goalTotal = totalGoalValue(setup);
   const target = getTargetPoints();
   const optimizedList = document.getElementById("optimized-list");
   const currentList = document.getElementById("current-setup-list");
 
   setText("optimized-points", total.toLocaleString());
   setText("optimized-rating", getRating(total));
-  setText("optimized-goal-value", goalTotal.toLocaleString());
   setText("optimized-filled", `${setup.length} / ${TIME_RIFT_PEDESTALS.length}`);
 
   const optimizerNote = document.getElementById("optimizer-note");
   if (optimizerNote) {
     const targetReached = total >= target;
+    const goalLabels = getSelectedGoalLabels();
+    const goalText = goalLabels.length
+      ? ` Goals: ${goalLabels.join(", ")}.`
+      : " No stamp goals selected; using score as the tiebreaker.";
+
     optimizerNote.textContent = targetReached
-      ? `Target met: ${total.toLocaleString()} / ${target.toLocaleString()} points.`
-      : `Target not reachable yet: ${total.toLocaleString()} / ${target.toLocaleString()} points.`;
+      ? `Target met: ${total.toLocaleString()} / ${target.toLocaleString()} points.${goalText}`
+      : `Target not reachable yet: ${total.toLocaleString()} / ${target.toLocaleString()} points.${goalText}`;
     optimizerNote.classList.toggle("warning", !targetReached);
   }
 
@@ -891,7 +964,6 @@ function renderOptimizer() {
       total < target
         ? `Target not reachable with currently owned relics. Best result is ${total.toLocaleString()} points.`
         : "No optimized setup yet. Add owned relics on the Input Relics tab first.",
-      true,
     );
   }
 
@@ -900,34 +972,36 @@ function renderOptimizer() {
   }
 }
 
-function renderSetupRows(setup, emptyText, showGoal) {
+
+function renderSetupRows(setup, emptyText) {
   if (!setup.length) {
     return `<tr class="empty-row"><td colspan="6">${escapeHtml(emptyText)}</td></tr>`;
   }
 
+  const goals = getSelectedGoals();
+
   return setup
     .map((item) => {
-      const goalCell = showGoal
-        ? `<td class="goal-cell">${item.goalValue ? item.goalValue.toLocaleString() : "—"}</td>`
-        : "";
+      const effects = getMatchedStampText(item.relic, goals);
       return `
         <tr>
           <td>Slot ${item.pedestal.slot}</td>
-          <td><span class="type-pill type-${escapeHtml(item.pedestal.type)}">${escapeHtml(item.pedestal.type)}</span></td>
+          <td><span class="pill slot-${escapeHtml(item.pedestal.type)}">${escapeHtml(item.pedestal.type)}</span></td>
           <td><strong>${escapeHtml(item.relic.baseName)}</strong></td>
           <td>${escapeHtml(item.relic.level || item.relic.rank || "?")}</td>
           <td class="points-cell">${item.points.toLocaleString()}</td>
-          ${goalCell}
+          <td class="effect-cell">${escapeHtml(effects)}</td>
         </tr>`;
     })
     .join("");
 }
 
+
 function renderAppliedSetupRows() {
   const owned = getOwnedRelics();
 
   if (!owned.length) {
-    return `<tr class="empty-row"><td colspan="4">Add owned relics before manually changing setup slots.</td></tr>`;
+    return `<tr class="empty-row"><td colspan="5">Add owned relics before manually changing setup slots.</td></tr>`;
   }
 
   return TIME_RIFT_PEDESTALS.map((pedestal) => {
@@ -945,25 +1019,32 @@ function renderAppliedSetupRows() {
           )
           .map(({ relic, points }) => {
             const selected = relic.id === currentRelic?.id ? "selected" : "";
-            return `<option value="${escapeHtml(relic.id)}" ${selected}>${escapeHtml(relic.baseName)} (${escapeHtml(relic.level || relic.rank || "?")}) — ${points.toLocaleString()}</option>`;
+            const level = relic.level || relic.rank || "?";
+            return `<option value="${escapeHtml(relic.id)}" ${selected}>${escapeHtml(relic.baseName)} · ${escapeHtml(level)} · ${points.toLocaleString()}</option>`;
           }),
       )
       .join("");
     const points = currentRelic ? scoreRelic(currentRelic, pedestal.type) : 0;
+    const level = currentRelic?.level || currentRelic?.rank || "";
 
     return `
       <tr>
         <td>Slot ${pedestal.slot}</td>
-        <td><span class="type-pill type-${escapeHtml(pedestal.type)}">${escapeHtml(pedestal.type)}</span></td>
+        <td><span class="pill slot-${escapeHtml(pedestal.type)}">${escapeHtml(pedestal.type)}</span></td>
         <td>
-          <select class="setup-select" data-slot="${pedestal.slot}">
-            ${options}
-          </select>
+          <div class="relic-choice">
+            <select class="setup-select" data-slot="${pedestal.slot}">
+              ${options}
+            </select>
+            ${currentRelic ? `<small>${escapeHtml(level)}</small>` : ""}
+          </div>
         </td>
+        <td class="effect-cell">${escapeHtml(currentRelic?.effectText || "—")}</td>
         <td class="points-cell">${points ? points.toLocaleString() : "—"}</td>
       </tr>`;
   }).join("");
 }
+
 
 function bindAppliedSetupSelects() {
   document.querySelectorAll(".setup-select").forEach((select) => {
@@ -1105,12 +1186,7 @@ function bindEvents() {
   });
 
   document.getElementById("target-points")?.addEventListener("input", renderAll);
-  document.getElementById("goal-category")?.addEventListener("change", () => {
-    const subcategory = document.getElementById("goal-subcategory");
-    if (subcategory) subcategory.value = "";
-    renderAll();
-  });
-  document.getElementById("goal-subcategory")?.addEventListener("change", renderAll);
+  document.getElementById("goal-selector")?.addEventListener("change", renderAll);
 
   document.querySelectorAll(".rift-tab").forEach((button) => {
     button.addEventListener("click", () => {

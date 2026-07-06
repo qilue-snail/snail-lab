@@ -148,6 +148,7 @@
                   <option value="element:wind">Wind DMG</option>
                   <option value="cells:any">Any cells</option>
                   <option value="resource:dragon-orbs">Dragon Orbs</option>
+                  <option value="resource:incense">Incense</option>
                   <option value="stat:atk">ATK</option>
                   <option value="stat:def">DEF</option>
                   <option value="stat:hp">HP</option>
@@ -193,19 +194,26 @@
               <div class="optimizer-controls">
                 <label>
                   Minimum Target Points
-                  <input id="target-points" type="number" min="0" step="10" value="7500" />
+                  <input
+                    id="target-points"
+                    type="number"
+                    min="0"
+                    step="10"
+                    value="7500"
+                  />
                 </label>
-                <label>
-                  Goal Category
-                  <select id="goal-category"></select>
-                </label>
-                <label>
-                  Goal
-                  <select id="goal-subcategory"></select>
-                </label>
+
+                <div id="quick-targets" class="quick-targets"></div>
               </div>
 
-              <div id="quick-targets" class="quick-targets"></div>
+              <div class="goal-panel">
+                <div class="goal-panel-head">
+                  <h3>Optimize Goals</h3>
+                  <p>Select one or more stamp goals. Score target is always met first.</p>
+                </div>
+                <div id="goal-selector" class="goal-grid"></div>
+              </div>
+
               <p id="optimizer-note" class="optimizer-note"></p>
             </article>
 
@@ -220,10 +228,6 @@
               <article class="summary-card">
                 <span>Optimized Rating</span>
                 <strong id="optimized-rating">—</strong>
-              </article>
-              <article class="summary-card">
-                <span>Goal Value</span>
-                <strong id="optimized-goal-value">0</strong>
               </article>
               <article class="summary-card">
                 <span>Slots Filled</span>
@@ -243,7 +247,7 @@
                         <th>Relic</th>
                         <th>Level</th>
                         <th>Points</th>
-                        <th>Goal</th>
+                        <th>Stamp Effects</th>
                       </tr>
                     </thead>
                     <tbody id="optimized-list"></tbody>
@@ -260,6 +264,7 @@
                         <th>Slot</th>
                         <th>Pedestal</th>
                         <th>Relic</th>
+                        <th>Stamp Effects</th>
                         <th>Points</th>
                       </tr>
                     </thead>
