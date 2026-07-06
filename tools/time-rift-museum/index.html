@@ -18,7 +18,7 @@
               <p class="eyebrow">Super Snail</p>
               <h1>Time Rift Museum</h1>
               <p class="subtitle">
-                Mark the relic levels you own, choose a minimum score target,
+                Mark the relic levels you own, choose a minimum AFFCT target,
                 then optimize the setup for the stamp goal you care about.
               </p>
             </div>
@@ -35,7 +35,7 @@
 
           <section class="summary-grid" aria-label="Museum summary">
             <article class="summary-card">
-              <span>Current Points</span>
+              <span>Current AFFCT</span>
               <strong id="total-points">0</strong>
             </article>
             <article class="summary-card">
@@ -48,11 +48,11 @@
             </article>
             <article class="summary-card wide">
               <span>Next Unlock</span>
-              <strong id="next-threshold">120 (C)</strong>
+              <strong id="next-threshold">80 (C)</strong>
               <div class="progress-track">
                 <span id="rank-progress-bar"></span>
               </div>
-              <small>Need <b id="points-needed">120</b> points</small>
+              <small>Need <b id="points-needed">80</b> AFFCT</small>
             </article>
           </section>
 
@@ -200,7 +200,7 @@
                 <div>
                   <h2>Optimizer</h2>
                   <p>
-                    Set the minimum museum score you want to hit. The optimizer
+                    Set the minimum museum AFFCT you want to hit. The optimizer
                     meets that target first, then maximizes your stamp goal.
                   </p>
                 </div>
@@ -211,13 +211,13 @@
 
               <div class="optimizer-controls">
                 <label>
-                  Minimum Target Points
+                  Minimum Target AFFCT
                   <input
                     id="target-points"
                     type="number"
                     min="0"
                     step="10"
-                    value="7500"
+                    value="1800"
                   />
                 </label>
 
@@ -227,7 +227,7 @@
               <div class="goal-panel">
                 <div class="goal-panel-head">
                   <h3>Optimize Goals</h3>
-                  <p>Select one or more stamp goals. Score target is always met first.</p>
+                  <p>Select one or more stamp goals. AFFCT target is always met first.</p>
                 </div>
                 <div id="goal-selector" class="goal-grid"></div>
               </div>
@@ -240,7 +240,7 @@
               aria-label="Optimizer summary"
             >
               <article class="summary-card">
-                <span>Optimized Points</span>
+                <span>Optimized AFFCT</span>
                 <strong id="optimized-points">0</strong>
               </article>
               <article class="summary-card">
@@ -265,7 +265,7 @@
                         <th>Relic</th>
                         <th>Level</th>
                         <th>Type</th>
-                        <th>Points</th>
+                        <th>AFFCT</th>
                         <th>Stamp 1</th>
                         <th>Stamp 2</th>
                         <th>Stamp 3</th>
@@ -287,7 +287,7 @@
                         <th>Relic</th>
                         <th>Level</th>
                         <th>Type</th>
-                        <th>Points</th>
+                        <th>AFFCT</th>
                         <th>Stamp 1</th>
                         <th>Stamp 2</th>
                         <th>Stamp 3</th>

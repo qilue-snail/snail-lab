@@ -670,10 +670,21 @@ button:disabled,
   width: 54px;
   color: #5b426b;
   text-align: left;
+  vertical-align: middle;
 }
 
-.buff-table .locked td {
-  opacity: 0.7;
+.buff-table .req-cell {
+  width: 90px;
+  white-space: nowrap;
+}
+
+.buff-table tr.group-start td {
+  border-top-width: 2px;
+}
+
+.buff-table .locked td,
+.buff-table .unlocked td {
+  opacity: 1;
 }
 
 /* Responsive */

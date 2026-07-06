@@ -26,43 +26,26 @@ const TIME_RIFT_PEDESTALS = Array.from({ length: 83 }, (_, index) => {
 });
 
 const TIME_RIFT_THRESHOLDS = [
-  { points: 120, rating: "C", buff: "In the Rift, Snail ATK +40" },
-  { points: 250, rating: "C", buff: "In the Rift, Snail DEF +40" },
-  { points: 380, rating: "C", buff: "In the Rift, Travel Speed +2%" },
-  { points: 520, rating: "C", buff: "In the Rift, DMG +5%" },
-  { points: 660, rating: "C", buff: "In the Rift, INTEL gained +5%" },
-  { points: 800, rating: "C", buff: "Rift Museum B-tad Output +500" },
-  { points: 950, rating: "B", buff: "Rift Museum Medal Output +10" },
-  { points: 1100, rating: "B", buff: "In the Rift, Snail RUSH +40" },
-  { points: 1250, rating: "B", buff: "In the Rift, Snail HP +400" },
-  { points: 1400, rating: "B", buff: "In the Rift, Travel SPD +2%" },
-  { points: 1550, rating: "B", buff: "In the Rift, DMG +5%" },
-  { points: 1700, rating: "B", buff: "In the Rift, Cells collected +5%" },
-  { points: 1850, rating: "B", buff: "In the Rift, food consumed -5%" },
-  { points: 2000, rating: "B", buff: "Rift Museum B-tad Output +2000" },
-  { points: 2200, rating: "A", buff: "Rift Museum Medal Output +40" },
-  { points: 2400, rating: "A", buff: "In the Rift, Snail ATK +80" },
-  { points: 2600, rating: "A", buff: "In the Rift, Snail DEF +80" },
-  { points: 2800, rating: "A", buff: "In the Rift, Travel SPD +2%" },
-  { points: 3000, rating: "A", buff: "In the Rift, DMG +5%" },
-  { points: 3200, rating: "A", buff: "In the Rift, B-tads gained +5%" },
-  { points: 3400, rating: "A", buff: "Rift Museum B-tad Output +6000" },
-  { points: 3600, rating: "S", buff: "Rift Museum Medal Output +80" },
-  { points: 3800, rating: "S", buff: "In the Rift, Snail RUSH +80" },
-  { points: 4000, rating: "S", buff: "In the Rift, Snail HP +800" },
-  { points: 4300, rating: "S", buff: "In the Rift, Travel SPD +2%" },
-  { points: 4600, rating: "S", buff: "In the Rift, DMG +5%" },
-  { points: 5000, rating: "S", buff: "Rift Museum B-tad Output +10000" },
-  { points: 5400, rating: "S+", buff: "Rift Museum Medal Output +160" },
-  { points: 5800, rating: "S+", buff: "In the Rift, Snail ATK +160" },
-  { points: 6200, rating: "S+", buff: "In the Rift, Snail DEF +160" },
-  { points: 6600, rating: "S+", buff: "In the Rift, DMG +5%" },
-  { points: 7000, rating: "S+", buff: "Rift Museum B-tad Output +15000" },
-  { points: 7500, rating: "SS", buff: "Rift Museum Medal Output +160" },
-  { points: 8000, rating: "SS", buff: "In the Rift, Snail RUSH +160" },
-  { points: 8500, rating: "SS", buff: "In the Rift, Snail HP +1600" },
-  { points: 9000, rating: "SS", buff: "In the Rift, DMG +5%" },
-  { points: 9500, rating: "SS", buff: "Rift Museum B-tad Output +20000" },
+  { points: 80, rating: "C", buff: "In [Realm], Snail ATK +20" },
+  { points: 150, rating: "C", buff: "In [Realm], Snail DEF +20" },
+  { points: 220, rating: "C", buff: "In [Realm], INTEL gained +5%" },
+  { points: 290, rating: "C", buff: "[Realm] Museum B-tad Output +500" },
+  { points: 360, rating: "C", buff: "[Realm] Museum Medal Output +10" },
+  { points: 460, rating: "B", buff: "In [Realm], Snail RUSH +20" },
+  { points: 530, rating: "B", buff: "In [Realm], Snail HP +200" },
+  { points: 600, rating: "B", buff: "In [Realm], Cells collected +5%" },
+  { points: 640, rating: "B", buff: "In [Realm] Domain, Troop Casualty -30%" },
+  { points: 670, rating: "B", buff: "[Realm] Museum B-tad Output +1000" },
+  { points: 740, rating: "A", buff: "[Realm] Museum Medal Output +20" },
+  { points: 850, rating: "A", buff: "In [Realm], Snail ATK +50" },
+  { points: 930, rating: "A", buff: "In [Realm], Snail DEF +50" },
+  { points: 1010, rating: "A", buff: "In [Realm] Domain, Troop Casualty 30%" },
+  { points: 1090, rating: "A", buff: "[Realm] Museum B-tad Output +3000" },
+  { points: 1170, rating: "S", buff: "[Realm] Museum Medal Output +40" },
+  { points: 1300, rating: "S", buff: "In [Realm], Snail RUSH +50" },
+  { points: 1400, rating: "S", buff: "In [Realm], Snail HP +500" },
+  { points: 1650, rating: "S", buff: "[Realm] Museum B-tad Output +5000" },
+  { points: 1800, rating: "S+", buff: "[Realm] Museum Medal Output +80" },
 ];
 
 const GOAL_GROUPS = [
@@ -132,8 +115,8 @@ const GOAL_GROUPS = [
   },
   {
     id: "score",
-    label: "Museum Score",
-    options: [{ id: "points", label: "Highest Points" }],
+    label: "AFFCT",
+    options: [{ id: "points", label: "Highest AFFCT" }],
   },
 ];
 
@@ -955,8 +938,8 @@ function renderOptimizer() {
       : " No stamp goals selected; using score as the tiebreaker.";
 
     optimizerNote.textContent = targetReached
-      ? `Target met: ${total.toLocaleString()} / ${target.toLocaleString()} points.${goalText}`
-      : `Target not reachable yet: ${total.toLocaleString()} / ${target.toLocaleString()} points.${goalText}`;
+      ? `Target met: ${total.toLocaleString()} / ${target.toLocaleString()} AFFCT.${goalText}`
+      : `Target not reachable yet: ${total.toLocaleString()} / ${target.toLocaleString()} AFFCT.${goalText}`;
     optimizerNote.classList.toggle("warning", !targetReached);
   }
 
@@ -964,7 +947,7 @@ function renderOptimizer() {
     optimizedList.innerHTML = renderSetupRows(
       setup,
       total < target
-        ? `Target not reachable with currently owned relics. Best result is ${total.toLocaleString()} points.`
+        ? `Target not reachable with currently owned relics. Best result is ${total.toLocaleString()} AFFCT.`
         : "No optimized setup yet. Add owned relics on the Input Relics tab first.",
     );
   }
@@ -1022,7 +1005,7 @@ function renderAppliedSetupRows() {
           .map(({ relic, points }) => {
             const selected = relic.id === currentRelic?.id ? "selected" : "";
             const level = relic.level || relic.rank || "?";
-            return `<option value="${escapeHtml(relic.id)}" ${selected}>${escapeHtml(relic.baseName)} · ${escapeHtml(level)} · ${points.toLocaleString()}</option>`;
+            return `<option value="${escapeHtml(relic.id)}" ${selected}>${escapeHtml(relic.baseName)} · ${escapeHtml(level)}</option>`;
           }),
       )
       .join("");
@@ -1074,22 +1057,32 @@ function renderBuffProgress() {
   if (!body) return;
 
   const total = assignmentPoints(appliedAssignments);
-  let lastRating = "";
+  const groups = TIME_RIFT_THRESHOLDS.reduce((map, threshold) => {
+    if (!map.has(threshold.rating)) map.set(threshold.rating, []);
+    map.get(threshold.rating).push(threshold);
+    return map;
+  }, new Map());
 
-  body.innerHTML = TIME_RIFT_THRESHOLDS.map((threshold) => {
-    const unlocked = total >= threshold.points;
-    const showRating = threshold.rating !== lastRating;
-    lastRating = threshold.rating;
+  body.innerHTML = Array.from(groups.entries())
+    .map(([rating, thresholds]) =>
+      thresholds
+        .map((threshold, index) => {
+          const unlocked = total >= threshold.points;
+          const ratingCell = index === 0
+            ? `<td class="rating-cell" rowspan="${thresholds.length}">${escapeHtml(rating)}</td>`
+            : "";
 
-    return `
-      <tr class="${unlocked ? "unlocked" : "locked"}">
-        <td class="rating-cell">${showRating ? escapeHtml(threshold.rating) : ""}</td>
-        <td>${threshold.points.toLocaleString()} points</td>
-        <td>${escapeHtml(threshold.buff)}</td>
-      </tr>`;
-  }).join("");
+          return `
+            <tr class="${unlocked ? "unlocked" : "locked"} ${index === 0 ? "group-start" : ""}">
+              ${ratingCell}
+              <td class="req-cell">${threshold.points.toLocaleString()} points</td>
+              <td>${escapeHtml(threshold.buff)}</td>
+            </tr>`;
+        })
+        .join(""),
+    )
+    .join("");
 }
-
 
 function renderBuffTotals() {
   const body = document.getElementById("buff-total-list");
@@ -1111,6 +1104,7 @@ function renderBuffTotals() {
     ["Snail RUSH", formatSigned(totals.rush, "")],
     ["Snail HP", formatSigned(totals.hp, "")],
     ["Rift DMG", formatSigned(totals.dmgPct, "%")],
+    ["Troop Casualty", totals.troopCasualtyPct ? `${totals.troopCasualtyPct > 0 ? "+" : ""}${totals.troopCasualtyPct}%` : "0%"],
   ];
 
   body.innerHTML = rows
@@ -1142,6 +1136,7 @@ function getUnlockedBuffTotals(points) {
     rush: 0,
     hp: 0,
     dmgPct: 0,
+    troopCasualtyPct: 0,
   };
 
   TIME_RIFT_THRESHOLDS.filter((threshold) => points >= threshold.points).forEach(
@@ -1154,9 +1149,11 @@ function getUnlockedBuffTotals(points) {
 function addBuffToTotals(totals, buffText) {
   const text = String(buffText || "");
   const lower = text.toLowerCase();
-  const value = Math.abs(extractGoalNumber(text));
+  const signedValue = extractGoalNumber(text);
+  const value = Math.abs(signedValue);
 
-  if (/dragon\s*orbs?/.test(lower)) totals.dragonOrbPct += value;
+  if (/troop\s*casualty/.test(lower)) totals.troopCasualtyPct += signedValue;
+  else if (/dragon\s*orbs?/.test(lower)) totals.dragonOrbPct += value;
   else if (/medal/.test(lower)) totals.medalOutput += value;
   else if (/b-?tad\s*output/.test(lower)) totals.bTadOutput += value;
   else if (/b-?tads?\s*gained/.test(lower)) totals.bTadsGainedPct += value;
