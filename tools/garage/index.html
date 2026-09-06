@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Garage | Snail Lab</title>
+    <link rel="stylesheet" href="/snail-lab/styles.css" />
+    <link rel="stylesheet" href="garage.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <div id="shared-sidebar"></div>
+
+      <main class="tool-main garage-main">
+        <section class="garage-shell">
+          <header class="garage-header">
+            <div>
+              <p class="eyebrow">Vehicle Reference</p>
+              <h1>Garage</h1>
+              <p class="garage-subtitle">
+                Track garage progress and vehicle requirements without opening
+                every vehicle in-game.
+              </p>
+            </div>
+
+            <div class="garage-stats" aria-label="Selected area progress">
+              <div class="garage-stat">
+                <span>Modifications Met</span>
+                <strong id="mod-stat">0 / 0</strong>
+              </div>
+              <div class="garage-stat">
+                <span>Vehicles Complete</span>
+                <strong id="vehicle-stat">0 / 0</strong>
+              </div>
+            </div>
+          </header>
+
+          <nav class="area-tabs" aria-label="Vehicle areas">
+            <button class="area-tab active" type="button" data-area="1">Area 1</button>
+            <button class="area-tab" type="button" data-area="2">Area 2</button>
+            <button class="area-tab" type="button" data-area="3">Area 3</button>
+            <button class="area-tab" type="button" data-area="4">Area 4</button>
+            <button class="area-tab" type="button" data-area="5">Area 5</button>
+          </nav>
+
+          <nav class="view-tabs" aria-label="Garage views">
+            <button class="view-tab active" type="button" data-view="garage">
+              Garage
+            </button>
+            <button class="view-tab" type="button" data-view="requirements">
+              My Requirements
+            </button>
+          </nav>
+
+          <div class="garage-toolbar">
+            <div>
+              <p id="data-status" class="data-status">Loading vehicle data…</p>
+              <p class="garage-help">
+                Click a vehicle meter segment to set its progress. Shared relic
+                and organ requirements only need to be entered once.
+              </p>
+            </div>
+            <button id="reset-progress" class="reset-progress" type="button">
+              Reset Garage
+            </button>
+          </div>
+
+          <section id="garage-view" class="garage-view">
+            <div id="garage" class="garage" aria-live="polite"></div>
+          </section>
+
+          <section id="requirements-view" class="garage-view hidden">
+            <p class="requirements-help">
+              Set each known relic or organ once. Every vehicle using that
+              requirement updates automatically.
+            </p>
+            <div class="requirements-grid">
+              <article class="requirements-panel">
+                <h2>Relics</h2>
+                <div id="relic-requirements"></div>
+              </article>
+              <article class="requirements-panel">
+                <h2>Organs</h2>
+                <div id="organ-requirements"></div>
+              </article>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script src="/snail-lab/app.js"></script>
+    <script src="garage.js"></script>
+  </body>
+</html>

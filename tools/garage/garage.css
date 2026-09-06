@@ -1,0 +1,689 @@
+/* =========================================================
+   Garage
+   Garage layout, shared requirements, and vehicle progress
+   ========================================================= */
+
+.garage-main {
+  max-width: 1500px;
+}
+
+.garage-shell {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 250, 240, 0.94);
+  box-shadow: var(--shadow);
+}
+
+.garage-header {
+  padding: 24px 28px 18px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 250, 240, 0.99),
+    rgba(248, 237, 215, 0.93)
+  );
+  border-bottom: 1px solid var(--line);
+}
+
+.garage-header h1 {
+  margin: 0;
+  font-size: 38px;
+  line-height: 1.05;
+}
+
+.garage-subtitle {
+  max-width: 720px;
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.garage-stats {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.garage-stat {
+  min-width: 150px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+}
+
+.garage-stat span {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.garage-stat strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 18px;
+}
+
+.area-tabs,
+.view-tabs {
+  display: grid;
+  gap: 7px;
+  padding: 0 20px;
+}
+
+.area-tabs {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  padding-top: 16px;
+}
+
+.view-tabs {
+  grid-template-columns: repeat(2, minmax(0, 180px));
+  padding-top: 8px;
+}
+
+.area-tab,
+.view-tab {
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: #e2ddd2;
+  color: var(--ink);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.area-tab:hover,
+.view-tab:hover {
+  background: #eee7da;
+}
+
+.area-tab.active,
+.view-tab.active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: white;
+}
+
+.garage-toolbar {
+  padding: 14px 20px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.data-status,
+.garage-help {
+  margin: 0;
+}
+
+.data-status {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.data-status.error {
+  color: #8a3f32;
+}
+
+.garage-help {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.reset-progress {
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.reset-progress:hover {
+  background: var(--panel-2);
+}
+
+.garage-view {
+  padding: 0 20px 20px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ---------- Garage ---------- */
+
+.garage {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--line);
+}
+
+.garage-level {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  background: var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.garage-level:last-child {
+  border-bottom: 0;
+}
+
+.garage-level.full-level {
+  border-top: 2px solid #c9b18c;
+  border-bottom: 2px solid #c9b18c;
+}
+
+.garage-level.full-level:first-child {
+  border-top: 0;
+}
+
+.garage-level.full-level:last-child {
+  border-bottom: 0;
+}
+
+.vehicle-card {
+  --tier-color: #f2f2f2;
+  --minion-color: #eeeeee;
+  position: relative;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: var(--panel);
+}
+
+.vehicle-card:not(.full):first-child {
+  border-right: 1px solid var(--line);
+}
+
+.vehicle-card.full {
+  grid-column: 1 / -1;
+  background: var(--panel-2);
+}
+
+.vehicle-top {
+  padding: 13px 14px 10px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+}
+
+.vehicle-card.full .vehicle-top {
+  grid-template-columns: 1fr;
+  justify-items: center;
+  padding-top: 15px;
+  text-align: center;
+}
+
+.vehicle-name {
+  overflow-wrap: anywhere;
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.vehicle-card.full .vehicle-name,
+.vehicle-card.full .meter-wrap {
+  justify-self: center;
+}
+
+.meter-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+.vehicle-meter {
+  display: flex;
+  gap: 5px;
+}
+
+.meter-segment {
+  width: 27px;
+  height: 13px;
+  padding: 0;
+  border: 1px solid rgba(42, 33, 24, 0.25);
+  border-radius: 4px;
+  background: #d9d9d9;
+  cursor: pointer;
+}
+
+.meter-segment.active {
+  background: var(--tier-color);
+}
+
+.tier-select {
+  min-width: 82px;
+  padding: 4px 5px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.vehicle-meta {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 1px;
+  background: var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.meta-block {
+  min-height: 56px;
+  padding: 9px 12px;
+  background: var(--panel);
+}
+
+.minion-block {
+  background: var(--minion-color);
+  box-shadow: inset 4px 0 0 rgba(42, 33, 24, 0.14);
+}
+
+.meta-label {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.meta-value {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.minion-line {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.minion-type,
+.vehicle-type-pill {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(42, 33, 24, 0.18);
+  border-radius: 999px;
+  background: var(--minion-color);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.minion-type {
+  padding: 2px 7px;
+  font-size: 10px;
+}
+
+.modifications-title {
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--line);
+  background: #f2f2f2;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.modifications {
+  padding: 4px 11px 8px;
+  background: var(--panel);
+}
+
+.mod-row {
+  min-height: 36px;
+  padding: 5px 3px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 25px;
+  align-items: center;
+  gap: 7px;
+  border-bottom: 1px dashed rgba(116, 102, 83, 0.22);
+}
+
+.mod-row:last-child {
+  border-bottom: 0;
+}
+
+.mod-row.met {
+  opacity: 0.57;
+}
+
+.mod-row.met .requirement-name {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.requirement-main,
+.requirement-state {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.requirement-main {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.requirement-state {
+  justify-content: flex-end;
+  white-space: nowrap;
+}
+
+.requirement-name {
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.requirement-name.unknown {
+  color: var(--muted);
+  font-weight: 600;
+  font-style: italic;
+}
+
+.requirement-type,
+.condition-pill,
+.shared-pill {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.requirement-type {
+  padding: 2px 7px;
+  background: white;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.requirement-type.relic {
+  background: #f5efe4;
+  color: #6a482b;
+}
+
+.requirement-type.organ {
+  background: #eef1f2;
+  color: #445057;
+}
+
+.requirement-type.unknown {
+  background: #f2f2f2;
+  color: #777;
+}
+
+.condition-pill {
+  padding: 3px 7px;
+  background: var(--panel-2);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.shared-pill {
+  margin-left: 4px;
+  padding: 1px 5px;
+  background: white;
+  color: var(--accent);
+  font-size: 10px;
+}
+
+.mod-check {
+  width: 18px;
+  height: 18px;
+  justify-self: center;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/* ---------- My Requirements ---------- */
+
+.requirements-help {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.requirements-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.requirements-panel {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--panel);
+}
+
+.requirements-panel h2 {
+  margin: 0;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel-2);
+  font-size: 15px;
+}
+
+.master-row {
+  padding: 9px 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 140px;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid rgba(216, 196, 164, 0.65);
+}
+
+.master-row:last-child {
+  border-bottom: 0;
+}
+
+.master-name-line {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.master-name {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.used-by {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.used-by-label {
+  margin-right: 1px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.vehicle-use {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.vehicle-type-pill {
+  padding: 2px 5px;
+  font-size: 8px;
+}
+
+.requirement-select {
+  width: 100%;
+  min-width: 0;
+  padding: 5px 7px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffdf7;
+  color: var(--ink);
+  font-size: 12px;
+}
+
+.empty-message {
+  padding: 34px 18px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 13px;
+}
+
+@media (max-width: 900px) {
+  .garage-header {
+    padding: 20px;
+  }
+
+  .garage-header h1 {
+    font-size: 30px;
+  }
+
+  .garage-stats {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 760px) {
+  .garage-header {
+    display: block;
+  }
+
+  .garage-stats {
+    margin-top: 14px;
+  }
+
+  .garage-stat {
+    min-width: 0;
+    flex: 1 1 130px;
+  }
+
+  .area-tabs,
+  .view-tabs,
+  .garage-toolbar,
+  .garage-view {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .area-tabs {
+    grid-template-columns: repeat(5, minmax(54px, 1fr));
+    overflow-x: auto;
+  }
+
+  .view-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .garage-toolbar {
+    align-items: flex-start;
+  }
+
+  .garage-level,
+  .requirements-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vehicle-card.full {
+    grid-column: auto;
+  }
+
+  .vehicle-card:not(.full):first-child {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .vehicle-top {
+    grid-template-columns: 1fr;
+  }
+
+  .vehicle-card:not(.full) .meter-wrap {
+    justify-content: flex-start;
+  }
+
+  .vehicle-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .master-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .garage-header,
+  .garage-toolbar {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .garage-view {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+
+  .mod-row {
+    grid-template-columns: minmax(0, 1fr) 24px;
+  }
+
+  .requirement-state {
+    grid-column: 1;
+    justify-content: flex-start;
+  }
+
+  .mod-check {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+
+  .meter-segment {
+    width: 24px;
+  }
+}
