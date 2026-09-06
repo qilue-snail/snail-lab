@@ -1,134 +1,157 @@
 // Snail Lab shared app behavior
 const SNAIL_LAB_BASE = "/snail-lab/";
+
 function snailLabPageKey() {
   const path = window.location.pathname;
   if (path.includes("/tools/biozilla/")) return "biozilla";
   if (path.includes("/tools/apostle-analytics/")) return "apostle-analytics";
   if (path.includes("/tools/time-rift-museum/")) return "time-rift-museum";
+  if (path.includes("/tools/garage/")) return "garage";
   return "home";
 }
+
 function markActiveSidebarLink() {
   const activePage = snailLabPageKey();
   document.querySelectorAll(".nav-link[data-page]").forEach((link) => {
     link.classList.toggle("active", link.dataset.page === activePage);
   });
 }
+
 function setupSidebarToggle() {
   const saved = localStorage.getItem("snailSidebarCollapsed") === "true";
   document.body.classList.toggle("sidebar-collapsed", saved);
+
   const toggle = document.getElementById("sidebar-toggle");
-  if (toggle) {
-    toggle.textContent = saved ? "" : "Collapse";
-    toggle.addEventListener("click", () => {
-      const collapsed = document.body.classList.toggle("sidebar-collapsed");
-      localStorage.setItem("snailSidebarCollapsed", collapsed);
-      toggle.textContent = collapsed ? "" : "Collapse";
-    });
-  }
+  if (!toggle) return;
+
+  toggle.textContent = saved ? "" : "Collapse";
+  toggle.addEventListener("click", () => {
+    const collapsed = document.body.classList.toggle("sidebar-collapsed");
+    localStorage.setItem("snailSidebarCollapsed", collapsed);
+    toggle.textContent = collapsed ? "" : "Collapse";
+  });
 }
-function loadSharedSidebar() {
+
+function setupGlobalBackupButtons() {
+  const exportBtn = document.getElementById("exportAllBtn");
+  const importBtn = document.getElementById("importAllBtn");
+
+  exportBtn?.addEventListener("click", () => {
+    const backup = {
+      version: 1,
+      createdAt: new Date().toISOString(),
+      localStorage: {},
+    };
+
+    for (let i = 0; i < localStorage.length; i += 1) {
+      const key = localStorage.key(i);
+      backup.localStorage[key] = localStorage.getItem(key);
+    }
+
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {
+      type: "application/json",
+    });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "snail-lab-backup.json";
+    link.click();
+    URL.revokeObjectURL(link.href);
+  });
+
+  importBtn?.addEventListener("click", () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json,application/json";
+
+    input.addEventListener("change", () => {
+      const file = input.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const backup = JSON.parse(reader.result);
+          if (!backup.localStorage) {
+            alert("This does not look like a Snail Lab backup file.");
+            return;
+          }
+
+          if (
+            !confirm(
+              "Import this backup? This will replace saved Snail Lab data.",
+            )
+          ) {
+            return;
+          }
+
+          Object.entries(backup.localStorage).forEach(([key, value]) => {
+            localStorage.setItem(key, value);
+          });
+
+          alert("Backup imported. The page will reload.");
+          location.reload();
+        } catch {
+          alert("Could not import backup file.");
+        }
+      };
+
+      reader.readAsText(file);
+    });
+
+    input.click();
+  });
+}
+
+function fallbackSidebarHtml() {
+  return `
+    <aside class="sidebar">
+      <a class="brand" href="${SNAIL_LAB_BASE}" aria-label="Snail Lab Home">
+        <div class="brand-icon">🧪🐌</div>
+        <div><h1>Snail Lab</h1><p>Super Snail Companion Suite</p></div>
+      </a>
+      <nav class="nav" aria-label="Snail Lab tools">
+        <a class="nav-link" data-page="home" href="${SNAIL_LAB_BASE}" title="Home">🏠 <span>Home</span></a>
+        <a class="nav-link" data-page="biozilla" href="${SNAIL_LAB_BASE}tools/biozilla/" title="Biozilla">🦖 <span>Biozilla</span></a>
+        <a class="nav-link" data-page="apostle-analytics" href="${SNAIL_LAB_BASE}tools/apostle-analytics/" title="Apostle Analytics">📊 <span>Apostle Analytics</span></a>
+        <a class="nav-link" data-page="time-rift-museum" href="${SNAIL_LAB_BASE}tools/time-rift-museum/" title="Time Rift Museum">🏛️ <span>Time Rift Museum</span></a>
+        <a class="nav-link" data-page="garage" href="${SNAIL_LAB_BASE}tools/garage/" title="Garage">🚗 <span>Garage</span></a>
+      </nav>
+      <div class="sidebar-tools">
+        <button id="exportAllBtn" class="sidebar-action" type="button" title="Export Backup">
+          <span class="sidebar-action-icon">📤</span>
+          <span class="sidebar-action-text">Export Backup</span>
+        </button>
+        <button id="importAllBtn" class="sidebar-action" type="button" title="Import Backup">
+          <span class="sidebar-action-icon">📥</span>
+          <span class="sidebar-action-text">Import Backup</span>
+        </button>
+      </div>
+      <button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-label="Toggle sidebar">
+        Collapse
+      </button>
+    </aside>`;
+}
+
+async function loadSharedSidebar() {
   const target = document.getElementById("shared-sidebar");
   if (!target) {
     markActiveSidebarLink();
     return;
   }
-  fetch(`${SNAIL_LAB_BASE}sidebar.html`, { cache: "no-cache" })
-    .then((response) => {
-      if (!response.ok) throw new Error("Sidebar failed to load");
-      return response.text();
-    })
-    .then((html) => {
-      target.innerHTML = html;
-      markActiveSidebarLink();
-      setupSidebarToggle();
-    })
-    .catch(() => {
-      target.innerHTML = `
-        <aside class="sidebar">
-          <a class="brand" href="${SNAIL_LAB_BASE}" aria-label="Snail Lab Home">
-            <div class="brand-icon">🧪🐌</div>
-            <div><h1>Snail Lab</h1><p>Super Snail Companion Suite</p></div>
-          </a>
-          <nav class="nav" aria-label="Snail Lab tools">
-<a class="nav-link" data-page="home" href="${SNAIL_LAB_BASE}" title="Home">🏠 <span>Home</span></a>
-<a class="nav-link" data-page="biozilla" href="${SNAIL_LAB_BASE}tools/biozilla/" title="Biozilla">🦖 <span>Biozilla</span></a>
-<a class="nav-link" data-page="apostle-analytics" href="${SNAIL_LAB_BASE}tools/apostle-analytics/" title="Apostle Analytics">📊 <span>Apostle Analytics</span></a>
-<a class="nav-link" data-page="time-rift-museum" href="${SNAIL_LAB_BASE}tools/time-rift-museum/" title="Time Rift Museum">🏛️ <span>Time Rift Museum</span></a>
-          </nav>
-          <button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-label="Toggle sidebar">
-            Collapse
-          </button>
-        </aside>`;
-      markActiveSidebarLink();
-      setupSidebarToggle();
-    });
-}
-function setupGlobalBackupButtons() {
-  const exportBtn = document.getElementById("exportAllBtn");
-  const importBtn = document.getElementById("importAllBtn");
 
-  if (exportBtn) {
-    exportBtn.addEventListener("click", () => {
-      const backup = {
-        version: 1,
-        createdAt: new Date().toISOString(),
-        localStorage: {},
-      };
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        backup.localStorage[key] = localStorage.getItem(key);
-      }
-      const blob = new Blob([JSON.stringify(backup, null, 2)], {
-        type: "application/json",
-      });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "snail-lab-backup.json";
-      a.click();
-      URL.revokeObjectURL(a.href);
+  try {
+    const response = await fetch(`${SNAIL_LAB_BASE}sidebar.html`, {
+      cache: "no-cache",
     });
+    if (!response.ok) throw new Error("Sidebar failed to load");
+    target.innerHTML = await response.text();
+  } catch {
+    target.innerHTML = fallbackSidebarHtml();
   }
-  if (importBtn) {
-    importBtn.addEventListener("click", () => {
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = ".json,application/json";
-      input.addEventListener("change", () => {
-        const file = input.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = () => {
-          try {
-            const backup = JSON.parse(reader.result);
-            if (!backup.localStorage) {
-              alert("This does not look like a Snail Lab backup file.");
-              return;
-            }
-            if (
-              !confirm(
-                "Import this backup? This will replace saved Snail Lab data.",
-              )
-            ) {
-              return;
-            }
-            Object.entries(backup.localStorage).forEach(([key, value]) => {
-              localStorage.setItem(key, value);
-            });
-            alert("Backup imported. The page will reload.");
-            location.reload();
-          } catch {
-            alert("Could not import backup file.");
-          }
-        };
-        reader.readAsText(file);
-      });
-      input.click();
-    });
-  }
+
+  markActiveSidebarLink();
+  setupSidebarToggle();
+  setupGlobalBackupButtons();
 }
-document.addEventListener("DOMContentLoaded", () => {
-  loadSharedSidebar();
-  setTimeout(() => {
-    setupGlobalBackupButtons();
-  }, 150);
-});
+
+document.addEventListener("DOMContentLoaded", loadSharedSidebar);
