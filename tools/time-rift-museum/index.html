@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Time Rift Museum | Snail Lab</title>
     <link rel="stylesheet" href="/snail-lab/styles.css" />
-    <link rel="stylesheet" href="time-rift-museum.css?v=5" />
+    <link rel="stylesheet" href="time-rift-museum.css?v=6" />
   </head>
   <body>
     <div class="app-shell">
@@ -41,6 +41,16 @@
             Loading Time Rift Museum relics…
           </p>
 
+          <nav class="museum-tabs" aria-label="Time Rift Museum views">
+            <button class="museum-tab active" type="button" data-museum-view="optimize">
+              Optimize
+            </button>
+            <button class="museum-tab" type="button" data-museum-view="browse">
+              Browse Effects
+            </button>
+          </nav>
+
+          <div id="view-optimize" class="museum-view">
           <section class="tool-card goal-first-card">
             <div class="card-head">
               <div>
@@ -106,9 +116,9 @@
               <div>
                 <h2>2. What this setup gives you</h2>
                 <p>
-                  Results are grouped by what they actually affect. Universal cell collection
-                  is combined with each specific cell type so you can see the effective bonus
-                  at a glance, while reagent colors remain separate.
+                  This includes the useful bonuses from the whole recommended setup, not only
+                  the effects you asked the optimizer to value. Pure relic AFFCT stamps such as
+                  FAME +15 are omitted here because they are already reflected in museum AFFCT.
                 </p>
               </div>
             </div>
@@ -163,7 +173,7 @@
                     <th>Relic Type</th>
                     <th>Level / Owned</th>
                     <th>Pedestal AFFCT</th>
-                    <th>Goal Effects</th>
+                    <th>Rift Stamps</th>
                     <th>Keep</th>
                   </tr>
                 </thead>
@@ -172,19 +182,70 @@
             </div>
 
             <div class="alternatives-block">
-              <h3>Next alternatives</h3>
-              <p>
-                These are not currently occupying one of the 16 slots. You can force
-                one into this bucket if you prefer it.
-              </p>
+              <div class="alternatives-head">
+                <div>
+                  <h3>Alternatives for this bucket</h3>
+                  <p>
+                    Matching relic types are shown first. Search the full list instead of
+                    cycling through only a few suggestions.
+                  </p>
+                </div>
+                <input
+                  id="alternative-search"
+                  type="search"
+                  placeholder="Search alternatives…"
+                  autocomplete="off"
+                />
+              </div>
               <div id="bucket-alternatives" class="alternative-list"></div>
+
+              <details class="offtype-block">
+                <summary>Show off-type alternatives</summary>
+                <p>
+                  Off-type placements are allowed, but the optimizer will not use them
+                  automatically unless a typed bucket cannot be filled with matching-type relics.
+                </p>
+                <div id="bucket-offtype-alternatives" class="alternative-list"></div>
+              </details>
             </div>
+          </section>
+          </div>
+
+          <section id="view-browse" class="museum-view" hidden>
+            <article class="tool-card browse-card">
+              <div class="card-head">
+                <div>
+                  <h2>Browse Rift Effects</h2>
+                  <p>
+                    Find relics by what their Rift stamps actually do, then manually place
+                    one into the museum without rebuilding your goals.
+                  </p>
+                </div>
+                <div class="browse-status">
+                  <span>Shown</span>
+                  <strong id="browse-count">0</strong>
+                </div>
+              </div>
+
+              <div class="browse-toolbar">
+                <div id="browse-filter-bar" class="browse-filter-bar"></div>
+                <input
+                  id="browse-search"
+                  type="search"
+                  placeholder="Search relics or stamp text…"
+                  autocomplete="off"
+                />
+              </div>
+
+              <div id="browse-subfilters" class="browse-subfilters"></div>
+              <div id="browse-relic-grid" class="browse-relic-grid"></div>
+            </article>
           </section>
         </section>
       </main>
     </div>
 
     <script src="/snail-lab/app.js?v=5"></script>
-    <script src="time-rift-museum.js?v=5"></script>
+    <script src="time-rift-museum.js?v=6"></script>
   </body>
 </html>

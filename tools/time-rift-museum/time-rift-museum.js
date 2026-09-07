@@ -118,12 +118,32 @@ const GOAL_DEFS = [
   },
 ];
 
+const BROWSE_FILTERS = [
+  { id: "cells", label: "Cells" },
+  { id: "reagents", label: "Reagents" },
+  { id: "dragon-orbs", label: "Dragon Orbs" },
+  { id: "incense", label: "Incense" },
+  { id: "intel", label: "INTEL" },
+  { id: "b-tads", label: "B-tads" },
+  { id: "travel-speed", label: "Travel Speed" },
+  { id: "elemental-dmg", label: "Elemental DMG" },
+  { id: "cards", label: "Cards" },
+  { id: "combat", label: "Combat / Stats" },
+  { id: "all", label: "All Rift Bonuses" },
+];
+
+
 let relicRows = [];
 let families = [];
 let latestSetup = [];
 let currentBucket = "";
 let discoveredCellTypes = [...DEFAULT_CELL_TYPES];
 let discoveredReagentTypes = [...DEFAULT_REAGENT_TYPES];
+let activeMuseumView = "optimize";
+let browseFilter = "cells";
+let browseSubtype = "any";
+let browseSearch = "";
+let alternativeSearch = "";
 
 let state = {
   goals: {
@@ -667,7 +687,7 @@ function buildSetup(pointWeight) {
     groupEntries[groupType] = [];
   });
 
-  // Respect manual "Keep" pins before filling the remaining capacities.
+  // Manual placement always wins, including off-type placements.
   Object.entries(state.pins).forEach(([familyId, groupType]) => {
     if (!GROUP_CAPACITY[groupType]) return;
     if (groupEntries[groupType].length >= GROUP_CAPACITY[groupType]) return;
@@ -678,60 +698,93 @@ function buildSetup(pointWeight) {
     const candidate = candidateFor(family, groupType, pointWeight);
     if (!candidate) return;
 
-    groupEntries[groupType].push({ ...candidate, pinned: true });
+    groupEntries[groupType].push({
+      ...candidate,
+      pinned: true,
+      offType: groupType !== "ALL" && family.type !== groupType,
+    });
     usedFamilies.add(familyId);
   });
 
-  const candidates = [];
+  // ALL slots can use any relic.
+  const allCandidates = families
+    .filter(
+      (family) =>
+        !usedFamilies.has(family.familyId) && Boolean(getActiveRelic(family)),
+    )
+    .map((family) => candidateFor(family, "ALL", pointWeight))
+    .filter(Boolean)
+    .sort(
+      (a, b) =>
+        b.weightedScore - a.weightedScore ||
+        b.goalScore - a.goalScore ||
+        b.points - a.points ||
+        a.family.name.localeCompare(b.family.name),
+    );
 
-  families.forEach((family) => {
-    if (!getActiveRelic(family)) return;
+  allCandidates.forEach((candidate) => {
+    if (groupEntries.ALL.length >= GROUP_CAPACITY.ALL) return;
+    if (usedFamilies.has(candidate.family.familyId)) return;
 
-    Object.keys(GROUP_CAPACITY).forEach((groupType) => {
-      const candidate = candidateFor(family, groupType, pointWeight);
-      if (candidate) candidates.push(candidate);
-    });
+    groupEntries.ALL.push(candidate);
+    usedFamilies.add(candidate.family.familyId);
   });
 
-  candidates.sort(
-    (a, b) =>
-      b.weightedScore - a.weightedScore ||
-      b.goalScore - a.goalScore ||
-      b.points - a.points ||
-      a.family.name.localeCompare(b.family.name),
-  );
-
-  candidates.forEach((candidate) => {
-    const { family, groupType } = candidate;
-    if (usedFamilies.has(family.familyId)) return;
-    if (groupEntries[groupType].length >= GROUP_CAPACITY[groupType]) return;
-
-    groupEntries[groupType].push(candidate);
-    usedFamilies.add(family.familyId);
-  });
-
-  // Safety fill. If greedy cross-group assignment left a bucket short,
-  // fill it with the best remaining available relics for that pedestal type.
-  Object.keys(GROUP_CAPACITY).forEach((groupType) => {
-    if (groupEntries[groupType].length >= GROUP_CAPACITY[groupType]) return;
-
-    const remaining = families
+  // Typed pedestal groups prefer the matching relic type.
+  AFFCT_TYPES.forEach((groupType) => {
+    const matching = families
       .filter(
         (family) =>
-          !usedFamilies.has(family.familyId) && Boolean(getActiveRelic(family)),
+          family.type === groupType &&
+          !usedFamilies.has(family.familyId) &&
+          Boolean(getActiveRelic(family)),
       )
       .map((family) => candidateFor(family, groupType, pointWeight))
       .filter(Boolean)
       .sort(
         (a, b) =>
           b.weightedScore - a.weightedScore ||
+          b.goalScore - a.goalScore ||
           b.points - a.points ||
           a.family.name.localeCompare(b.family.name),
       );
 
-    remaining.forEach((candidate) => {
+    matching.forEach((candidate) => {
       if (groupEntries[groupType].length >= GROUP_CAPACITY[groupType]) return;
+      if (usedFamilies.has(candidate.family.familyId)) return;
+
       groupEntries[groupType].push(candidate);
+      usedFamilies.add(candidate.family.familyId);
+    });
+  });
+
+  // If ownership changes leave a typed bucket short, use off-type relics only
+  // as a last-resort fill rather than as the normal optimizer behavior.
+  AFFCT_TYPES.forEach((groupType) => {
+    if (groupEntries[groupType].length >= GROUP_CAPACITY[groupType]) return;
+
+    const offType = families
+      .filter(
+        (family) =>
+          family.type !== groupType &&
+          !usedFamilies.has(family.familyId) &&
+          Boolean(getActiveRelic(family)),
+      )
+      .map((family) => candidateFor(family, groupType, pointWeight))
+      .filter(Boolean)
+      .sort(
+        (a, b) =>
+          b.weightedScore - a.weightedScore ||
+          b.goalScore - a.goalScore ||
+          b.points - a.points ||
+          a.family.name.localeCompare(b.family.name),
+      );
+
+    offType.forEach((candidate) => {
+      if (groupEntries[groupType].length >= GROUP_CAPACITY[groupType]) return;
+      if (usedFamilies.has(candidate.family.familyId)) return;
+
+      groupEntries[groupType].push({ ...candidate, offType: true });
       usedFamilies.add(candidate.family.familyId);
     });
   });
@@ -744,6 +797,7 @@ function buildSetup(pointWeight) {
     entries
       .sort(
         (a, b) =>
+          Number(Boolean(b.pinned)) - Number(Boolean(a.pinned)) ||
           b.weightedScore - a.weightedScore ||
           b.points - a.points ||
           a.family.name.localeCompare(b.family.name),
@@ -816,71 +870,95 @@ function optimizeMuseum() {
 
 function effectSummaryKey(stamp) {
   const raw = String(stamp || "").trim();
-  const plusMatch = raw.match(/^(.*?)(?:\s*[+-]\s*[\d.]+)(\s*%)?\s*$/);
-  if (!plusMatch) return null;
+  if (!raw || parseAffctStampBonus(raw)) return null;
 
-  const label = plusMatch[1].trim().replace(/\s+/g, " ");
-  const isPercent = Boolean(plusMatch[2]);
-  const value = stampNumericValue(raw);
+  const match = raw.match(/^(.*?)([+-])\s*([\d.]+)(\s*%)?\s*$/);
+  if (!match) {
+    return {
+      key: `${raw.toLowerCase()}|text`,
+      label: raw,
+      value: null,
+      unit: "",
+      raw,
+    };
+  }
 
-  if (!label || !value) return null;
+  const label = match[1].trim().replace(/\s+/g, " ");
+  const sign = match[2] === "-" ? -1 : 1;
+  const value = Number(match[3]) * sign;
+  const unit = match[4] ? "%" : "";
 
   return {
-    key: `${label.toLowerCase()}|${isPercent ? "%" : "flat"}`,
+    key: `${label.toLowerCase()}|${unit || "flat"}`,
     label,
     value,
-    unit: isPercent ? "%" : "",
+    unit,
+    raw,
   };
 }
 
-function getEffectTotals() {
+function getAllEffectTotals() {
   const totals = new Map();
 
   latestSetup.forEach((item) => {
-    matchedGoalStamps(item.relic).forEach((stamp) => {
+    item.relic.stampTexts.forEach((stamp) => {
       const parsed = effectSummaryKey(stamp);
       if (!parsed) return;
+
+      const selected = Object.entries(state.goals).some(
+        ([goalId, goal]) => goal.enabled && stampMatchesGoal(stamp, goalId),
+      );
 
       if (!totals.has(parsed.key)) {
         totals.set(parsed.key, {
           label: parsed.label,
-          value: 0,
+          value: parsed.value === null ? null : 0,
           unit: parsed.unit,
+          selected,
+          rawExamples: [],
         });
       }
 
-      totals.get(parsed.key).value += parsed.value;
+      const aggregate = totals.get(parsed.key);
+      aggregate.selected = aggregate.selected || selected;
+
+      if (parsed.value === null) {
+        aggregate.rawExamples.push(parsed.raw);
+      } else {
+        aggregate.value += parsed.value;
+      }
     });
   });
 
-  return Array.from(totals.values()).sort(
-    (a, b) => b.value - a.value || a.label.localeCompare(b.label),
-  );
+  return Array.from(totals.values());
 }
 
 function getGroupedEffectSummary() {
-  const raw = getEffectTotals();
+  const raw = getAllEffectTotals();
 
   let universalCells = 0;
   const cellSpecific = [];
   const reagents = [];
+  const resources = [];
+  const combat = [];
   const other = [];
 
   raw.forEach((effect) => {
     const label = effect.label.trim();
 
-    if (/^cells?\s+collected$/i.test(label)) {
+    if (/^cells?\s+collected$/i.test(label) && effect.value !== null) {
       universalCells += effect.value;
       return;
     }
 
     const cellMatch = label.match(/^([A-Za-z]+)\s+Cells?\s+(?:gained|collected)$/i);
-    if (cellMatch) {
+    if (cellMatch && effect.value !== null) {
       cellSpecific.push({
         subtype:
           cellMatch[1].charAt(0).toUpperCase() +
           cellMatch[1].slice(1).toLowerCase(),
         value: effect.value,
+        selected: effect.selected,
       });
       return;
     }
@@ -888,52 +966,74 @@ function getGroupedEffectSummary() {
     const reagentMatch = label.match(
       /^(?:2x\s+)?([A-Za-z]+)\s+Reagent\s+Drops?$/i,
     );
-    if (reagentMatch) {
+    if (reagentMatch && effect.value !== null) {
       reagents.push({
         subtype:
           reagentMatch[1].charAt(0).toUpperCase() +
           reagentMatch[1].slice(1).toLowerCase(),
         value: effect.value,
+        selected: effect.selected,
       });
+      return;
+    }
+
+    if (
+      /dragon\s*orbs?|incense|intel|b-?tads?|btads?|time\s*chest|food|card\s*drops?|medal\s*output|travel\s*(spd|speed)/i.test(
+        label,
+      )
+    ) {
+      resources.push(effect);
+      return;
+    }
+
+    if (
+      /\batk\b|\bdef\b|\bhp\b|\brush\b|crit|dmg|damage|snail\s+(fame|art|fth|civ|tech)/i.test(
+        label,
+      )
+    ) {
+      combat.push(effect);
       return;
     }
 
     other.push(effect);
   });
 
+  const effectSort = (a, b) =>
+    Number(Boolean(b.selected)) - Number(Boolean(a.selected)) ||
+    Math.abs(Number(b.value || 0)) - Math.abs(Number(a.value || 0)) ||
+    a.label.localeCompare(b.label);
+
   cellSpecific.sort((a, b) => b.value - a.value || a.subtype.localeCompare(b.subtype));
   reagents.sort((a, b) => b.value - a.value || a.subtype.localeCompare(b.subtype));
+  resources.sort(effectSort);
+  combat.sort(effectSort);
+  other.sort(effectSort);
 
   return {
     universalCells,
     cellSpecific,
     reagents,
+    resources,
+    combat,
     other,
   };
 }
 
-function selectedCellSubtypesForDisplay(grouped) {
-  const options = selectedOptions("cells").map((value) => value.toLowerCase());
+function formatEffectTotal(effect) {
+  if (effect.value === null) return escapeHtml(effect.label);
 
-  if (options.includes("any")) {
-    return grouped.cellSpecific;
-  }
-
-  return grouped.cellSpecific.filter((item) =>
-    options.includes(item.subtype.toLowerCase()),
-  );
+  const prefix = effect.value > 0 ? "+" : "";
+  return `${prefix}${formatNumber(effect.value)}${effect.unit}`;
 }
 
-function selectedReagentSubtypesForDisplay(grouped) {
-  const options = selectedOptions("reagents").map((value) => value.toLowerCase());
-
-  if (options.includes("any")) {
-    return grouped.reagents;
-  }
-
-  return grouped.reagents.filter((item) =>
-    options.includes(item.subtype.toLowerCase()),
-  );
+function effectSummaryRow(effect) {
+  return `
+    <div class="result-row ${effect.selected ? "selected-result" : ""}">
+      <span>${escapeHtml(effect.label)}</span>
+      <strong>${formatEffectTotal(effect)}</strong>
+      ${effect.selected ? `<small>Selected goal</small>` : ""}
+    </div>
+  `;
 }
 
 /* ---------- Render ---------- */
@@ -1254,26 +1354,34 @@ function renderSummary() {
 
   const sections = [];
 
-  if (state.goals.cells?.enabled) {
-    const shownCells = selectedCellSubtypesForDisplay(grouped);
+  if (grouped.universalCells || grouped.cellSpecific.length) {
     const cellRows = [];
 
-    cellRows.push(`
-      <div class="result-row result-row-universal">
-        <span>All cell types</span>
-        <strong>+${formatNumber(grouped.universalCells)}%</strong>
-        <small>Cells Collected</small>
-      </div>
-    `);
-
-    shownCells.forEach((item) => {
-      const effective = grouped.universalCells + item.value;
-
+    if (grouped.universalCells) {
       cellRows.push(`
-        <div class="result-row">
+        <div class="result-row result-row-universal ${
+          state.goals.cells?.enabled ? "selected-result" : ""
+        }">
+          <span>Cells Collected</span>
+          <strong>+${formatNumber(grouped.universalCells)}%</strong>
+          <small>Universal bonus for every cell type</small>
+        </div>
+      `);
+    }
+
+    grouped.cellSpecific.forEach((item) => {
+      const effective = grouped.universalCells + item.value;
+      cellRows.push(`
+        <div class="result-row ${item.selected ? "selected-result" : ""}">
           <span>${escapeHtml(item.subtype)} Cells</span>
           <strong>+${formatNumber(effective)}%</strong>
-          <small>${formatNumber(item.value)}% specific + ${formatNumber(grouped.universalCells)}% universal</small>
+          <small>
+            ${formatNumber(item.value)}% specific${
+              grouped.universalCells
+                ? ` + ${formatNumber(grouped.universalCells)}% universal`
+                : ""
+            }
+          </small>
         </div>
       `);
     });
@@ -1282,18 +1390,14 @@ function renderSummary() {
       <section class="result-group result-group-cells">
         <div class="result-group-head">
           <h3>Cells</h3>
-          <span>Effective collection bonuses</span>
+          <span>Effective totals</span>
         </div>
-        <div class="result-rows">
-          ${cellRows.join("")}
-        </div>
+        <div class="result-rows">${cellRows.join("")}</div>
       </section>
     `);
   }
 
-  if (state.goals.reagents?.enabled) {
-    const shownReagents = selectedReagentSubtypesForDisplay(grouped);
-
+  if (grouped.reagents.length) {
     sections.push(`
       <section class="result-group">
         <div class="result-group-head">
@@ -1301,58 +1405,13 @@ function renderSummary() {
           <span>Each color stays separate</span>
         </div>
         <div class="result-rows">
-          ${
-            shownReagents.length
-              ? shownReagents
-                  .map(
-                    (item) => `
-                      <div class="result-row">
-                        <span>${escapeHtml(item.subtype)} Reagent</span>
-                        <strong>+${formatNumber(item.value)}%</strong>
-                        <small>2x drop chance</small>
-                      </div>
-                    `,
-                  )
-                  .join("")
-              : `<div class="result-empty">No matching reagent bonus in this setup.</div>`
-          }
-        </div>
-      </section>
-    `);
-  }
-
-  const otherEffects = grouped.other.filter((effect) => {
-    const label = effect.label.toLowerCase();
-
-    if (state.goals["dragon-orbs"]?.enabled && /dragon\s*orbs?/.test(label)) return true;
-    if (state.goals.incense?.enabled && /incense/.test(label)) return true;
-    if (state.goals.intel?.enabled && /intel/.test(label)) return true;
-    if (state.goals["b-tads"]?.enabled && /b-?tads?|btads?|black\s*tads?/.test(label)) return true;
-    if (state.goals["travel-speed"]?.enabled && /travel\s*(spd|speed)/.test(label)) return true;
-    if (
-      state.goals["elemental-dmg"]?.enabled &&
-      /(fire|water|earth|wind|element|elmt).*(dmg|damage)|(dmg|damage).*(fire|water|earth|wind|element|elmt)/.test(label)
-    ) {
-      return true;
-    }
-
-    return false;
-  });
-
-  if (otherEffects.length) {
-    sections.push(`
-      <section class="result-group">
-        <div class="result-group-head">
-          <h3>Other selected goals</h3>
-          <span>Only effects you asked the optimizer to value</span>
-        </div>
-        <div class="result-rows">
-          ${otherEffects
+          ${grouped.reagents
             .map(
-              (effect) => `
-                <div class="result-row">
-                  <span>${escapeHtml(effect.label)}</span>
-                  <strong>+${formatNumber(effect.value)}${effect.unit}</strong>
+              (item) => `
+                <div class="result-row ${item.selected ? "selected-result" : ""}">
+                  <span>${escapeHtml(item.subtype)} Reagent</span>
+                  <strong>+${formatNumber(item.value)}%</strong>
+                  ${item.selected ? `<small>Selected goal</small>` : ""}
                 </div>
               `,
             )
@@ -1362,23 +1421,77 @@ function renderSummary() {
     `);
   }
 
+  if (grouped.resources.length) {
+    sections.push(`
+      <section class="result-group">
+        <div class="result-group-head">
+          <h3>Resources / Progress</h3>
+          <span>All useful resource bonuses</span>
+        </div>
+        <div class="result-rows">
+          ${grouped.resources.map(effectSummaryRow).join("")}
+        </div>
+      </section>
+    `);
+  }
+
+  if (grouped.combat.length) {
+    sections.push(`
+      <section class="result-group">
+        <div class="result-group-head">
+          <h3>Combat / Stats</h3>
+          <span>Extra bonuses from the setup</span>
+        </div>
+        <div class="result-rows">
+          ${grouped.combat.map(effectSummaryRow).join("")}
+        </div>
+      </section>
+    `);
+  }
+
+  if (grouped.other.length) {
+    sections.push(`
+      <section class="result-group">
+        <div class="result-group-head">
+          <h3>Other Rift bonuses</h3>
+          <span>Additional stamp effects</span>
+        </div>
+        <div class="result-rows">
+          ${grouped.other.map(effectSummaryRow).join("")}
+        </div>
+      </section>
+    `);
+  }
+
   container.innerHTML = sections.length
     ? sections.join("")
     : `
       <div class="empty-state">
-        Select one or more goals to see the useful effects in the recommended setup.
+        No Rift stamp bonuses are active in this setup.
       </div>
     `;
 }
 
-function getBucketAlternatives(groupType, limit = 6) {
+function getBucketAlternatives(groupType, includeOffType = false) {
   const selectedFamilies = new Set(latestSetup.map((item) => item.family.familyId));
+  const query = normalizeText(alternativeSearch);
 
   return families
-    .filter(
-      (family) =>
-        !selectedFamilies.has(family.familyId) && Boolean(getActiveRelic(family)),
-    )
+    .filter((family) => {
+      if (selectedFamilies.has(family.familyId)) return false;
+      if (!getActiveRelic(family)) return false;
+
+      const isOffType = groupType !== "ALL" && family.type !== groupType;
+      if (includeOffType !== isOffType) return false;
+
+      if (!query) return true;
+
+      const relic = getActiveRelic(family);
+      return (
+        normalizeText(family.name).includes(query) ||
+        relic.stampTexts.some((stamp) => normalizeText(stamp).includes(query))
+      );
+    })
     .map((family) => {
       const relic = getActiveRelic(family);
       return {
@@ -1394,8 +1507,28 @@ function getBucketAlternatives(groupType, limit = 6) {
         b.goalScore - a.goalScore ||
         b.points - a.points ||
         a.family.name.localeCompare(b.family.name),
-    )
-    .slice(0, limit);
+    );
+}
+
+function alternativeCard(item, groupType) {
+  return `
+    <article class="alternative-card">
+      <div class="alternative-card-head">
+        <strong>${escapeHtml(item.family.name)}</strong>
+        ${typePill(item.relic.type)}
+      </div>
+      <small>${formatNumber(item.points)} ${groupType}</small>
+      <div class="effect-pills">${effectPills(item.relic, 3)}</div>
+      <button
+        class="use-alternative-btn"
+        type="button"
+        data-use-family="${escapeHtml(item.family.familyId)}"
+        data-use-group="${escapeHtml(groupType)}"
+      >
+        Use in ${groupType}
+      </button>
+    </article>
+  `;
 }
 
 function renderBucketDetail() {
@@ -1413,7 +1546,7 @@ function renderBucketDetail() {
   setText("bucket-detail-title", `${currentBucket} bucket`);
   setText(
     "bucket-detail-note",
-    `Any relic can occupy a ${currentBucket} pedestal. The AFFCT shown here uses that relic's ${currentBucket} stat plus only a genuine ${currentBucket} +X stamp.`,
+    `The optimizer prefers ${currentBucket} relics here. You can still manually place an off-type relic if its Rift stamps are worth the lower ${currentBucket} AFFCT.`,
   );
 
   const rows = latestSetup.filter((item) => item.groupType === currentBucket);
@@ -1422,12 +1555,14 @@ function renderBucketDetail() {
   list.innerHTML = rows
     .map((item, index) => {
       const isPinned = state.pins[item.family.familyId] === currentBucket;
+      const offType = item.relic.type !== currentBucket;
 
       return `
-        <tr>
+        <tr class="${offType ? "offtype-row" : ""}">
           <td>${index + 1}</td>
           <td>
             <span class="table-relic-name">${escapeHtml(item.family.name)}</span>
+            ${offType ? `<small class="offtype-note">Off-type ${item.relic.type} relic</small>` : ""}
           </td>
           <td>${typePill(item.relic.type)}</td>
           <td>${levelSelect(item.family)}</td>
@@ -1450,33 +1585,296 @@ function renderBucketDetail() {
     })
     .join("");
 
-  const alternatives = getBucketAlternatives(currentBucket);
-  const altContainer = document.getElementById("bucket-alternatives");
+  const sameType = getBucketAlternatives(currentBucket, false);
+  const offType = getBucketAlternatives(currentBucket, true);
 
-  altContainer.innerHTML = alternatives.length
-    ? alternatives
+  const altContainer = document.getElementById("bucket-alternatives");
+  const offTypeContainer = document.getElementById("bucket-offtype-alternatives");
+
+  if (altContainer) {
+    altContainer.innerHTML = sameType.length
+      ? sameType.map((item) => alternativeCard(item, currentBucket)).join("")
+      : `<div class="empty-state">No matching-type alternatives.</div>`;
+  }
+
+  if (offTypeContainer) {
+    offTypeContainer.innerHTML = offType.length
+      ? offType.map((item) => alternativeCard(item, currentBucket)).join("")
+      : `<div class="empty-state">No off-type alternatives.</div>`;
+  }
+
+  const search = document.getElementById("alternative-search");
+  if (search && document.activeElement !== search) {
+    search.value = alternativeSearch;
+  }
+}
+
+function browseStampMatches(stamp, filterId) {
+  const text = String(stamp || "");
+
+  if (parseAffctStampBonus(text)) return false;
+  if (filterId === "all") return true;
+  if (filterId === "cells") {
+    if (!/cell/i.test(text)) return false;
+    if (browseSubtype === "any") return true;
+    if (isUniversalCellStamp(text)) return true;
+    return cellSubtypeFromStamp(text) === browseSubtype;
+  }
+  if (filterId === "reagents") {
+    if (!/reagent/i.test(text)) return false;
+    if (browseSubtype === "any") return true;
+    return reagentSubtypeFromStamp(text) === browseSubtype;
+  }
+  if (filterId === "dragon-orbs") return /dragon\s*orbs?/i.test(text);
+  if (filterId === "incense") return /incense/i.test(text);
+  if (filterId === "intel") return /\bintel\b/i.test(text);
+  if (filterId === "b-tads") return /\bb-?tads?\b|\bbtads?\b|black\s*tads?/i.test(text);
+  if (filterId === "travel-speed") return /travel\s*(spd|speed)/i.test(text);
+  if (filterId === "elemental-dmg") {
+    return /(fire|water|earth|wind|element|elmt).*(dmg|damage)|(dmg|damage).*(fire|water|earth|wind|element|elmt)/i.test(
+      text,
+    );
+  }
+  if (filterId === "cards") return /card\s*drops?/i.test(text);
+  if (filterId === "combat") {
+    return /\batk\b|\bdef\b|\bhp\b|\brush\b|crit|dmg|damage|snail\s+(fame|art|fth|civ|tech)/i.test(
+      text,
+    );
+  }
+
+  return false;
+}
+
+function getBrowseFamilies() {
+  const query = normalizeText(browseSearch);
+
+  return families
+    .map((family) => ({
+      family,
+      relic: getActiveRelic(family),
+    }))
+    .filter(({ family, relic }) => {
+      if (!relic) return false;
+
+      const matchesFilter =
+        browseFilter === "all" ||
+        relic.stampTexts.some((stamp) => browseStampMatches(stamp, browseFilter));
+
+      if (!matchesFilter) return false;
+      if (!query) return true;
+
+      return (
+        normalizeText(family.name).includes(query) ||
+        normalizeText(relic.type).includes(query) ||
+        relic.stampTexts.some((stamp) => normalizeText(stamp).includes(query))
+      );
+    })
+    .sort((a, b) => {
+      const aRelevant = a.relic.stampTexts.reduce(
+        (total, stamp) =>
+          total + (browseStampMatches(stamp, browseFilter) ? stampNumericValue(stamp) : 0),
+        0,
+      );
+      const bRelevant = b.relic.stampTexts.reduce(
+        (total, stamp) =>
+          total + (browseStampMatches(stamp, browseFilter) ? stampNumericValue(stamp) : 0),
+        0,
+      );
+
+      return (
+        bRelevant - aRelevant ||
+        pedestalAffct(b.relic, b.relic.type) - pedestalAffct(a.relic, a.relic.type) ||
+        a.family.name.localeCompare(b.family.name)
+      );
+    });
+}
+
+function browsePlacementOptions(family) {
+  const groups = [family.type, "ALL", ...AFFCT_TYPES.filter((type) => type !== family.type)];
+  return groups
+    .map(
+      (groupType) => `
+        <option value="${groupType}">
+          ${groupType}${groupType === family.type ? " (matching)" : ""}
+        </option>
+      `,
+    )
+    .join("");
+}
+
+function currentPlacementForFamily(familyId) {
+  const item = latestSetup.find((entry) => entry.family.familyId === familyId);
+  return item ? `${item.groupType} · Slot ${item.slot}` : "";
+}
+
+function renderBrowseSubfilters() {
+  const container = document.getElementById("browse-subfilters");
+  if (!container) return;
+
+  let options = [];
+
+  if (browseFilter === "cells") {
+    options = [
+      { value: "any", label: "Any cell effect" },
+      ...discoveredCellTypes.map((type) => ({
+        value: type.toLowerCase(),
+        label: `${type} Cells`,
+      })),
+    ];
+  } else if (browseFilter === "reagents") {
+    options = [
+      { value: "any", label: "Any reagent" },
+      ...discoveredReagentTypes.map((type) => ({
+        value: type.toLowerCase(),
+        label: `${type} Reagent`,
+      })),
+    ];
+  }
+
+  container.innerHTML = options.length
+    ? `
+      <span>Show:</span>
+      ${options
         .map(
-          (item) => `
-            <article class="alternative-card">
-              <strong>${escapeHtml(item.family.name)}</strong>
-              <small>
-                ${formatNumber(item.points)} ${currentBucket} ·
-                ${escapeHtml(item.relic.type || "—")}
-              </small>
-              <div class="effect-pills">${effectPills(item.relic, 3)}</div>
-              <button
-                class="use-alternative-btn"
-                type="button"
-                data-use-family="${escapeHtml(item.family.familyId)}"
-                data-use-group="${escapeHtml(currentBucket)}"
-              >
-                Use in ${currentBucket}
-              </button>
-            </article>
+          (option) => `
+            <button
+              type="button"
+              class="browse-subfilter ${browseSubtype === option.value ? "active" : ""}"
+              data-browse-subtype="${escapeHtml(option.value)}"
+            >
+              ${escapeHtml(option.label)}
+            </button>
           `,
         )
+        .join("")}
+    `
+    : "";
+  container.hidden = !options.length;
+}
+
+function renderBrowseView() {
+  const bar = document.getElementById("browse-filter-bar");
+  const grid = document.getElementById("browse-relic-grid");
+  if (!bar || !grid) return;
+
+  bar.innerHTML = BROWSE_FILTERS.map(
+    (filter) => `
+      <button
+        type="button"
+        class="browse-filter ${browseFilter === filter.id ? "active" : ""}"
+        data-browse-filter="${filter.id}"
+      >
+        ${escapeHtml(filter.label)}
+      </button>
+    `,
+  ).join("");
+
+  renderBrowseSubfilters();
+
+  const items = getBrowseFamilies();
+  setText("browse-count", items.length);
+
+  const search = document.getElementById("browse-search");
+  if (search && document.activeElement !== search) {
+    search.value = browseSearch;
+  }
+
+  grid.innerHTML = items.length
+    ? items
+        .map(({ family, relic }) => {
+          const relevant = relic.stampTexts.filter((stamp) =>
+            browseStampMatches(stamp, browseFilter),
+          );
+          const other = relic.stampTexts.filter(
+            (stamp) =>
+              !parseAffctStampBonus(stamp) &&
+              !relevant.includes(stamp),
+          );
+          const placement = currentPlacementForFamily(family.familyId);
+          const pinnedGroup = state.pins[family.familyId] || "";
+
+          return `
+            <article class="browse-relic-card">
+              <div class="browse-relic-head">
+                <div>
+                  <h3>${escapeHtml(family.name)}</h3>
+                  <div class="browse-meta">
+                    ${typePill(relic.type)}
+                    <span>${escapeHtml(selectedLevelForFamily(family) === "Awaken" ? "Awakened" : selectedLevelForFamily(family))}</span>
+                  </div>
+                </div>
+                ${
+                  placement
+                    ? `<span class="placed-badge">${escapeHtml(placement)}</span>`
+                    : ""
+                }
+              </div>
+
+              <div class="browse-stamps">
+                ${relevant
+                  .map(
+                    (stamp) => `<div class="browse-stamp relevant">${escapeHtml(stamp)}</div>`,
+                  )
+                  .join("")}
+                ${other
+                  .map(
+                    (stamp) => `<div class="browse-stamp">${escapeHtml(stamp)}</div>`,
+                  )
+                  .join("")}
+              </div>
+
+              <div class="browse-card-controls">
+                <select
+                  class="browse-place-select"
+                  data-browse-place-select="${escapeHtml(family.familyId)}"
+                  aria-label="Museum pedestal group for ${escapeHtml(family.name)}"
+                >
+                  ${browsePlacementOptions(family)}
+                </select>
+                <button
+                  class="primary-btn browse-place-btn"
+                  type="button"
+                  data-browse-place="${escapeHtml(family.familyId)}"
+                >
+                  ${pinnedGroup ? "Move / Keep" : "Add to Museum"}
+                </button>
+                ${
+                  pinnedGroup
+                    ? `
+                      <button
+                        class="light-btn browse-unpin-btn"
+                        type="button"
+                        data-browse-unpin="${escapeHtml(family.familyId)}"
+                      >
+                        Auto
+                      </button>
+                    `
+                    : ""
+                }
+              </div>
+            </article>
+          `;
+        })
         .join("")
-    : `<div class="empty-state">No additional owned alternatives.</div>`;
+    : `<div class="empty-state">No relics match this effect filter.</div>`;
+}
+
+function setMuseumView(view) {
+  activeMuseumView = view === "browse" ? "browse" : "optimize";
+
+  document.querySelectorAll(".museum-tab").forEach((button) => {
+    const active = button.dataset.museumView === activeMuseumView;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", String(active));
+  });
+
+  const optimizeView = document.getElementById("view-optimize");
+  const browseView = document.getElementById("view-browse");
+
+  if (optimizeView) optimizeView.hidden = activeMuseumView !== "optimize";
+  if (browseView) browseView.hidden = activeMuseumView !== "browse";
+
+  if (activeMuseumView === "browse") renderBrowseView();
 }
 
 function renderResults() {
@@ -1485,6 +1883,7 @@ function renderResults() {
   renderAllSlots();
   renderCategoryBuckets();
   renderBucketDetail();
+  if (activeMuseumView === "browse") renderBrowseView();
 
   const targetInput = document.getElementById("target-points");
   if (targetInput && document.activeElement !== targetInput) {
@@ -1521,6 +1920,23 @@ function updateGoalOption(goalId, value, checked) {
   if (!current.size) current.add("any");
   goal.options = Array.from(current);
 }
+
+document.addEventListener("input", (event) => {
+  const target = event.target;
+
+  if (target.id === "alternative-search") {
+    alternativeSearch = target.value;
+    renderBucketDetail();
+    target.focus();
+    return;
+  }
+
+  if (target.id === "browse-search") {
+    browseSearch = target.value;
+    renderBrowseView();
+    target.focus();
+  }
+});
 
 document.addEventListener("change", (event) => {
   const target = event.target;
@@ -1597,6 +2013,51 @@ document.addEventListener("change", (event) => {
 });
 
 document.addEventListener("click", (event) => {
+  const viewButton = event.target.closest("[data-museum-view]");
+  if (viewButton) {
+    setMuseumView(viewButton.dataset.museumView);
+    return;
+  }
+
+  const browseFilterButton = event.target.closest("[data-browse-filter]");
+  if (browseFilterButton) {
+    browseFilter = browseFilterButton.dataset.browseFilter;
+    browseSubtype = "any";
+    renderBrowseView();
+    return;
+  }
+
+  const browseSubtypeButton = event.target.closest("[data-browse-subtype]");
+  if (browseSubtypeButton) {
+    browseSubtype = browseSubtypeButton.dataset.browseSubtype;
+    renderBrowseView();
+    return;
+  }
+
+  const browsePlaceButton = event.target.closest("[data-browse-place]");
+  if (browsePlaceButton) {
+    const familyId = browsePlaceButton.dataset.browsePlace;
+    const select = document.querySelector(
+      `[data-browse-place-select="${CSS.escape(familyId)}"]`,
+    );
+    const groupType = select?.value || getFamily(familyId)?.type || "ALL";
+
+    state.pins[familyId] = groupType;
+    saveState();
+    optimizeMuseum();
+    renderBrowseView();
+    return;
+  }
+
+  const browseUnpinButton = event.target.closest("[data-browse-unpin]");
+  if (browseUnpinButton) {
+    delete state.pins[browseUnpinButton.dataset.browseUnpin];
+    saveState();
+    optimizeMuseum();
+    renderBrowseView();
+    return;
+  }
+
   const openBucket = event.target.closest("[data-open-bucket]");
   if (openBucket) {
     currentBucket = openBucket.dataset.openBucket;
@@ -1686,6 +2147,11 @@ document.addEventListener("click", (event) => {
     };
 
     currentBucket = "";
+    alternativeSearch = "";
+    browseSearch = "";
+    browseFilter = "cells";
+    browseSubtype = "any";
+    setMuseumView("optimize");
     renderEverything();
   }
 });
@@ -1725,4 +2191,5 @@ async function loadRelics() {
 
 loadState();
 document.getElementById("target-points").value = String(state.targetPoints || 0);
+setMuseumView("optimize");
 loadRelics();

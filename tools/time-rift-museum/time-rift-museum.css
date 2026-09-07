@@ -1431,3 +1431,355 @@
   background: transparent !important;
   padding: 0 !important;
 }
+
+
+/* =========================================================
+   Workflow overhaul v6
+   Optimize + Browse Effects
+========================================================= */
+
+.museum-tabs {
+  display: flex;
+  gap: 6px;
+  margin: 4px 0 10px;
+  border-bottom: 1px solid var(--rift-line);
+}
+
+.museum-tab {
+  border: 1px solid var(--rift-line);
+  border-bottom: 0;
+  border-radius: 11px 11px 0 0;
+  padding: 8px 15px;
+  background: #f6ead6;
+  color: var(--rift-muted);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.museum-tab.active {
+  background: var(--rift-card);
+  color: var(--rift-accent-dark);
+  box-shadow: inset 0 -3px 0 var(--rift-accent);
+}
+
+.museum-view[hidden] {
+  display: none !important;
+}
+
+/* Selected optimizer goals are highlighted, but all other bonuses stay visible. */
+.result-row.selected-result {
+  background: #fff5e3;
+}
+
+.result-row.selected-result > span::before {
+  content: "★ ";
+  color: var(--rift-accent);
+  font-size: 0.66rem;
+}
+
+.result-group {
+  align-self: start;
+}
+
+.effect-summary {
+  align-items: start;
+}
+
+/* Bucket detail */
+.offtype-row {
+  background: #fff8ef;
+}
+
+.offtype-note {
+  display: block;
+  margin-top: 2px;
+  color: var(--rift-bad);
+  font-size: 0.61rem;
+  font-weight: 800;
+}
+
+.alternatives-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: end;
+}
+
+.alternatives-head > div {
+  min-width: 0;
+}
+
+#alternative-search {
+  width: min(280px, 100%);
+  min-height: 36px;
+  border: 1px solid var(--rift-line);
+  border-radius: 9px;
+  padding: 6px 9px;
+  background: #fff;
+  color: var(--rift-ink);
+}
+
+.alternative-list {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  max-height: 460px;
+  overflow-y: auto;
+  padding-right: 3px;
+}
+
+.alternative-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.alternative-card-head > strong {
+  min-width: 0;
+}
+
+.offtype-block {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--rift-line);
+}
+
+.offtype-block summary {
+  cursor: pointer;
+  color: var(--rift-accent-dark);
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.offtype-block > p {
+  margin-bottom: 7px;
+}
+
+/* Browse Effects */
+.browse-card {
+  min-height: 500px;
+}
+
+.browse-status {
+  min-width: 80px;
+  border: 1px solid var(--rift-line);
+  border-radius: 10px;
+  padding: 6px 9px;
+  background: #fff7e8;
+  text-align: center;
+}
+
+.browse-status span,
+.browse-status strong {
+  display: block;
+}
+
+.browse-status span {
+  color: var(--rift-muted);
+  font-size: 0.65rem;
+  font-weight: 800;
+}
+
+.browse-status strong {
+  margin-top: 1px;
+  font-size: 1rem;
+}
+
+.browse-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 9px;
+  align-items: center;
+  margin: 10px 0 7px;
+}
+
+.browse-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.browse-filter,
+.browse-subfilter {
+  border: 1px solid var(--rift-line);
+  border-radius: 8px;
+  padding: 6px 9px;
+  background: #fff;
+  color: var(--rift-muted);
+  font-size: 0.7rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.browse-filter.active,
+.browse-subfilter.active {
+  border-color: var(--rift-accent);
+  background: #fff1dc;
+  color: var(--rift-accent-dark);
+}
+
+#browse-search {
+  width: 100%;
+  min-height: 36px;
+  border: 1px solid var(--rift-line);
+  border-radius: 9px;
+  padding: 6px 9px;
+  background: #fff;
+  color: var(--rift-ink);
+}
+
+.browse-subfilters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 0 0 9px;
+  color: var(--rift-muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.browse-subfilters[hidden] {
+  display: none !important;
+}
+
+.browse-relic-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.browse-relic-card {
+  min-width: 0;
+  border: 1px solid var(--rift-line);
+  border-radius: 12px;
+  padding: 10px;
+  background: #fffdf8;
+}
+
+.browse-relic-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.browse-relic-head h3 {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.18;
+}
+
+.browse-meta {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 4px;
+  color: var(--rift-muted);
+  font-size: 0.67rem;
+  font-weight: 800;
+}
+
+.placed-badge {
+  flex: 0 0 auto;
+  border: 1px solid var(--rift-line);
+  border-radius: 999px;
+  padding: 3px 6px;
+  background: #fff7e8;
+  color: var(--rift-accent-dark);
+  font-size: 0.61rem;
+  font-weight: 900;
+}
+
+.browse-stamps {
+  display: grid;
+  gap: 3px;
+  margin-top: 8px;
+  min-height: 54px;
+}
+
+.browse-stamp {
+  color: var(--rift-muted);
+  font-size: 0.7rem;
+  line-height: 1.25;
+}
+
+.browse-stamp.relevant {
+  color: var(--rift-accent-dark);
+  font-weight: 900;
+}
+
+.browse-card-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 5px;
+  margin-top: 9px;
+}
+
+.browse-place-select {
+  min-width: 0;
+  min-height: 34px;
+  border: 1px solid var(--rift-line);
+  border-radius: 8px;
+  padding: 5px 7px;
+  background: #fff;
+  color: var(--rift-ink);
+  font-size: 0.7rem;
+  font-weight: 750;
+}
+
+.browse-place-btn,
+.browse-unpin-btn {
+  min-height: 34px;
+  padding: 5px 9px;
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
+/* No movement from shared card hover styles. */
+.browse-relic-card,
+.browse-relic-card:hover,
+.result-group,
+.result-group:hover {
+  transform: none !important;
+  transition: none !important;
+  animation: none !important;
+}
+
+@media (max-width: 1180px) {
+  .alternative-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .browse-relic-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .museum-tabs {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--rift-card);
+  }
+
+  .alternatives-head,
+  .browse-toolbar {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  #alternative-search {
+    width: 100%;
+  }
+
+  .alternative-list,
+  .browse-relic-grid {
+    grid-template-columns: 1fr;
+    max-height: none;
+  }
+
+  .browse-card-controls {
+    grid-template-columns: 1fr;
+  }
+}
