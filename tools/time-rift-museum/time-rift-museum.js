@@ -870,104 +870,117 @@ function renderGoalSelector() {
       priority: "Medium",
     };
 
-    let optionsHtml = "";
+    return `
+      <article class="goal-card ${goal.enabled ? "enabled" : ""}">
+        <input
+          class="goal-enable"
+          type="checkbox"
+          data-goal-enable="${escapeHtml(definition.id)}"
+          ${goal.enabled ? "checked" : ""}
+          aria-label="Enable ${escapeHtml(definition.label)}"
+        />
+        <div class="goal-label">
+          <strong>${escapeHtml(definition.label)}</strong>
+          <small>${escapeHtml(definition.description)}</small>
+        </div>
+        <select
+          class="priority-select"
+          data-goal-priority="${escapeHtml(definition.id)}"
+          ${goal.enabled ? "" : "disabled"}
+          aria-label="${escapeHtml(definition.label)} priority"
+        >
+          ${["High", "Medium", "Low"]
+            .map(
+              (priority) =>
+                `<option ${goal.priority === priority ? "selected" : ""}>${priority}</option>`,
+            )
+            .join("")}
+        </select>
+      </article>
+    `;
+  }).join("");
 
-    if (definition.id === "cells") {
-      const chosen = selectedOptions("cells").map((value) => value.toLowerCase());
-      const options = [
-        { value: "any", label: "Any cell type" },
-        ...discoveredCellTypes.map((type) => ({
-          value: type.toLowerCase(),
-          label: `${type} Cells`,
-        })),
-      ];
+  renderGoalSuboptions();
+}
 
-      optionsHtml = `
-        <div class="goal-options">
+function renderGoalSuboptions() {
+  const container = document.getElementById("goal-suboptions");
+  if (!container) return;
+
+  const sections = [];
+
+  const cellsGoal = state.goals.cells;
+  if (cellsGoal?.enabled) {
+    const chosen = selectedOptions("cells").map((value) => value.toLowerCase());
+    const options = [
+      { value: "any", label: "Any cell type" },
+      ...discoveredCellTypes.map((type) => ({
+        value: type.toLowerCase(),
+        label: `${type} Cells`,
+      })),
+    ];
+
+    sections.push(`
+      <div class="suboption-row">
+        <strong>Cells:</strong>
+        <div class="suboption-list">
           ${options
             .map(
               (option) => `
-                <label class="goal-option">
+                <label class="suboption-check">
                   <input
                     type="checkbox"
                     data-goal-option="cells"
                     value="${escapeHtml(option.value)}"
                     ${chosen.includes(option.value.toLowerCase()) ? "checked" : ""}
-                    ${goal.enabled ? "" : "disabled"}
                   />
-                  ${escapeHtml(option.label)}
+                  <span>${escapeHtml(option.label)}</span>
                 </label>
               `,
             )
             .join("")}
         </div>
-      `;
-    }
+      </div>
+    `);
+  }
 
-    if (definition.id === "reagents") {
-      const chosen = selectedOptions("reagents").map((value) => value.toLowerCase());
-      const options = [
-        { value: "any", label: "Any reagent" },
-        ...discoveredReagentTypes.map((type) => ({
-          value: type.toLowerCase(),
-          label: `${type} Reagent`,
-        })),
-      ];
+  const reagentGoal = state.goals.reagents;
+  if (reagentGoal?.enabled) {
+    const chosen = selectedOptions("reagents").map((value) => value.toLowerCase());
+    const options = [
+      { value: "any", label: "Any reagent" },
+      ...discoveredReagentTypes.map((type) => ({
+        value: type.toLowerCase(),
+        label: `${type} Reagent`,
+      })),
+    ];
 
-      optionsHtml = `
-        <div class="goal-options">
+    sections.push(`
+      <div class="suboption-row">
+        <strong>Reagents:</strong>
+        <div class="suboption-list">
           ${options
             .map(
               (option) => `
-                <label class="goal-option">
+                <label class="suboption-check">
                   <input
                     type="checkbox"
                     data-goal-option="reagents"
                     value="${escapeHtml(option.value)}"
                     ${chosen.includes(option.value.toLowerCase()) ? "checked" : ""}
-                    ${goal.enabled ? "" : "disabled"}
                   />
-                  ${escapeHtml(option.label)}
+                  <span>${escapeHtml(option.label)}</span>
                 </label>
               `,
             )
             .join("")}
         </div>
-      `;
-    }
+      </div>
+    `);
+  }
 
-    return `
-      <article class="goal-card ${goal.enabled ? "enabled" : ""}">
-        <div class="goal-card-head">
-          <input
-            class="goal-enable"
-            type="checkbox"
-            data-goal-enable="${escapeHtml(definition.id)}"
-            ${goal.enabled ? "checked" : ""}
-            aria-label="Enable ${escapeHtml(definition.label)}"
-          />
-          <div class="goal-label">
-            <strong>${escapeHtml(definition.label)}</strong>
-            <small>${escapeHtml(definition.description)}</small>
-          </div>
-          <select
-            class="priority-select"
-            data-goal-priority="${escapeHtml(definition.id)}"
-            ${goal.enabled ? "" : "disabled"}
-            aria-label="${escapeHtml(definition.label)} priority"
-          >
-            ${["High", "Medium", "Low"]
-              .map(
-                (priority) =>
-                  `<option ${goal.priority === priority ? "selected" : ""}>${priority}</option>`,
-              )
-              .join("")}
-          </select>
-        </div>
-        ${optionsHtml}
-      </article>
-    `;
-  }).join("");
+  container.innerHTML = sections.join("");
+  container.hidden = !sections.length;
 }
 
 function typePill(type) {
@@ -980,12 +993,10 @@ function effectPills(relic, max = 2) {
   const shown = stamps.length ? stamps.slice(0, max) : [];
 
   if (!shown.length) {
-    return `<span class="effect-pill">AFFCT filler</span>`;
+    return `<span class="effect-text muted">AFFCT filler</span>`;
   }
 
-  return shown
-    .map((stamp) => `<span class="effect-pill">${escapeHtml(stamp)}</span>`)
-    .join("");
+  return `<span class="effect-text">${shown.map(escapeHtml).join(" · ")}</span>`;
 }
 
 function levelSelect(family, extraAttribute = "") {
@@ -1101,10 +1112,10 @@ function renderSummary() {
   container.innerHTML = effects
     .map(
       (effect) => `
-        <article class="effect-total">
+        <div class="effect-total">
           <span>${escapeHtml(effect.label)}</span>
           <strong>+${formatNumber(effect.value)}${effect.unit}</strong>
-        </article>
+        </div>
       `,
     )
     .join("");

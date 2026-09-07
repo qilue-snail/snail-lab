@@ -720,3 +720,347 @@
     max-width: none;
   }
 }
+
+
+/* =========================================================
+   Compact v3 overrides
+   - no bouncing / hover lift
+   - no pill-heavy suboption UI
+   - dense results
+========================================================= */
+
+/* Kill shared/global hover movement inside this tool. */
+.time-rift-main .tool-card,
+.time-rift-main .summary-card,
+.time-rift-main .goal-card,
+.time-rift-main .bucket-card,
+.time-rift-main .all-slot-card,
+.time-rift-main .alternative-card,
+.time-rift-main .relic-preview,
+.time-rift-main .effect-total,
+.time-rift-main .tool-card:hover,
+.time-rift-main .summary-card:hover,
+.time-rift-main .goal-card:hover,
+.time-rift-main .bucket-card:hover,
+.time-rift-main .all-slot-card:hover,
+.time-rift-main .alternative-card:hover,
+.time-rift-main .relic-preview:hover,
+.time-rift-main .effect-total:hover {
+  transform: none !important;
+  translate: none !important;
+  scale: 1 !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+.time-rift-main .tool-card:hover,
+.time-rift-main .summary-card:hover,
+.time-rift-main .bucket-card:hover {
+  box-shadow: var(--rift-shadow) !important;
+}
+
+/* Main goal cards are all compact. Cells/Reagents details live below them. */
+.goal-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  align-items: start;
+}
+
+.goal-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  min-height: 58px;
+  padding: 8px 9px;
+  border-radius: 11px;
+}
+
+.goal-label strong {
+  font-size: 0.82rem;
+}
+
+.goal-label small {
+  margin-top: 1px;
+  font-size: 0.63rem;
+  line-height: 1.16;
+}
+
+.priority-select {
+  width: 78px;
+  padding: 5px 6px;
+  font-size: 0.7rem;
+}
+
+/* Plain checkbox rows instead of pills. */
+.goal-suboptions {
+  display: grid;
+  gap: 5px;
+  margin-top: 7px;
+  padding: 7px 9px;
+  border-top: 1px solid var(--rift-line);
+  border-bottom: 1px solid var(--rift-line);
+  background: rgba(255, 253, 247, 0.6);
+}
+
+.goal-suboptions[hidden] {
+  display: none !important;
+}
+
+.suboption-row {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  font-size: 0.72rem;
+}
+
+.suboption-row > strong {
+  padding-top: 2px;
+  color: var(--rift-accent-dark);
+  font-size: 0.7rem;
+}
+
+.suboption-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 14px;
+}
+
+.suboption-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 22px;
+  color: var(--rift-ink);
+  font-size: 0.7rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.suboption-check input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+}
+
+/* Hide old pill styling if stale markup is ever cached. */
+.goal-options {
+  display: none !important;
+}
+
+/* Less vertical space around top areas. */
+.tool-card {
+  padding: 11px 13px;
+  margin-bottom: 9px;
+}
+
+.goal-first-card {
+  margin-bottom: 7px;
+}
+
+.assumption-note {
+  margin-bottom: 7px;
+  padding: 7px 10px;
+  font-size: 0.74rem;
+}
+
+.summary-grid {
+  grid-template-columns: repeat(4, minmax(110px, 1fr));
+  gap: 6px;
+  margin-bottom: 7px;
+}
+
+.summary-card {
+  padding: 7px 10px;
+  border-radius: 11px;
+}
+
+.summary-card span {
+  font-size: 0.64rem;
+}
+
+.summary-card strong {
+  margin-top: 1px;
+  font-size: 1.02rem;
+}
+
+/* Dense inline results: no quarter-width mini-cards. */
+.effects-card .card-head {
+  margin-bottom: 5px;
+}
+
+.effect-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 22px;
+  margin-top: 3px;
+  padding: 2px 0;
+}
+
+.effect-total {
+  display: inline-grid;
+  grid-template-columns: auto auto;
+  gap: 5px;
+  align-items: baseline;
+  min-width: 155px;
+  padding: 4px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  white-space: nowrap;
+}
+
+.effect-total span {
+  color: var(--rift-muted);
+  font-size: 0.69rem;
+}
+
+.effect-total strong {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+/* Relic effects are plain text instead of pill chips. */
+.effect-pills {
+  display: block;
+  margin-top: 3px;
+}
+
+.effect-pill {
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+.effect-text {
+  display: block;
+  color: var(--rift-muted);
+  font-size: 0.65rem;
+  line-height: 1.25;
+}
+
+.effect-text.muted {
+  opacity: 0.72;
+}
+
+/* Compact ALL slots. */
+.all-slot-grid {
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.all-slot-card {
+  padding: 8px 9px;
+  border-radius: 11px;
+}
+
+.all-slot-card h3,
+.relic-preview h3 {
+  margin-top: 2px;
+  font-size: 0.8rem;
+}
+
+.all-slot-card .affct-value {
+  margin-top: 3px;
+  font-size: 0.72rem;
+}
+
+.level-select {
+  margin-top: 5px;
+  padding: 4px 7px;
+  font-size: 0.7rem;
+}
+
+/* Buckets are more table-like and use less vertical space. */
+.bucket-grid {
+  gap: 6px;
+}
+
+.bucket-card {
+  border-radius: 12px;
+}
+
+.bucket-head {
+  padding: 7px 9px;
+}
+
+.bucket-body {
+  padding: 2px 7px 7px;
+}
+
+.relic-preview {
+  padding: 5px 1px;
+}
+
+.relic-preview .relic-meta {
+  font-size: 0.61rem;
+}
+
+.open-bucket-btn {
+  margin-top: 3px;
+  padding: 6px 7px;
+  font-size: 0.68rem;
+}
+
+/* Detail table tighter. */
+.rift-table th,
+.rift-table td {
+  padding: 6px 8px;
+  font-size: 0.7rem;
+}
+
+.rift-table th {
+  font-size: 0.61rem;
+}
+
+.alternative-list {
+  gap: 5px;
+}
+
+.alternative-card {
+  padding: 7px 8px;
+}
+
+@media (max-width: 1180px) {
+  .goal-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .effect-summary {
+    gap: 0 16px;
+  }
+}
+
+@media (max-width: 760px) {
+  .goal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .goal-card {
+    grid-template-columns: auto minmax(0, 1fr) 76px;
+  }
+
+  .priority-select {
+    grid-column: auto;
+    width: 76px;
+  }
+
+  .suboption-row {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .effect-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2px 12px;
+  }
+
+  .effect-total {
+    min-width: 0;
+    white-space: normal;
+  }
+}
