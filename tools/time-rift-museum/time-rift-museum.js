@@ -1066,15 +1066,35 @@ function typePill(type) {
   return `<span class="type-pill" style="background:${background}">${escapeHtml(type || "—")}</span>`;
 }
 
-function effectPills(relic, max = 2) {
-  const stamps = matchedGoalStamps(relic);
-  const shown = stamps.length ? stamps.slice(0, max) : [];
-
-  if (!shown.length) {
-    return `<span class="effect-text muted">AFFCT filler</span>`;
+function effectPills(relic, max = 3) {
+  if (!relic) {
+    return `<span class="effect-text muted">No Rift stamp bonuses</span>`;
   }
 
-  return `<span class="effect-text">${shown.map(escapeHtml).join(" · ")}</span>`;
+  const allStamps = Array.isArray(relic.stampTexts) ? relic.stampTexts.filter(Boolean) : [];
+  if (!allStamps.length) {
+    return `<span class="effect-text muted">No Rift stamp bonuses</span>`;
+  }
+
+  const matched = new Set(matchedGoalStamps(relic));
+  const ordered = [
+    ...allStamps.filter((stamp) => matched.has(stamp)),
+    ...allStamps.filter((stamp) => !matched.has(stamp)),
+  ].slice(0, max);
+
+  return `
+    <span class="effect-text">
+      ${ordered
+        .map(
+          (stamp) => `
+            <span class="effect-stamp ${matched.has(stamp) ? "goal-match" : "extra-bonus"}">
+              ${escapeHtml(stamp)}
+            </span>
+          `,
+        )
+        .join('<span class="effect-divider"> · </span>')}
+    </span>
+  `;
 }
 
 function levelSelect(family, extraAttribute = "") {
@@ -1208,7 +1228,7 @@ function renderCategoryBuckets() {
                     Slot ${item.slot} · ${formatNumber(item.points)} ${type}
                   </div>
                   <h3>${escapeHtml(item.family.name)}</h3>
-                  <div class="effect-pills">${effectPills(item.relic, 2)}</div>
+                  <div class="effect-pills">${effectPills(item.relic, 3)}</div>
                 </div>
               `,
             )
@@ -1443,7 +1463,7 @@ function renderBucketDetail() {
                 ${formatNumber(item.points)} ${currentBucket} ·
                 ${escapeHtml(item.relic.type || "—")}
               </small>
-              <div class="effect-pills">${effectPills(item.relic, 2)}</div>
+              <div class="effect-pills">${effectPills(item.relic, 3)}</div>
               <button
                 class="use-alternative-btn"
                 type="button"

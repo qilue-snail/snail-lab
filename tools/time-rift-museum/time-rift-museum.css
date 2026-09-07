@@ -1379,3 +1379,55 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* =========================================================
+   Full stamp visibility v5
+   Every recommended/alternative relic shows its actual
+   Rift stamps, even when they are not selected optimizer goals.
+========================================================= */
+
+.effect-text {
+  display: block;
+  color: var(--rift-muted);
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+.effect-stamp {
+  display: inline;
+}
+
+.effect-stamp.goal-match {
+  color: var(--rift-accent-dark);
+  font-weight: 900;
+}
+
+.effect-stamp.extra-bonus {
+  color: var(--rift-muted);
+  font-weight: 650;
+}
+
+.effect-divider {
+  color: #b29d80;
+  font-weight: 500;
+}
+
+.alternative-card .effect-text {
+  margin-top: 4px;
+  min-height: 1.35em;
+}
+
+.relic-preview .effect-text,
+.all-slot-card .effect-text {
+  margin-top: 3px;
+}
+
+/* The text itself now communicates priority; no chip/pill treatment. */
+.effect-stamp,
+.effect-divider {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
