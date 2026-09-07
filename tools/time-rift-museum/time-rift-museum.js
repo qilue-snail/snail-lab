@@ -858,6 +858,84 @@ function getEffectTotals() {
   );
 }
 
+function getGroupedEffectSummary() {
+  const raw = getEffectTotals();
+
+  let universalCells = 0;
+  const cellSpecific = [];
+  const reagents = [];
+  const other = [];
+
+  raw.forEach((effect) => {
+    const label = effect.label.trim();
+
+    if (/^cells?\s+collected$/i.test(label)) {
+      universalCells += effect.value;
+      return;
+    }
+
+    const cellMatch = label.match(/^([A-Za-z]+)\s+Cells?\s+(?:gained|collected)$/i);
+    if (cellMatch) {
+      cellSpecific.push({
+        subtype:
+          cellMatch[1].charAt(0).toUpperCase() +
+          cellMatch[1].slice(1).toLowerCase(),
+        value: effect.value,
+      });
+      return;
+    }
+
+    const reagentMatch = label.match(
+      /^(?:2x\s+)?([A-Za-z]+)\s+Reagent\s+Drops?$/i,
+    );
+    if (reagentMatch) {
+      reagents.push({
+        subtype:
+          reagentMatch[1].charAt(0).toUpperCase() +
+          reagentMatch[1].slice(1).toLowerCase(),
+        value: effect.value,
+      });
+      return;
+    }
+
+    other.push(effect);
+  });
+
+  cellSpecific.sort((a, b) => b.value - a.value || a.subtype.localeCompare(b.subtype));
+  reagents.sort((a, b) => b.value - a.value || a.subtype.localeCompare(b.subtype));
+
+  return {
+    universalCells,
+    cellSpecific,
+    reagents,
+    other,
+  };
+}
+
+function selectedCellSubtypesForDisplay(grouped) {
+  const options = selectedOptions("cells").map((value) => value.toLowerCase());
+
+  if (options.includes("any")) {
+    return grouped.cellSpecific;
+  }
+
+  return grouped.cellSpecific.filter((item) =>
+    options.includes(item.subtype.toLowerCase()),
+  );
+}
+
+function selectedReagentSubtypesForDisplay(grouped) {
+  const options = selectedOptions("reagents").map((value) => value.toLowerCase());
+
+  if (options.includes("any")) {
+    return grouped.reagents;
+  }
+
+  return grouped.reagents.filter((item) =>
+    options.includes(item.subtype.toLowerCase()),
+  );
+}
+
 /* ---------- Render ---------- */
 
 function renderGoalSelector() {
@@ -1027,6 +1105,55 @@ function levelSelect(family, extraAttribute = "") {
   `;
 }
 
+function getAllSlotChoices(currentFamilyId) {
+  return families
+    .filter((family) => Boolean(getActiveRelic(family)))
+    .map((family) => {
+      const relic = getActiveRelic(family);
+      return {
+        family,
+        relic,
+        points: pedestalAffct(relic, "ALL"),
+        goalScore: relicGoalScore(relic),
+      };
+    })
+    .sort(
+      (a, b) =>
+        b.goalScore - a.goalScore ||
+        b.points - a.points ||
+        a.family.name.localeCompare(b.family.name),
+    );
+}
+
+function allRelicSelect(item) {
+  const choices = getAllSlotChoices(item.family.familyId);
+
+  return `
+    <label class="all-change-label">
+      Change relic
+      <select
+        class="all-relic-select"
+        data-all-current-family="${escapeHtml(item.family.familyId)}"
+        aria-label="Change relic in ALL slot ${item.slot}"
+      >
+        <option value="">Auto optimize</option>
+        ${choices
+          .map(
+            (choice) => `
+              <option
+                value="${escapeHtml(choice.family.familyId)}"
+                ${choice.family.familyId === item.family.familyId ? "selected" : ""}
+              >
+                ${escapeHtml(choice.family.name)} — ${formatNumber(choice.points)} ALL
+              </option>
+            `,
+          )
+          .join("")}
+      </select>
+    </label>
+  `;
+}
+
 function renderAllSlots() {
   const container = document.getElementById("all-slots");
   if (!container) return;
@@ -1038,11 +1165,16 @@ function renderAllSlots() {
         .map(
           (item) => `
             <article class="all-slot-card">
-              <span class="slot-label">Slot ${item.slot} · ALL</span>
+              <div class="all-slot-topline">
+                <span class="slot-label">Slot ${item.slot} · ALL</span>
+                <strong>${formatNumber(item.points)} ALL</strong>
+              </div>
               <h3>${escapeHtml(item.family.name)}</h3>
-              <div class="affct-value">${formatNumber(item.points)} ALL AFFCT</div>
               <div class="effect-pills">${effectPills(item.relic, 3)}</div>
-              ${levelSelect(item.family)}
+              <div class="all-slot-controls">
+                ${allRelicSelect(item)}
+                ${levelSelect(item.family)}
+              </div>
             </article>
           `,
         )
@@ -1096,29 +1228,127 @@ function renderSummary() {
   setText("adjusted-count", Object.keys(state.levelOverrides).length);
   setText("selected-goal-count", enabledGoalCount());
 
-  const effects = getEffectTotals();
+  const grouped = getGroupedEffectSummary();
   const container = document.getElementById("effect-summary");
   if (!container) return;
 
-  if (!effects.length) {
-    container.innerHTML = `
-      <div class="empty-state">
-        No selected-goal effects are active in this setup yet.
+  const sections = [];
+
+  if (state.goals.cells?.enabled) {
+    const shownCells = selectedCellSubtypesForDisplay(grouped);
+    const cellRows = [];
+
+    cellRows.push(`
+      <div class="result-row result-row-universal">
+        <span>All cell types</span>
+        <strong>+${formatNumber(grouped.universalCells)}%</strong>
+        <small>Cells Collected</small>
       </div>
-    `;
-    return;
+    `);
+
+    shownCells.forEach((item) => {
+      const effective = grouped.universalCells + item.value;
+
+      cellRows.push(`
+        <div class="result-row">
+          <span>${escapeHtml(item.subtype)} Cells</span>
+          <strong>+${formatNumber(effective)}%</strong>
+          <small>${formatNumber(item.value)}% specific + ${formatNumber(grouped.universalCells)}% universal</small>
+        </div>
+      `);
+    });
+
+    sections.push(`
+      <section class="result-group result-group-cells">
+        <div class="result-group-head">
+          <h3>Cells</h3>
+          <span>Effective collection bonuses</span>
+        </div>
+        <div class="result-rows">
+          ${cellRows.join("")}
+        </div>
+      </section>
+    `);
   }
 
-  container.innerHTML = effects
-    .map(
-      (effect) => `
-        <div class="effect-total">
-          <span>${escapeHtml(effect.label)}</span>
-          <strong>+${formatNumber(effect.value)}${effect.unit}</strong>
+  if (state.goals.reagents?.enabled) {
+    const shownReagents = selectedReagentSubtypesForDisplay(grouped);
+
+    sections.push(`
+      <section class="result-group">
+        <div class="result-group-head">
+          <h3>Reagents</h3>
+          <span>Each color stays separate</span>
         </div>
-      `,
-    )
-    .join("");
+        <div class="result-rows">
+          ${
+            shownReagents.length
+              ? shownReagents
+                  .map(
+                    (item) => `
+                      <div class="result-row">
+                        <span>${escapeHtml(item.subtype)} Reagent</span>
+                        <strong>+${formatNumber(item.value)}%</strong>
+                        <small>2x drop chance</small>
+                      </div>
+                    `,
+                  )
+                  .join("")
+              : `<div class="result-empty">No matching reagent bonus in this setup.</div>`
+          }
+        </div>
+      </section>
+    `);
+  }
+
+  const otherEffects = grouped.other.filter((effect) => {
+    const label = effect.label.toLowerCase();
+
+    if (state.goals["dragon-orbs"]?.enabled && /dragon\s*orbs?/.test(label)) return true;
+    if (state.goals.incense?.enabled && /incense/.test(label)) return true;
+    if (state.goals.intel?.enabled && /intel/.test(label)) return true;
+    if (state.goals["b-tads"]?.enabled && /b-?tads?|btads?|black\s*tads?/.test(label)) return true;
+    if (state.goals["travel-speed"]?.enabled && /travel\s*(spd|speed)/.test(label)) return true;
+    if (
+      state.goals["elemental-dmg"]?.enabled &&
+      /(fire|water|earth|wind|element|elmt).*(dmg|damage)|(dmg|damage).*(fire|water|earth|wind|element|elmt)/.test(label)
+    ) {
+      return true;
+    }
+
+    return false;
+  });
+
+  if (otherEffects.length) {
+    sections.push(`
+      <section class="result-group">
+        <div class="result-group-head">
+          <h3>Other selected goals</h3>
+          <span>Only effects you asked the optimizer to value</span>
+        </div>
+        <div class="result-rows">
+          ${otherEffects
+            .map(
+              (effect) => `
+                <div class="result-row">
+                  <span>${escapeHtml(effect.label)}</span>
+                  <strong>+${formatNumber(effect.value)}${effect.unit}</strong>
+                </div>
+              `,
+            )
+            .join("")}
+        </div>
+      </section>
+    `);
+  }
+
+  container.innerHTML = sections.length
+    ? sections.join("")
+    : `
+      <div class="empty-state">
+        Select one or more goals to see the useful effects in the recommended setup.
+      </div>
+    `;
 }
 
 function getBucketAlternatives(groupType, limit = 6) {
@@ -1299,6 +1529,24 @@ document.addEventListener("change", (event) => {
     updateGoalOption(target.dataset.goalOption, target.value, target.checked);
     saveState();
     renderEverything();
+    return;
+  }
+
+  if (target.matches(".all-relic-select")) {
+    const currentFamilyId = target.dataset.allCurrentFamily;
+    const newFamilyId = target.value;
+
+    if (state.pins[currentFamilyId] === "ALL") {
+      delete state.pins[currentFamilyId];
+    }
+
+    if (newFamilyId) {
+      // A family can only be manually assigned to one pedestal group.
+      state.pins[newFamilyId] = "ALL";
+    }
+
+    saveState();
+    optimizeMuseum();
     return;
   }
 
