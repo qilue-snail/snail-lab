@@ -1387,7 +1387,7 @@ function renderSummary() {
     });
 
     sections.push(`
-      <section class="result-group result-group-cells">
+      <section class="result-group result-group-cells result-group-small">
         <div class="result-group-head">
           <h3>Cells</h3>
           <span>Effective totals</span>
@@ -1399,7 +1399,7 @@ function renderSummary() {
 
   if (grouped.reagents.length) {
     sections.push(`
-      <section class="result-group">
+      <section class="result-group result-group-reagents result-group-small">
         <div class="result-group-head">
           <h3>Reagents</h3>
           <span>Each color stays separate</span>
@@ -1423,7 +1423,7 @@ function renderSummary() {
 
   if (grouped.resources.length) {
     sections.push(`
-      <section class="result-group">
+      <section class="result-group result-group-wide result-group-resources">
         <div class="result-group-head">
           <h3>Resources / Progress</h3>
           <span>All useful resource bonuses</span>
@@ -1437,7 +1437,7 @@ function renderSummary() {
 
   if (grouped.combat.length) {
     sections.push(`
-      <section class="result-group">
+      <section class="result-group result-group-wide result-group-combat">
         <div class="result-group-head">
           <h3>Combat / Stats</h3>
           <span>Extra bonuses from the setup</span>
@@ -1451,7 +1451,7 @@ function renderSummary() {
 
   if (grouped.other.length) {
     sections.push(`
-      <section class="result-group">
+      <section class="result-group result-group-other result-group-small">
         <div class="result-group-head">
           <h3>Other Rift bonuses</h3>
           <span>Additional stamp effects</span>

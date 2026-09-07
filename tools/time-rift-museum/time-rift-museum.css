@@ -1783,3 +1783,175 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* =========================================================
+   Compact bonus dashboard v7
+========================================================= */
+
+/* Keep the useful information, but stop this section from
+   becoming the tallest part of the entire tool. */
+.effects-card {
+  padding-bottom: 12px;
+}
+
+.effects-card .card-head {
+  margin-bottom: 6px;
+}
+
+.effects-card .card-head p {
+  max-width: 1080px;
+}
+
+.effect-summary {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 7px;
+  margin-top: 6px;
+  align-items: start;
+}
+
+/* Top row: compact groups. */
+.result-group-small {
+  grid-column: span 4;
+}
+
+/* Bottom row: the two large information groups. */
+.result-group-wide {
+  grid-column: span 6;
+}
+
+.result-group {
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.result-group-head {
+  padding: 6px 8px;
+  min-height: 31px;
+}
+
+.result-group-head h3 {
+  font-size: 0.8rem;
+}
+
+.result-group-head span {
+  font-size: 0.58rem;
+}
+
+/* Most groups use dense rows. */
+.result-rows {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+/* Long lists use two columns internally rather than becoming tall. */
+.result-group-resources .result-rows,
+.result-group-combat .result-rows {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 0;
+}
+
+.result-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1px 7px;
+  min-height: 30px;
+  padding: 4px 8px;
+  border-bottom: 1px solid #f0e7d7;
+}
+
+.result-group-resources .result-row,
+.result-group-combat .result-row {
+  border-right: 1px solid #f0e7d7;
+}
+
+/* Don't leave a heavy visual box around every metric. */
+.result-row > span {
+  overflow: hidden;
+  font-size: 0.69rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.result-row > strong {
+  font-size: 0.73rem;
+  line-height: 1.2;
+}
+
+.result-row > small {
+  margin-top: 1px;
+  font-size: 0.55rem;
+  line-height: 1.15;
+}
+
+/* Selected goals remain noticeable without filling the entire row. */
+.result-row.selected-result {
+  background: transparent;
+}
+
+.result-row.selected-result > span {
+  color: var(--rift-accent-dark);
+}
+
+.result-row.selected-result > span::before {
+  content: "★ ";
+  font-size: 0.58rem;
+}
+
+/* Universal cells is useful, but should not look like a banner. */
+.result-row-universal {
+  background: #fffaf0;
+}
+
+/* Other bonuses can be tiny; avoid stretching to match neighbors. */
+.result-group-other {
+  align-self: start;
+}
+
+/* Remove excess vertical whitespace when a group only has one item. */
+.result-group .result-rows:has(.result-row:only-child) .result-row {
+  min-height: 34px;
+}
+
+/* If there is no "Other" group, Cells/Reagents are allowed to breathe
+   without creating an empty third column. */
+.effect-summary > .empty-state {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 1100px) {
+  .result-group-small {
+    grid-column: span 6;
+  }
+
+  .result-group-wide {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .effect-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .result-group-small,
+  .result-group-wide {
+    grid-column: 1;
+  }
+
+  .result-group-resources .result-rows,
+  .result-group-combat .result-rows {
+    grid-template-columns: 1fr;
+  }
+
+  .result-group-resources .result-row,
+  .result-group-combat .result-row {
+    border-right: 0;
+  }
+
+  .result-row > span {
+    white-space: normal;
+  }
+}
