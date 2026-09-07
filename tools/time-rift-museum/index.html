@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Time Rift Museum | Snail Lab</title>
     <link rel="stylesheet" href="/snail-lab/styles.css" />
-    <link rel="stylesheet" href="time-rift-museum.css" />
+    <link rel="stylesheet" href="time-rift-museum.css?v=2" />
   </head>
   <body>
     <div class="app-shell">
@@ -18,8 +18,9 @@
               <p class="eyebrow">Super Snail</p>
               <h1>Time Rift Museum</h1>
               <p class="subtitle">
-                Mark the relic levels you own, choose a minimum AFFCT target,
-                then optimize the setup for the stamp goal you care about.
+                Pick what you want from the museum. The optimizer starts by assuming
+                every relic is Awakened, fills the real 83 Rift Museum slots, then
+                lets you correct only the relics you do not own or have at a lower level.
               </p>
             </div>
 
@@ -27,314 +28,155 @@
               <button id="refresh-relics" class="primary-btn" type="button">
                 Sync Relic Data
               </button>
-              <button id="reset-museum" class="light-btn" type="button">
-                Reset Setup
+              <button id="assume-awakened" class="light-btn" type="button">
+                Assume All Awakened
+              </button>
+              <button id="reset-museum" class="light-btn danger-btn" type="button">
+                Reset
               </button>
             </div>
           </header>
-
-          <section class="summary-grid" aria-label="Museum summary">
-            <article class="summary-card">
-              <span>Current AFFCT</span>
-              <strong id="total-points">0</strong>
-            </article>
-            <article class="summary-card">
-              <span>Current Rating</span>
-              <strong id="current-rating">—</strong>
-            </article>
-            <article class="summary-card">
-              <span>Owned Relics</span>
-              <strong id="owned-count-summary">0</strong>
-            </article>
-            <article class="summary-card wide">
-              <span>Next Unlock</span>
-              <strong id="next-threshold">80 (C)</strong>
-              <div class="progress-track">
-                <span id="rank-progress-bar"></span>
-              </div>
-              <small>Need <b id="points-needed">80</b> AFFCT</small>
-            </article>
-          </section>
 
           <p id="sync-status" class="sync-status">
             Loading Time Rift Museum relics…
           </p>
 
-          <nav
-            class="rift-tabs"
-            role="tablist"
-            aria-label="Time Rift Museum tabs"
-          >
-            <button
-              class="rift-tab active"
-              type="button"
-              data-tab="input"
-              role="tab"
-              aria-selected="true"
-            >
-              Input Relics
-            </button>
-            <button
-              class="rift-tab"
-              type="button"
-              data-tab="optimize"
-              role="tab"
-              aria-selected="false"
-            >
-              Optimize Setup
-            </button>
-            <button
-              class="rift-tab"
-              type="button"
-              data-tab="buffs"
-              role="tab"
-              aria-selected="false"
-            >
-              Buff Progress
-            </button>
-          </nav>
-
-          <section id="panel-input" class="tab-panel active" role="tabpanel">
-            <article class="tool-card">
-              <div class="card-head">
-                <div>
-                  <h2>Input Relics</h2>
-                  <p>
-                    Pick the highest level you own. Use filters to move quickly
-                    through the list without opening dropdowns for every relic.
-                  </p>
-                </div>
-                <div class="small-stat">
-                  <span>Shown</span>
-                  <strong id="visible-count">0</strong>
-                </div>
-              </div>
-
-              <div class="input-toolbar">
-                <input
-                  id="owned-search"
-                  type="search"
-                  placeholder="Search relics…"
-                  autocomplete="off"
-                />
-                <select id="owned-type-filter" aria-label="Filter by type">
-                  <option value="all">All types</option>
-                  <option value="FAME">FAME</option>
-                  <option value="ART">ART</option>
-                  <option value="FTH">FTH</option>
-                  <option value="CIV">CIV</option>
-                  <option value="TECH">TECH</option>
-                </select>
-                <select id="owned-view-filter" aria-label="Filter by ownership">
-                  <option value="all">All relics</option>
-                  <option value="owned">Owned only</option>
-                  <option value="missing">Not owned</option>
-                </select>
-                <select id="owned-level-filter" aria-label="Filter by level">
-                  <option value="all">All levels</option>
-                  <option value="none">Not owned</option>
-                  <option value="3">3★</option>
-                  <option value="4">4★</option>
-                  <option value="5">5★</option>
-                  <option value="6">6★</option>
-                  <option value="Awaken">Awaken</option>
-                </select>
-                <select id="stamp-filter" aria-label="Filter by stamp">
-                  <option value="all">All stamps</option>
-                  <option value="element:any">Any elemental DMG</option>
-                  <option value="element:fire">Fire DMG</option>
-                  <option value="element:water">Water DMG</option>
-                  <option value="element:earth">Earth DMG</option>
-                  <option value="element:wind">Wind DMG</option>
-                  <option value="cells:any">Any cells</option>
-                  <option value="resource:dragon-orbs">Dragon Orbs</option>
-                  <option value="resource:incense">Incense</option>
-                  <option value="stat:atk">ATK</option>
-                  <option value="stat:def">DEF</option>
-                  <option value="stat:hp">HP</option>
-                  <option value="stat:rush">RUSH</option>
-                  <option value="stat:crit">CRIT</option>
-                  <option value="stat:crit-dmg">CRIT DMG</option>
-                  <option value="stat:dmg">DMG</option>
-                  <option value="stat:hero-dmg">Hero DMG</option>
-                  <option value="affct:any">AFFCT</option>
-                </select>
-              </div>
-
-              <div class="bulk-actions" aria-label="Bulk owned level actions">
-                <span>Mark shown as</span>
-                <button class="bulk-level-btn" type="button" data-level="">
-                  Unowned
-                </button>
-                <button class="bulk-level-btn" type="button" data-level="6">
-                  6★
-                </button>
-                <button class="bulk-level-btn" type="button" data-level="Awaken">
-                  Awaken
-                </button>
-              </div>
-
-              <div class="table-scroll">
-                <table class="rift-table relic-table">
-                  <colgroup>
-                    <col class="relic-name-col" />
-                    <col class="relic-type-col" />
-                    <col class="relic-level-col" />
-                  </colgroup>
-                  <thead>
-                    <tr>
-                      <th>Relic</th>
-                      <th>Type</th>
-                      <th>Owned Level</th>
-                    </tr>
-                  </thead>
-                  <tbody id="owned-relic-list"></tbody>
-                </table>
-              </div>
-            </article>
-          </section>
-
-          <section id="panel-optimize" class="tab-panel" role="tabpanel" hidden>
-            <article class="tool-card optimizer-card">
-              <div class="card-head">
-                <div>
-                  <h2>Optimizer</h2>
-                  <p>
-                    Set the minimum museum AFFCT you want to hit. The optimizer
-                    meets that target first, then maximizes your stamp goal.
-                  </p>
-                </div>
-                <button id="apply-optimized" class="primary-btn" type="button">
-                  Apply Optimized Setup
-                </button>
-              </div>
-
-              <div class="optimizer-controls">
-                <label>
-                  Minimum Target AFFCT
-                  <input
-                    id="target-points"
-                    type="number"
-                    min="0"
-                    step="10"
-                    value="1800"
-                  />
-                </label>
-
-                <div id="quick-targets" class="quick-targets"></div>
-              </div>
-
-              <div class="goal-panel">
-                <div class="goal-panel-head">
-                  <h3>Optimize Goals</h3>
-                  <p>Select one or more stamp goals. AFFCT target is always met first.</p>
-                </div>
-                <div id="goal-selector" class="goal-grid"></div>
-              </div>
-
-              <p id="optimizer-note" class="optimizer-note"></p>
-            </article>
-
-            <section
-              class="summary-grid optimize-summary"
-              aria-label="Optimizer summary"
-            >
-              <article class="summary-card">
-                <span>Optimized AFFCT</span>
-                <strong id="optimized-points">0</strong>
-              </article>
-              <article class="summary-card">
-                <span>Optimized Rating</span>
-                <strong id="optimized-rating">—</strong>
-              </article>
-              <article class="summary-card">
-                <span>Slots Filled</span>
-                <strong id="optimized-filled">0 / 83</strong>
-              </article>
-            </section>
-
-            <section class="results-grid">
-              <article class="tool-card">
-                <h2>Recommended Setup</h2>
-                <div class="table-scroll">
-                  <table class="rift-table setup-table">
-                    <thead>
-                      <tr>
-                        <th>Slot</th>
-                        <th>Pedestal</th>
-                        <th>Relic</th>
-                        <th>Level</th>
-                        <th>Type</th>
-                        <th>AFFCT</th>
-                        <th>Stamp 1</th>
-                        <th>Stamp 2</th>
-                        <th>Stamp 3</th>
-                      </tr>
-                    </thead>
-                    <tbody id="optimized-list"></tbody>
-                  </table>
-                </div>
-              </article>
-
-              <article class="tool-card">
-                <h2>Applied Setup / Manual Changes</h2>
-                <div class="table-scroll applied-scroll">
-                  <table class="rift-table setup-table">
-                    <thead>
-                      <tr>
-                        <th>Slot</th>
-                        <th>Pedestal</th>
-                        <th>Relic</th>
-                        <th>Level</th>
-                        <th>Type</th>
-                        <th>AFFCT</th>
-                        <th>Stamp 1</th>
-                        <th>Stamp 2</th>
-                        <th>Stamp 3</th>
-                      </tr>
-                    </thead>
-                    <tbody id="current-setup-list"></tbody>
-                  </table>
-                </div>
-              </article>
-            </section>
-          </section>
-
-          <section id="panel-buffs" class="tab-panel" role="tabpanel" hidden>
-            <div class="buff-layout">
-              <article class="tool-card buff-total-card">
-                <h2>Total Buffs Unlocked</h2>
+          <section class="tool-card goal-first-card">
+            <div class="card-head">
+              <div>
+                <h2>1. What do you want to improve?</h2>
                 <p>
-                  Calculated from the buff rows unlocked by your applied score.
+                  Choose several goals if you want. High priority wins first;
+                  Medium and Low goals become useful fallbacks when a preferred relic is unavailable.
                 </p>
-                <div class="table-scroll">
-                  <table class="rift-table buff-total-table">
-                    <thead>
-                      <tr>
-                        <th>Buff</th>
-                        <th>Total</th>
-                      </tr>
-                    </thead>
-                    <tbody id="buff-total-list"></tbody>
-                  </table>
-                </div>
-              </article>
+              </div>
+              <button id="optimize-museum" class="primary-btn" type="button">
+                Optimize Museum
+              </button>
+            </div>
 
-              <article class="tool-card buff-progress-card">
-                <h2>Rating / Buff Progress</h2>
-                <div class="table-scroll">
-                  <table class="rift-table buff-table">
-                    <thead>
-                      <tr>
-                        <th>Rating</th>
-                        <th>Req. Points</th>
-                        <th>Buff</th>
-                      </tr>
-                    </thead>
-                    <tbody id="buff-list"></tbody>
-                  </table>
-                </div>
-              </article>
+            <div id="goal-selector" class="goal-grid"></div>
+
+            <details class="advanced-options">
+              <summary>Optional AFFCT requirement</summary>
+              <div class="advanced-body">
+                <label class="field-label">
+                  Minimum total museum AFFCT
+                  <input id="target-points" type="number" min="0" step="10" value="0" />
+                </label>
+                <p>
+                  Leave at 0 to maximize your selected goals. Enter a minimum if
+                  you want the optimizer to protect a museum score while choosing resource relics.
+                </p>
+              </div>
+            </details>
+          </section>
+
+          <section class="assumption-note" aria-label="Fast start assumption">
+            <strong>Fast start:</strong>
+            <span>
+              You do not need to enter your whole collection. Every relic begins as
+              <b>Awakened</b>. After optimization, change a recommended relic to
+              6★, 5★, 4★, 3★, or Unowned. The setup re-optimizes around that change.
+            </span>
+          </section>
+
+          <section class="summary-grid" aria-label="Optimized museum summary">
+            <article class="summary-card">
+              <span>Total AFFCT</span>
+              <strong id="optimized-points">0</strong>
+            </article>
+            <article class="summary-card">
+              <span>Slots Filled</span>
+              <strong id="optimized-filled">0 / 83</strong>
+            </article>
+            <article class="summary-card">
+              <span>Adjusted Relics</span>
+              <strong id="adjusted-count">0</strong>
+            </article>
+            <article class="summary-card">
+              <span>Selected Goals</span>
+              <strong id="selected-goal-count">0</strong>
+            </article>
+          </section>
+
+          <section class="tool-card effects-card">
+            <div class="card-head">
+              <div>
+                <h2>2. What this setup gives you</h2>
+                <p>
+                  Effects stay separate when they are not the same mechanic.
+                  For example, Cells Collected is shown separately from Zombie Cells,
+                  and Purple Reagent drops are separate from Orange Reagent drops.
+                </p>
+              </div>
+            </div>
+            <div id="effect-summary" class="effect-summary"></div>
+          </section>
+
+          <section class="tool-card">
+            <div class="card-head">
+              <div>
+                <h2>Main / ALL slots</h2>
+                <p>
+                  The Rift Museum has 3 ALL slots. ALL score uses the relic's combined
+                  FAME + ART + FTH + CIV + TECH, plus only genuine AFFCT stamps such as
+                  “FAME +15”. Snail stats and elemental damage never count as AFFCT.
+                </p>
+              </div>
+              <span class="slot-count">3 slots</span>
+            </div>
+            <div id="all-slots" class="all-slot-grid"></div>
+          </section>
+
+          <section class="category-section">
+            <div class="section-head">
+              <div>
+                <h2>3. Category buckets</h2>
+                <p>
+                  The remaining 80 slots are fixed: 16 FAME, 16 ART, 16 FTH,
+                  16 CIV, and 16 TECH. Only the top few are shown until you open a bucket.
+                </p>
+              </div>
+            </div>
+
+            <div id="category-buckets" class="bucket-grid"></div>
+          </section>
+
+          <section id="bucket-detail" class="tool-card bucket-detail" hidden>
+            <div class="card-head">
+              <div>
+                <p class="eyebrow" id="bucket-detail-eyebrow">Pedestal bucket</p>
+                <h2 id="bucket-detail-title">FAME</h2>
+                <p id="bucket-detail-note"></p>
+              </div>
+              <button id="close-bucket" class="light-btn" type="button">Close</button>
+            </div>
+
+            <div class="table-scroll">
+              <table class="rift-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Relic</th>
+                    <th>Relic Type</th>
+                    <th>Level / Owned</th>
+                    <th>Pedestal AFFCT</th>
+                    <th>Goal Effects</th>
+                    <th>Keep</th>
+                  </tr>
+                </thead>
+                <tbody id="bucket-detail-list"></tbody>
+              </table>
+            </div>
+
+            <div class="alternatives-block">
+              <h3>Next alternatives</h3>
+              <p>
+                These are not currently occupying one of the 16 slots. You can force
+                one into this bucket if you prefer it.
+              </p>
+              <div id="bucket-alternatives" class="alternative-list"></div>
             </div>
           </section>
         </section>
@@ -342,6 +184,6 @@
     </div>
 
     <script src="/snail-lab/app.js?v=5"></script>
-    <script src="time-rift-museum.js"></script>
+    <script src="time-rift-museum.js?v=2"></script>
   </body>
 </html>
