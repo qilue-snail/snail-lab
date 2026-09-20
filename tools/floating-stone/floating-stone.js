@@ -221,7 +221,7 @@ function drawBoard(root,layout){
   wrap.appendChild(svg);
   root.appendChild(wrap);
 }
-renderInputs();drawBoard(document.querySelector('#preview'));
+renderInputs();
 document.querySelector('#reset').onclick=()=>{setInputs(TYPES.map(()=>0));clearSolvedDisplay('');};
 
 const BOARD_AREA=boardCells.length;
@@ -407,7 +407,7 @@ document.querySelector('#solve').onclick=async()=>{let btn=document.querySelecto
   const done=document.createElement('button');
   done.type='button';
   done.className='board-done';
-  done.textContent='I did this board';
+  done.textContent='Complete Carving';
   done.addEventListener('click',()=>{
     const current=TYPES.map((t,i)=>clampQty(document.querySelector('#q'+i).value));
     const next=current.map((q,i)=>Math.max(0,q-sol.used[i]));
