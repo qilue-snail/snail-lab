@@ -10,25 +10,18 @@
   <body>
     <div class="app-shell">
       <div id="shared-sidebar"></div>
-
       <main class="tool-main floating-stone-main">
         <section class="floating-stone-shell">
           <header class="floating-stone-header">
             <p class="eyebrow">Floating Stone</p>
             <h1>Carving Solver</h1>
-            <p>
-              Rotation allowed • flipping forbidden • maximizes completed boards first
-            </p>
           </header>
-
           <section class="fs-card inventory-card">
             <div>
               <strong>Inventory</strong>
               <p class="fs-small">Enter the number of each piece you currently have.</p>
             </div>
-
             <div id="pieces" class="pieces"></div>
-
             <div class="actions">
               <button id="solve" class="primary fs-button" type="button">
                 Solve maximum boards
@@ -37,10 +30,8 @@
                 Reset inventory
               </button>
             </div>
-
             <div id="status" class="status" aria-live="polite"></div>
           </section>
-
           <div class="solver-layout">
             <div class="left-column">
               <section class="fs-card board-info">
@@ -48,7 +39,6 @@
                 <p class="fs-small">46-square carving grid.</p>
                 <div id="preview"></div>
               </section>
-
               <section id="leftoverCard" class="fs-card leftover-card" hidden>
                 <strong>Inventory left</strong>
                 <div id="leftoverPieces" class="pieces"></div>
@@ -63,10 +53,8 @@
                   Use leftovers as current inventory
                 </button>
               </section>
-
               <section id="reshapeCard" class="fs-card reshape-card" hidden>
                 <strong>Reshape Advisor</strong>
-
                 <div class="advisor-summary">
                   <div>
                     <span>Best timing</span>
@@ -85,25 +73,20 @@
                     <strong id="protectedSummary"></strong>
                   </div>
                 </div>
-
                 <div class="advisor-section">
                   <div class="advisor-heading">Best pieces to reshape</div>
                   <div id="reshapePriority" class="advisor-list"></div>
                 </div>
-
                 <div class="advisor-section">
                   <div class="advisor-heading">Record your reshape</div>
-
                   <label class="reshape-pick">
                     <span>Reshape</span>
                     <select id="reshapeSacrifice"></select>
                   </label>
-
                   <label class="reshape-pick">
                     <span>You got</span>
                     <select id="reshapeResult"></select>
                   </label>
-
                   <button
                     id="applyActualReshape"
                     class="secondary fs-button small-action"
@@ -111,7 +94,6 @@
                   >
                     Apply result
                   </button>
-
                   <div
                     id="reshapeActualResult"
                     class="reshape-result"
@@ -120,7 +102,6 @@
                 </div>
               </section>
             </div>
-
             <section id="out" class="output-wrap" hidden>
               <div id="summary" class="result-summary summary"></div>
               <div id="results" class="results"></div>
@@ -129,7 +110,6 @@
         </section>
       </main>
     </div>
-
     <script src="/snail-lab/app.js"></script>
     <script src="floating-stone.js"></script>
   </body>
