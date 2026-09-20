@@ -4,7 +4,7 @@ const SNAIL_LAB_BASE = "/snail-lab/";
 function snailLabPageKey() {
   const path = window.location.pathname;
   if (path.includes("/tools/biozilla/")) return "biozilla";
-  if (path.includes("/tools/apostle-analytics/")) return "apostle-analytics";
+  if (path.includes("/tools/floating-stone/")) return "floating-stone";
   if (path.includes("/tools/time-rift-museum/")) return "time-rift-museum";
   if (path.includes("/tools/garage/")) return "garage";
   return "home";
@@ -112,7 +112,7 @@ function fallbackSidebarHtml() {
       <nav class="nav" aria-label="Snail Lab tools">
         <a class="nav-link" data-page="home" href="${SNAIL_LAB_BASE}" title="Home">🏠 <span>Home</span></a>
         <a class="nav-link" data-page="biozilla" href="${SNAIL_LAB_BASE}tools/biozilla/" title="Biozilla">🦖 <span>Biozilla</span></a>
-        <a class="nav-link" data-page="apostle-analytics" href="${SNAIL_LAB_BASE}tools/apostle-analytics/" title="Apostle Analytics">📊 <span>Apostle Analytics</span></a>
+        <a class="nav-link" data-page="floating-stone" href="${SNAIL_LAB_BASE}tools/floating-stone/" title="Floating Stone Solver">🧩 <span>Floating Stone</span></a>
         <a class="nav-link" data-page="time-rift-museum" href="${SNAIL_LAB_BASE}tools/time-rift-museum/" title="Time Rift Museum">🏛️ <span>Time Rift Museum</span></a>
         <a class="nav-link" data-page="garage" href="${SNAIL_LAB_BASE}tools/garage/" title="Garage">🚗 <span>Garage</span></a>
       </nav>
