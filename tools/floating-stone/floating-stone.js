@@ -57,6 +57,7 @@ const STORAGE_KEY='snailLabFloatingStoneInventoryV1';
 function clampQty(value){
   return Math.max(0,Math.min(99,Math.floor(Number(value)||0)));
 }
+
 function loadSavedInventory(){
   try{
     const saved=JSON.parse(localStorage.getItem(STORAGE_KEY));
@@ -66,6 +67,7 @@ function loadSavedInventory(){
   }catch{}
   return TYPES.map(()=>0);
 }
+
 function saveInventory(){
   const saved={};
   TYPES.forEach((t,i)=>{
@@ -74,6 +76,7 @@ function saveInventory(){
   });
   localStorage.setItem(STORAGE_KEY,JSON.stringify(saved));
 }
+
 function renderInputs(){
   const root=document.querySelector('#pieces');
   const counts=loadSavedInventory();
@@ -81,13 +84,16 @@ function renderInputs(){
   TYPES.forEach((t,i)=>{
     const d=document.createElement('div');
     d.className='piece';
+
     const m=document.createElement('div');
     m.className='mini';
     drawMini(m,t.c,colors[i]);
+
     const right=document.createElement('div');
     const nm=document.createElement('div');
     nm.className='name';
     nm.textContent=`${t.name} (${t.area})`;
+
     const input=document.createElement('input');
     input.className='qty';
     input.id='q'+i;
@@ -101,11 +107,13 @@ function renderInputs(){
       saveInventory();
       clearSolvedDisplay('Inventory changed. Solve again.');
     });
+
     right.append(nm,input);
     d.append(m,right);
     root.append(d);
   });
 }
+
 function renderInventoryLike(root,counts,readonly=false){root.innerHTML='';TYPES.forEach((t,i)=>{let d=document.createElement('div');d.className='piece';let m=document.createElement('div');m.className='mini';drawMini(m,t.c,colors[i]);let right=document.createElement('div');let nm=document.createElement('div');nm.className='name';nm.textContent=`${t.name} (${t.area})`;let input=document.createElement('input');input.className='qty'+(readonly?' readonly':'');input.type='number';input.min='0';input.max='99';input.value=counts[i];if(readonly){input.readOnly=true;input.tabIndex=-1;input.setAttribute('aria-label',`${t.name} remaining`)}right.append(nm,input);d.append(m,right);root.append(d)})}
 function drawBoard(root,layout){
   root.innerHTML='';
@@ -123,6 +131,7 @@ function drawBoard(root,layout){
   if(layout){
     layout.forEach((p,k)=>p.inds.forEach(i=>labels.set(i,{k,ti:p.ti})));
   }
+
   // Solid fills, aligned to exact pixel coordinates.
   BOARD.forEach((row,y)=>row.forEach((v,x)=>{
     if(!v)return;
@@ -136,6 +145,7 @@ function drawBoard(root,layout){
     r.setAttribute('fill',z?colors[z.ti]:'#f9f8f4');
     svg.appendChild(r);
   }));
+
   // Canonical segment keys prevent any shared edge from being drawn twice.
   function segKey(x1,y1,x2,y2){
     if(x1>x2 || (x1===x2 && y1>y2)) [x1,y1,x2,y2]=[x2,y2,x1,y1];
@@ -376,4 +386,50 @@ function tileOne(avail,deadline){let used=Array(TYPES.length).fill(0),layout=[];
 // Global strategy: try k boards from the area upper bound down. For each k, repeatedly search boards while reserving enough area for the remainder; randomized scarcity weights diversify attempts. This is exact for each board and aggressively searches the global inventory.
 async function solveAll(inv){let total=inv.reduce((s,q,i)=>s+q*TYPES[i].area,0),upper=Math.floor(total/boardCells.length);let best=null;for(let k=upper;k>=1;k--){for(let attempt=0;attempt<90;attempt++){let rem=[...inv],boards=[],ok=true;for(let b=0;b<k;b++){let remainingBoards=k-b-1;let allowance=rem.map((q,i)=>{let reserve=Math.max(0,Math.ceil((remainingBoards/k)*inv[i]*(.55+Math.random()*.25)));return Math.max(0,q-reserve)}); // loosen if too little area
 let ar=allowance.reduce((s,q,i)=>s+q*TYPES[i].area,0);if(ar<boardCells.length)allowance=[...rem];let sol;try{sol=tileOne(allowance,performance.now()+250)}catch(e){sol=null}if(!sol){try{sol=tileOne(rem,performance.now()+500)}catch(e){sol=null}}if(!sol){ok=false;break}boards.push(sol);sol.used.forEach((u,i)=>rem[i]-=u)}if(ok){let pieces=boards.reduce((s,x)=>s+x.used.reduce((a,b)=>a+b,0),0);if(!best||k>best.k||(k===best.k&&pieces<best.pieces))best={k,boards,rem,pieces};if(best.k===upper && attempt>20)break}await new Promise(r=>setTimeout(r,0))}if(best&&best.k===k)return best}return best}
-document.querySelector('#solve').onclick=async()=>{let btn=document.querySelector('#solve'),st=document.querySelector('#status');btn.disabled=true;clearSolvedDisplay('Solving…');let inv=TYPES.map((t,i)=>Math.max(0,Math.floor(+document.querySelector('#q'+i).value||0)));let area=inv.reduce((s,q,i)=>s+q*TYPES[i].area,0);st.textContent=`Searching… ${area} total squares, theoretical maximum ${Math.floor(area/boardCells.length)} boards.`;let ans=await solveAll(inv);btn.disabled=false;if(!ans){st.textContent='No complete board found with this inventory.';return}st.textContent='Finished.';document.querySelector('#out').hidden=false;document.querySelector('#summary').textContent=`Maximum found: ${ans.k} complete board${ans.k===1?'':'s'} • ${ans.pieces} pieces used`;let rr=document.querySelector('#results');rr.innerHTML='';ans.boards.forEach((sol,bi)=>{let box=document.createElement('div');box.className='result';let left=document.createElement('div');left.innerHTML=`<div class="board-title">Board ${bi+1}</div>`;drawBoard(left,sol.layout);let leg=document.createElement('div');leg.className='legend';leg.innerHTML='<strong>Pieces</strong>';sol.used.forEach((u,i)=>{if(u){let d=document.createElement('div');d.textContent=`${u} × ${TYPES[i].name}`;leg.appendChild(d)}});box.append(left,leg);rr.appendChild(box)});renderInventoryLike(document.querySelector('#leftoverPieces'),ans.rem,true);document.querySelector('#leftoverCard').hidden=false;renderReshapeAdvisor(inv,ans)};
+document.querySelector('#solve').onclick=async()=>{let btn=document.querySelector('#solve'),st=document.querySelector('#status');btn.disabled=true;clearSolvedDisplay('Solving…');let inv=TYPES.map((t,i)=>Math.max(0,Math.floor(+document.querySelector('#q'+i).value||0)));let area=inv.reduce((s,q,i)=>s+q*TYPES[i].area,0);st.textContent=`Searching… ${area} total squares, theoretical maximum ${Math.floor(area/boardCells.length)} boards.`;let ans=await solveAll(inv);btn.disabled=false;if(!ans){st.textContent='No complete board found with this inventory.';return}st.textContent='Finished.';document.querySelector('#out').hidden=false;document.querySelector('#summary').textContent=`Maximum found: ${ans.k} complete board${ans.k===1?'':'s'} • ${ans.pieces} pieces used`;let rr=document.querySelector('#results');rr.innerHTML='';ans.boards.forEach((sol,bi)=>{
+  let box=document.createElement('div');
+  box.className='result';
+
+  let left=document.createElement('div');
+  left.innerHTML=`<div class="board-title">Board ${bi+1}</div>`;
+  drawBoard(left,sol.layout);
+
+  let leg=document.createElement('div');
+  leg.className='legend';
+
+  const pieceTotal=sol.used.reduce((a,b)=>a+b,0);
+  const head=document.createElement('div');
+  head.className='board-piece-head';
+
+  const title=document.createElement('strong');
+  title.textContent=`Pieces - ${pieceTotal}`;
+
+  const done=document.createElement('button');
+  done.type='button';
+  done.className='board-done';
+  done.textContent='I did this board';
+  done.addEventListener('click',()=>{
+    const current=TYPES.map((t,i)=>clampQty(document.querySelector('#q'+i).value));
+    const next=current.map((q,i)=>Math.max(0,q-sol.used[i]));
+    setInputs(next);
+    clearSolvedDisplay(`Board ${bi+1} completed. Inventory updated.`);
+    setTimeout(()=>document.querySelector('#solve').click(),0);
+  });
+
+  head.append(title,done);
+  leg.appendChild(head);
+
+  sol.used.forEach((u,i)=>{
+    if(u){
+      let d=document.createElement('div');
+      d.textContent=`${u} × ${TYPES[i].name}`;
+      leg.appendChild(d);
+    }
+  });
+
+  box.append(left,leg);
+  rr.appendChild(box);
+});
+renderInventoryLike(document.querySelector('#leftoverPieces'),ans.rem,true);
+document.querySelector('#leftoverCard').hidden=false;
+renderReshapeAdvisor(inv,ans)};

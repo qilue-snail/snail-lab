@@ -228,6 +228,40 @@
   margin: 1px 0;
 }
 
+
+.board-piece-head {
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.board-piece-head strong {
+  white-space: nowrap;
+}
+
+.board-done {
+  padding: 6px 9px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel-2);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.board-done:hover {
+  background: #ece6d8;
+}
+
+.board-done:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .leftover-note {
   margin-top: 7px;
 }
