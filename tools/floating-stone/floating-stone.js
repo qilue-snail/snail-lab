@@ -57,7 +57,6 @@ const STORAGE_KEY='snailLabFloatingStoneInventoryV1';
 function clampQty(value){
   return Math.max(0,Math.min(99,Math.floor(Number(value)||0)));
 }
-
 function loadSavedInventory(){
   try{
     const saved=JSON.parse(localStorage.getItem(STORAGE_KEY));
@@ -67,7 +66,6 @@ function loadSavedInventory(){
   }catch{}
   return TYPES.map(()=>0);
 }
-
 function saveInventory(){
   const saved={};
   TYPES.forEach((t,i)=>{
@@ -76,7 +74,6 @@ function saveInventory(){
   });
   localStorage.setItem(STORAGE_KEY,JSON.stringify(saved));
 }
-
 function renderInputs(){
   const root=document.querySelector('#pieces');
   const counts=loadSavedInventory();
@@ -84,16 +81,13 @@ function renderInputs(){
   TYPES.forEach((t,i)=>{
     const d=document.createElement('div');
     d.className='piece';
-
     const m=document.createElement('div');
     m.className='mini';
     drawMini(m,t.c,colors[i]);
-
     const right=document.createElement('div');
     const nm=document.createElement('div');
     nm.className='name';
     nm.textContent=`${t.name} (${t.area})`;
-
     const input=document.createElement('input');
     input.className='qty';
     input.id='q'+i;
@@ -107,13 +101,11 @@ function renderInputs(){
       saveInventory();
       clearSolvedDisplay('Inventory changed. Solve again.');
     });
-
     right.append(nm,input);
     d.append(m,right);
     root.append(d);
   });
 }
-
 function renderInventoryLike(root,counts,readonly=false){root.innerHTML='';TYPES.forEach((t,i)=>{let d=document.createElement('div');d.className='piece';let m=document.createElement('div');m.className='mini';drawMini(m,t.c,colors[i]);let right=document.createElement('div');let nm=document.createElement('div');nm.className='name';nm.textContent=`${t.name} (${t.area})`;let input=document.createElement('input');input.className='qty'+(readonly?' readonly':'');input.type='number';input.min='0';input.max='99';input.value=counts[i];if(readonly){input.readOnly=true;input.tabIndex=-1;input.setAttribute('aria-label',`${t.name} remaining`)}right.append(nm,input);d.append(m,right);root.append(d)})}
 function drawBoard(root,layout){
   root.innerHTML='';
@@ -131,7 +123,6 @@ function drawBoard(root,layout){
   if(layout){
     layout.forEach((p,k)=>p.inds.forEach(i=>labels.set(i,{k,ti:p.ti})));
   }
-
   // Solid fills, aligned to exact pixel coordinates.
   BOARD.forEach((row,y)=>row.forEach((v,x)=>{
     if(!v)return;
@@ -145,7 +136,6 @@ function drawBoard(root,layout){
     r.setAttribute('fill',z?colors[z.ti]:'#f9f8f4');
     svg.appendChild(r);
   }));
-
   // Canonical segment keys prevent any shared edge from being drawn twice.
   function segKey(x1,y1,x2,y2){
     if(x1>x2 || (x1===x2 && y1>y2)) [x1,y1,x2,y2]=[x2,y2,x1,y1];
@@ -211,7 +201,7 @@ function drawBoard(root,layout){
     const edgePath=document.createElementNS(NS,'path');
     edgePath.setAttribute('d',edgeD);
     edgePath.setAttribute('fill','none');
-    edgePath.setAttribute('stroke','var(--edge)');
+    edgePath.setAttribute('stroke','var(--fs-edge)');
     edgePath.setAttribute('stroke-width','2');
     edgePath.setAttribute('stroke-linejoin','miter');
     edgePath.setAttribute('stroke-linecap','butt');
