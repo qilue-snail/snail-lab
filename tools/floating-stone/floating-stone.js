@@ -53,6 +53,7 @@ TYPES.forEach((t,ti)=>{t.rots=rotations(t.c);t.area=t.c.length;t.placements=[];f
 const byCell=Array.from({length:boardCells.length},()=>[]);TYPES.forEach((t,ti)=>t.placements.forEach(p=>p.inds.forEach(i=>byCell[i].push(p))));
 function drawMini(el,c,color){let n=norm(c),w=Math.max(...n.map(p=>p[0]))+1,h=Math.max(...n.map(p=>p[1]))+1;el.style.gridTemplateColumns=`repeat(${w},13px)`;el.style.gridTemplateRows=`repeat(${h},13px)`;el.style.setProperty('--piece-color',color||'#89cfd8');let set=new Set(n.map(p=>p.join(',')));for(let y=0;y<h;y++)for(let x=0;x<w;x++){let d=document.createElement('span');d.className=set.has(x+','+y)?'sq':'sq empty';el.appendChild(d)}}
 const STORAGE_KEY='snailLabFloatingStoneInventoryV1';
+const MODE_KEY='snailLabFloatingStoneModeV1';
 
 function clampQty(value){
   return Math.max(0,Math.min(99,Math.floor(Number(value)||0)));
@@ -222,6 +223,27 @@ function drawBoard(root,layout){
   root.appendChild(wrap);
 }
 renderInputs();
+
+const solveMode=document.querySelector('#solveMode');
+try{
+  const savedMode=localStorage.getItem(MODE_KEY);
+  if(savedMode==='efficiency' || savedMode==='max') solveMode.value=savedMode;
+}catch{}
+
+function updateSolveModeUI(){
+  const efficiency=solveMode.value==='efficiency';
+  document.querySelector('#solve').textContent=
+    efficiency ? 'Solve fewest pieces' : 'Solve maximum boards';
+}
+
+solveMode.addEventListener('change',()=>{
+  try{localStorage.setItem(MODE_KEY,solveMode.value);}catch{}
+  updateSolveModeUI();
+  clearSolvedDisplay('Mode changed. Solve again.');
+});
+
+updateSolveModeUI();
+
 document.querySelector('#reset').onclick=()=>{setInputs(TYPES.map(()=>0));clearSolvedDisplay('');};
 
 const BOARD_AREA=boardCells.length;
@@ -383,10 +405,187 @@ function firstEmpty(mask){for(let i=0;i<boardCells.length;i++)if(!(mask&(1n<<Big
 const FULL=(1n<<BigInt(boardCells.length))-1n;
 // Finds one tiling under a per-type allowance. Larger pieces are tried first to minimize piece count.
 function tileOne(avail,deadline){let used=Array(TYPES.length).fill(0),layout=[];function dfs(mask){if(performance.now()>deadline)throw new Error('timeout');if(mask===FULL)return true;let cell=firstEmpty(mask);let cand=byCell[cell].filter(p=>used[p.ti]<avail[p.ti] && !(p.mask&mask));cand.sort((a,b)=>TYPES[b.ti].area-TYPES[a.ti].area || (avail[b.ti]-used[b.ti])-(avail[a.ti]-used[a.ti]));for(const p of cand){used[p.ti]++;layout.push(p);if(dfs(mask|p.mask))return true;layout.pop();used[p.ti]--}return false}return dfs(0n)?{used:[...used],layout:[...layout]}:null}
+
+// Efficiency mode: find one complete board using as few physical pieces as possible.
+// It starts with a valid tiling, then uses branch-and-bound to search for a smaller one.
+function solveEfficientBoard(avail,deadline){
+  let best=null;
+  let bestCount=Infinity;
+
+  // A quick valid solution gives branch-and-bound an immediate upper limit.
+  try{
+    const first=tileOne(avail,Math.min(deadline,performance.now()+350));
+    if(first){
+      best=first;
+      bestCount=first.used.reduce((a,b)=>a+b,0);
+    }
+  }catch{}
+
+  const theoreticalMin=Math.ceil(BOARD_AREA/MAX_PIECE_AREA);
+  if(bestCount===theoreticalMin) return best;
+
+  const used=Array(TYPES.length).fill(0);
+  const layout=[];
+
+  function minPiecesForArea(areaNeeded){
+    if(areaNeeded<=0) return 0;
+    const areas=[];
+    for(let i=0;i<TYPES.length;i++){
+      const left=avail[i]-used[i];
+      for(let n=0;n<left;n++) areas.push(TYPES[i].area);
+    }
+    areas.sort((a,b)=>b-a);
+
+    let area=0;
+    for(let i=0;i<areas.length;i++){
+      area+=areas[i];
+      if(area>=areaNeeded) return i+1;
+    }
+    return Infinity;
+  }
+
+  function chooseCell(mask){
+    let bestCell=-1;
+    let bestCandidates=null;
+
+    for(let i=0;i<boardCells.length;i++){
+      if(mask&(1n<<BigInt(i))) continue;
+
+      const cand=byCell[i].filter(
+        p=>used[p.ti]<avail[p.ti] && !(p.mask&mask)
+      );
+
+      if(cand.length===0) return {cell:i,cand:[]};
+
+      if(bestCandidates===null || cand.length<bestCandidates.length){
+        bestCell=i;
+        bestCandidates=cand;
+        if(cand.length===1) break;
+      }
+    }
+
+    return {cell:bestCell,cand:bestCandidates||[]};
+  }
+
+  function dfs(mask,filled){
+    if(performance.now()>deadline) throw new Error('timeout');
+
+    if(mask===FULL){
+      const count=layout.length;
+      if(count<bestCount){
+        bestCount=count;
+        best={used:[...used],layout:[...layout]};
+      }
+      return bestCount===theoreticalMin;
+    }
+
+    const remaining=BOARD_AREA-filled;
+    const lower=minPiecesForArea(remaining);
+
+    if(lower===Infinity) return false;
+    if(layout.length+lower>=bestCount) return false;
+
+    const choice=chooseCell(mask);
+    if(choice.cand.length===0) return false;
+
+    choice.cand.sort((a,b)=>
+      TYPES[b.ti].area-TYPES[a.ti].area ||
+      (avail[a.ti]-used[a.ti])-(avail[b.ti]-used[b.ti]) ||
+      TYPES[a.ti].placements.length-TYPES[b.ti].placements.length
+    );
+
+    for(const p of choice.cand){
+      used[p.ti]++;
+      layout.push(p);
+
+      const foundMinimum=dfs(
+        mask|p.mask,
+        filled+TYPES[p.ti].area
+      );
+
+      layout.pop();
+      used[p.ti]--;
+
+      if(foundMinimum) return true;
+    }
+
+    return false;
+  }
+
+  try{dfs(0n,0);}catch(e){
+    if(e.message!=='timeout') throw e;
+  }
+
+  return best;
+}
+
+async function solveEfficiency(inv){
+  let sol=null;
+
+  // A little more search time is worthwhile here because piece count is the goal.
+  try{
+    sol=solveEfficientBoard(inv,performance.now()+2200);
+  }catch(e){
+    sol=null;
+  }
+
+  if(!sol) return null;
+
+  const rem=inv.map((q,i)=>q-sol.used[i]);
+  const pieces=sol.used.reduce((a,b)=>a+b,0);
+
+  return {
+    k:1,
+    boards:[sol],
+    rem,
+    pieces,
+    mode:'efficiency'
+  };
+}
+
 // Global strategy: try k boards from the area upper bound down. For each k, repeatedly search boards while reserving enough area for the remainder; randomized scarcity weights diversify attempts. This is exact for each board and aggressively searches the global inventory.
 async function solveAll(inv){let total=inv.reduce((s,q,i)=>s+q*TYPES[i].area,0),upper=Math.floor(total/boardCells.length);let best=null;for(let k=upper;k>=1;k--){for(let attempt=0;attempt<90;attempt++){let rem=[...inv],boards=[],ok=true;for(let b=0;b<k;b++){let remainingBoards=k-b-1;let allowance=rem.map((q,i)=>{let reserve=Math.max(0,Math.ceil((remainingBoards/k)*inv[i]*(.55+Math.random()*.25)));return Math.max(0,q-reserve)}); // loosen if too little area
 let ar=allowance.reduce((s,q,i)=>s+q*TYPES[i].area,0);if(ar<boardCells.length)allowance=[...rem];let sol;try{sol=tileOne(allowance,performance.now()+250)}catch(e){sol=null}if(!sol){try{sol=tileOne(rem,performance.now()+500)}catch(e){sol=null}}if(!sol){ok=false;break}boards.push(sol);sol.used.forEach((u,i)=>rem[i]-=u)}if(ok){let pieces=boards.reduce((s,x)=>s+x.used.reduce((a,b)=>a+b,0),0);if(!best||k>best.k||(k===best.k&&pieces<best.pieces))best={k,boards,rem,pieces};if(best.k===upper && attempt>20)break}await new Promise(r=>setTimeout(r,0))}if(best&&best.k===k)return best}return best}
-document.querySelector('#solve').onclick=async()=>{let btn=document.querySelector('#solve'),st=document.querySelector('#status');btn.disabled=true;clearSolvedDisplay('Solving…');let inv=TYPES.map((t,i)=>Math.max(0,Math.floor(+document.querySelector('#q'+i).value||0)));let area=inv.reduce((s,q,i)=>s+q*TYPES[i].area,0);st.textContent=`Searching… ${area} total squares, theoretical maximum ${Math.floor(area/boardCells.length)} boards.`;let ans=await solveAll(inv);btn.disabled=false;if(!ans){st.textContent='No complete board found with this inventory.';return}st.textContent='Finished.';document.querySelector('#out').hidden=false;document.querySelector('#summary').textContent=`Maximum found: ${ans.k} complete board${ans.k===1?'':'s'} • ${ans.pieces} pieces used`;let rr=document.querySelector('#results');rr.innerHTML='';ans.boards.forEach((sol,bi)=>{
+document.querySelector('#solve').onclick=async()=>{
+  let btn=document.querySelector('#solve'),
+      st=document.querySelector('#status');
+
+  btn.disabled=true;
+  clearSolvedDisplay('Solving…');
+
+  let inv=TYPES.map((t,i)=>clampQty(document.querySelector('#q'+i).value));
+  let area=inv.reduce((s,q,i)=>s+q*TYPES[i].area,0);
+  const mode=solveMode.value;
+
+  if(mode==='efficiency'){
+    st.textContent='Searching for a complete board using the fewest pieces…';
+  }else{
+    st.textContent=`Searching… ${area} total squares, theoretical maximum ${Math.floor(area/boardCells.length)} boards.`;
+  }
+
+  let ans=mode==='efficiency'
+    ? await solveEfficiency(inv)
+    : await solveAll(inv);
+
+  btn.disabled=false;
+
+  if(!ans){
+    st.textContent='No complete board found with this inventory.';
+    return;
+  }
+
+  st.textContent='Finished.';
+  document.querySelector('#out').hidden=false;
+
+  document.querySelector('#summary').textContent=
+    mode==='efficiency'
+      ? `Best efficiency found: ${ans.pieces} pieces used`
+      : `Maximum found: ${ans.k} complete board${ans.k===1?'':'s'} • ${ans.pieces} pieces used`;
+
+  let rr=document.querySelector('#results');
+  rr.innerHTML='';
+
+  ans.boards.forEach((sol,bi)=>{
   let box=document.createElement('div');
   box.className='result';
 

@@ -26,13 +26,23 @@
 
             <div id="pieces" class="pieces"></div>
 
-            <div class="actions">
-              <button id="solve" class="primary fs-button" type="button">
-                Solve maximum boards
-              </button>
-              <button id="reset" class="secondary fs-button" type="button">
-                Reset inventory
-              </button>
+            <div class="solve-toolbar">
+              <label class="mode-control">
+                <span>Mode</span>
+                <select id="solveMode">
+                  <option value="max">Max Boards</option>
+                  <option value="efficiency">Efficiency — Fewest Pieces</option>
+                </select>
+              </label>
+
+              <div class="actions">
+                <button id="solve" class="primary fs-button" type="button">
+                  Solve maximum boards
+                </button>
+                <button id="reset" class="secondary fs-button" type="button">
+                  Reset inventory
+                </button>
+              </div>
             </div>
 
             <div id="status" class="status" aria-live="polite"></div>
