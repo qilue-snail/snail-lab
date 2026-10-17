@@ -233,7 +233,7 @@ try{
 function updateSolveModeUI(){
   const efficiency=solveMode.value==='efficiency';
   document.querySelector('#solve').textContent=
-    efficiency ? 'Solve fewest pieces' : 'Solve maximum boards';
+    efficiency ? 'Solve efficient boards' : 'Solve maximum boards';
 }
 
 solveMode.addEventListener('change',()=>{
@@ -520,25 +520,50 @@ function solveEfficientBoard(avail,deadline){
 }
 
 async function solveEfficiency(inv){
-  let sol=null;
+  let rem=[...inv];
+  let boards=[];
+  let totalPieces=0;
+  let totalArea=rem.reduce((s,q,i)=>s+q*TYPES[i].area,0);
+  const maxPossible=Math.floor(totalArea/BOARD_AREA);
 
-  // A little more search time is worthwhile here because piece count is the goal.
-  try{
-    sol=solveEfficientBoard(inv,performance.now()+2200);
-  }catch(e){
-    sol=null;
+  // Build an efficiency plan one board at a time.
+  // Each step searches for the fewest-piece board possible from the
+  // inventory remaining after the previous planned board.
+  for(let b=0;b<maxPossible;b++){
+    const areaLeft=rem.reduce((s,q,i)=>s+q*TYPES[i].area,0);
+    if(areaLeft<BOARD_AREA) break;
+
+    let sol=null;
+
+    try{
+      // The first board gets a little more search time because it is the
+      // board the player is most likely to carve first.
+      const budget=b===0 ? 2200 : 1400;
+      sol=solveEfficientBoard(rem,performance.now()+budget);
+    }catch(e){
+      sol=null;
+    }
+
+    if(!sol) break;
+
+    const pieceCount=sol.used.reduce((a,b)=>a+b,0);
+    boards.push(sol);
+    totalPieces+=pieceCount;
+    sol.used.forEach((u,i)=>rem[i]-=u);
+
+    // Let the browser update between boards so a larger inventory does not
+    // lock the page for the entire multi-board search.
+    await new Promise(r=>setTimeout(r,0));
   }
 
-  if(!sol) return null;
-
-  const rem=inv.map((q,i)=>q-sol.used[i]);
-  const pieces=sol.used.reduce((a,b)=>a+b,0);
+  if(!boards.length) return null;
 
   return {
-    k:1,
-    boards:[sol],
+    k:boards.length,
+    boards,
     rem,
-    pieces,
+    pieces:totalPieces,
+    averagePieces:totalPieces/boards.length,
     mode:'efficiency'
   };
 }
@@ -558,7 +583,7 @@ document.querySelector('#solve').onclick=async()=>{
   const mode=solveMode.value;
 
   if(mode==='efficiency'){
-    st.textContent='Searching for a complete board using the fewest pieces…';
+    st.textContent='Finding the fewest-piece board, then repeating with the remaining inventory…';
   }else{
     st.textContent=`Searching… ${area} total squares, theoretical maximum ${Math.floor(area/boardCells.length)} boards.`;
   }
@@ -579,7 +604,7 @@ document.querySelector('#solve').onclick=async()=>{
 
   document.querySelector('#summary').textContent=
     mode==='efficiency'
-      ? `Best efficiency found: ${ans.pieces} pieces used`
+      ? `Efficiency plan: ${ans.k} complete board${ans.k===1?'':'s'} • ${ans.pieces} pieces used • ${ans.averagePieces.toFixed(1)} avg pieces/board`
       : `Maximum found: ${ans.k} complete board${ans.k===1?'':'s'} • ${ans.pieces} pieces used`;
 
   let rr=document.querySelector('#results');
